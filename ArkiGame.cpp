@@ -873,79 +873,110 @@ void ArkiGame::ProcessEditorInput(double dt)
 
 
     }
-    // Zoom in/out
-    m_pCamEditor->Zoom(scrollAmount * 2.0f); // Multiplier for speed
-    // Additional input processing (e.g., GUI) can go here
-
-    // Check Left Mouse Button Click
-    bool isPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
-    // Get Mouse Position (Windows API)
-    GetCursorPos(&p);
-    ScreenToClient(d3d9->GetHWND(), &p); // Convert to window local coordinates
-    btVector3 hitPoint;
-    btRigidBody* hitBody = nullptr;
-
-    if (RaycastFromMouse(p.x, p.y, hitPoint, hitBody))
+    else
     {
-        // 3. Convert to Bullet Vectors
-        btVector3 rayFrom(vNear.x, vNear.y, vNear.z);
-        btVector3 rayTo(vFar.x, vFar.y, vFar.z);
+        // Additional input processing (e.g., GUI) can go here
+        // Check Left Mouse Button Click
+        bool isPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+        // Get Mouse Position (Windows API)
+        GetCursorPos(&p);
+        ScreenToClient(d3d9->GetHWND(), &p); // Convert to window local coordinates
+        btVector3 hitPoint;
+        btRigidBody* hitBody = nullptr;
+        bool raycastHit = RaycastFromMouse(p.x, p.y, hitPoint, hitBody);
 
-        //if (isPressed && !wasPressed)
-        //{
+            // 3. Convert to Bullet Vectors
+            btVector3 rayFrom(vNear.x, vNear.y, vNear.z);
+            btVector3 rayTo(vFar.x, vFar.y, vFar.z);
 
-        if (isPressed) {
-            // 2. Check Gizmo First
-            //if (g_gizmo && g_selected)
+            //if (isPressed && !wasPressed)
             //{
-            //    g_gizmo->OnMouseDown(D3DXVECTOR3(rayFrom.x(), rayFrom.y(), rayFrom.z()), D3DXVECTOR3(rayTo.x(), rayTo.y(), rayTo.z()));
-            //    if (g_gizmo->IsActive()) return; // We are dragging the gizmo, don't select new object
-            //}
-            if (g_selected) g_selected->m_isSelected = false; // Deselect old
-			//_print(L"Clicked at: X=%.2f Y=%.2f Z=%.2f\n", hitPoint.x(), hitPoint.y(), hitPoint.z());
-			_print(L"Hit Body: %p\n", hitBody);
-            // Search logic (In real engine, store CGameObject* in UserPointer of btRigidBody)
-            for (auto obj : m_sceneObjects)
+            if (g_gizmo)
             {
-                if (obj->m_rigidBody == hitBody)
+                // STATE MACHINE LOGIC
+                if (g_gizmo->IsActive())
                 {
-                    g_selected = obj;
-                    g_selected->m_isSelected = true;
-                    g_gizmo->SetTarget(g_selected);
-                    break;
+                    // State A: User is holding the mouse down and moving an axis
+                    g_gizmo->UpdateDrag(vNear, rayDir);
+                    _print(L"Draggggggg\n");
+                }
+                else
+                {
+                    // State B: User is just moving mouse around
+                    // Check if we are hovering over an arrow (to highlight it yellow)
+                    g_gizmo->UpdateHover(vNear, rayDir);
                 }
             }
-        }
-        //    if (hitBody && hitBody->getUserPointer())
-        //    {
-        //        PhysicsData* data = (PhysicsData*)hitBody->getUserPointer();
 
-        //        // --- INTERACTION LOGIC ---
-        //        if (data->type == TYPE_BLOCK)
-        //        {
-        //            _print(L"Clicked on a BLOCK!\n");
-        //            // Example: Destroy block on click (Editor Mode?)
-        //            CArkiBlock* block = (CArkiBlock*)data->pObject;
-        //           // block->m_pendingDestruction = true;
-        //        }
-        //        else if (data->type == TYPE_PLAYER)
-        //        {
-        //            _print(L"Clicked on PLAYER!\n");
-        //        }
-        //    }
-        //    else
-        //    {
-        //        // Clicked void, deselect
-        //        if (g_selected) g_selected->m_isSelected = false;
-        //        g_selected = NULL;
-        //        g_gizmo->SetTarget(NULL);
-        //    }
-        //}
+            if (isPressed && !wasPressed) 
+            {
+                if (raycastHit) 
+                {
+                    if (g_selected) g_selected->m_isSelected = false; // Deselect old
+                    //_print(L"Clicked at: X=%.2f Y=%.2f Z=%.2f\n", hitPoint.x(), hitPoint.y(), hitPoint.z());
+                    _print(L"Hit Body: %p\n", hitBody);
+                    // Search logic (In real engine, store CGameObject* in UserPointer of btRigidBody)
+                    for (auto obj : m_sceneObjects)
+                    {
+                        if (obj->m_rigidBody == hitBody)
+                        {
+                            g_selected = obj;
+                            g_selected->m_isSelected = true;
+                            g_gizmo->SetTarget(g_selected);
+                            g_gizmo->OnMouseDown(vNear, rayDir);
+
+                            break;
+                        }
+                    }
+
+                }
+                else
+                {
+                    // Clicked void, deselect
+                    if (g_selected) g_selected->m_isSelected = false;
+                    g_selected = NULL;
+                    g_gizmo->SetTarget(NULL);
+                }
+                // 2. Check Gizmo First
+                //if (g_gizmo && g_selected)
+                //{
+                //    g_gizmo->OnMouseDown(D3DXVECTOR3(rayFrom.x(), rayFrom.y(), rayFrom.z()), D3DXVECTOR3(rayTo.x(), rayTo.y(), rayTo.z()));
+                //    if (g_gizmo->IsActive()) return; // We are dragging the gizmo, don't select new object
+                //}
+            }
+			if (wasPressed && !isPressed)
+            {
+                // Mouse Released
+                if (g_gizmo && g_gizmo->IsActive())
+                {
+                    g_gizmo->OnMouseUp();
+                }
+            }
+            //    if (hitBody && hitBody->getUserPointer())
+            //    {
+            //        PhysicsData* data = (PhysicsData*)hitBody->getUserPointer();
+
+            //        // --- INTERACTION LOGIC ---
+            //        if (data->type == TYPE_BLOCK)
+            //        {
+            //            _print(L"Clicked on a BLOCK!\n");
+            //            // Example: Destroy block on click (Editor Mode?)
+            //            CArkiBlock* block = (CArkiBlock*)data->pObject;
+            //           // block->m_pendingDestruction = true;
+            //        }
+            //        else if (data->type == TYPE_PLAYER)
+            //        {
+            //            _print(L"Clicked on PLAYER!\n");
+            //        }
+                
+            
+            
         
+        wasPressed = isPressed;
+
     }
-    wasPressed = isPressed;
-
-
+    // Zoom in/out
+    m_pCamEditor->Zoom(scrollAmount * 2.0f); // Multiplier for speed
 
 }
 
@@ -1129,7 +1160,9 @@ bool ArkiGame::RaycastFromMouse(int mouseX, int mouseY, btVector3& outHitPoint, 
     // 3. Convert to Bullet Vectors
     btVector3 rayFrom(vNear.x, vNear.y, vNear.z);
     btVector3 rayTo(vFar.x, vFar.y, vFar.z);
-
+    // Direction = Destination - Source
+    rayDir = vFar - vNear;
+    D3DXVec3Normalize(&rayDir, &rayDir);
     // 4. Perform Ray Test in Bullet Physics
     btCollisionWorld::ClosestRayResultCallback rayCallback(rayFrom, rayTo);
     g_dynamicsWorld->rayTest(rayFrom, rayTo, rayCallback);

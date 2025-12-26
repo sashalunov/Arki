@@ -105,7 +105,7 @@ private:
     CSpriteBatch* m_sbatch;
     // ... Texture loading ...
     IDirect3DTexture9* m_radialTex;
-    D3DXVECTOR3 vNear, vFar;
+    D3DXVECTOR3 vNear, vFar, rayDir;
 
 public:
     ArkiGame();

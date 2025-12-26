@@ -22,13 +22,16 @@ private:
     // Helper to store the offset between object center and mouse click
     // This prevents the object's center from "popping" to the mouse cursor instantly.
     btVector3 m_dragOffset;
+    btVector3 m_startDragPos; // NEW: Stores object position at start of drag
 
 public:
     CGizmo(IDirect3DDevice9* device) : m_pTarget(NULL), m_activeAxis(AXIS_NONE), m_hoverAxis(AXIS_NONE)
     {
+        m_snapEnabled = false;
+		m_snapSize = 1.0f;
         m_gizmoSize = 3.0f;
         // Create a cylinder to represent arrows
-        D3DXCreateCylinder(device, 0.05f, 0.05f, m_gizmoSize, 8, 1, &m_pArrowMesh, NULL);
+        D3DXCreateCylinder(device, 0.25f, 0.05f, m_gizmoSize, 8, 1, &m_pArrowMesh, NULL);
     }
 
     void SetTarget(CRigidBody* obj) { m_pTarget = obj; }
@@ -53,18 +56,27 @@ public:
         btVector3 pos = m_pTarget->GetPosition();
         D3DXVECTOR3 center(pos.x(), pos.y(), pos.z());
 
-        // Check each axis (Simplified cylinder/line distance check)
-        // Note: In production, check X, Y, Z and pick the CLOSEST one.
+        // 1. Calculate Distances
+        // Pass normalized axis vectors!
         float distX = RayAxisDist(rayOrigin, rayDir, center, D3DXVECTOR3(1, 0, 0));
         float distY = RayAxisDist(rayOrigin, rayDir, center, D3DXVECTOR3(0, 1, 0));
         float distZ = RayAxisDist(rayOrigin, rayDir, center, D3DXVECTOR3(0, 0, 1));
 
-        float limit = 0.2f; // Selection radius
-        if (distX < limit) m_hoverAxis = AXIS_X;
-        else if (distY < limit) m_hoverAxis = AXIS_Y;
-        else if (distZ < limit) m_hoverAxis = AXIS_Z;
-    }
+        // 2. Adjust Pick Radius
+        // Use a value closer to the visual thickness of the arrow (plus some margin)
+        // Arrow radius is 0.05f. Let's give it 0.2f margin.
+        float pickRadius = 0.25f;
 
+        // 3. Find Best Candidate
+        float closestDist = pickRadius;
+        EGizmoAxis bestAxis = AXIS_NONE;
+
+        if (distX < closestDist) { closestDist = distX; bestAxis = AXIS_X; }
+        if (distY < closestDist) { closestDist = distY; bestAxis = AXIS_Y; }
+        if (distZ < closestDist) { closestDist = distZ; bestAxis = AXIS_Z; }
+
+        m_hoverAxis = bestAxis;
+    }
     // 2. Begin Dragging
     void OnMouseDown(const D3DXVECTOR3& rayOrigin, const D3DXVECTOR3& rayDir)
     {
@@ -72,13 +84,22 @@ public:
 
         if (m_pTarget && m_activeAxis != AXIS_NONE)
         {
-            // Calculate initial offset so object doesn't jump
-            btVector3 objPos = m_pTarget->GetPosition();
-            D3DXVECTOR3 axisDir = GetAxisVector(m_activeAxis);
-            D3DXVECTOR3 hitPoint = GetPointOnAxis(rayOrigin, rayDir, D3DXVECTOR3(objPos.x(), objPos.y(), objPos.z()), axisDir);
+            // 1. Capture the Starting Position (Static Reference)
+            m_startDragPos = m_pTarget->GetPosition();
 
-            // Store offset: ObjectPosition - HitPoint
-            m_dragOffset = objPos - btVector3(hitPoint.x, hitPoint.y, hitPoint.z);
+            // Calculate initial offset so object doesn't jump
+            //btVector3 objPos = m_pTarget->GetPosition();
+            D3DXVECTOR3 axisDir = GetAxisVector(m_activeAxis);
+
+
+            // Use startDragPos as the origin for the axis line
+            D3DXVECTOR3 startOrigin(m_startDragPos.x(), m_startDragPos.y(), m_startDragPos.z());
+
+
+            D3DXVECTOR3 hitPoint = GetPointOnAxis(rayOrigin, rayDir, startOrigin, axisDir);
+            // Calculate offset: Center - HitPoint
+            // This ensures if you click the tip of the arrow, the object doesn't snap to center.
+            m_dragOffset = m_startDragPos - btVector3(hitPoint.x, hitPoint.y, hitPoint.z);
         }
     }
 
@@ -93,7 +114,9 @@ public:
 
         btVector3 currentPos = m_pTarget->GetPosition();
         D3DXVECTOR3 axisDir = GetAxisVector(m_activeAxis);
-        D3DXVECTOR3 origin(currentPos.x(), currentPos.y(), currentPos.z());
+
+        // Use the STATIC start position, not the moving current position
+        D3DXVECTOR3 origin(m_startDragPos.x(), m_startDragPos.y(), m_startDragPos.z());
 
         // 1. Find where mouse is on the axis
         // We project the mouse ray onto the infinite line defined by the axis
@@ -109,20 +132,19 @@ public:
         btVector3 newPos(hitPoint.x, hitPoint.y, hitPoint.z);
         newPos += m_dragOffset;
 
-        // 3. Constrain to Axis (Only update the active component)
-        // The math above might return a point slightly off-axis due to precision.
-        // We rigidly force the other axes to stay the same.
+        // 3. Constrain to Axis using STARTING position
+      // This prevents the object from drifting on other axes
         if (m_activeAxis == AXIS_X) {
-            newPos.setY(currentPos.y());
-            newPos.setZ(currentPos.z());
+            newPos.setY(m_startDragPos.y());
+            newPos.setZ(m_startDragPos.z());
         }
         else if (m_activeAxis == AXIS_Y) {
-            newPos.setX(currentPos.x());
-            newPos.setZ(currentPos.z());
+            newPos.setX(m_startDragPos.x());
+            newPos.setZ(m_startDragPos.z());
         }
         else if (m_activeAxis == AXIS_Z) {
-            newPos.setX(currentPos.x());
-            newPos.setY(currentPos.y());
+            newPos.setX(m_startDragPos.x());
+            newPos.setY(m_startDragPos.y());
         }
 
         // 4. APPLY SNAPPING
@@ -166,7 +188,7 @@ public:
 
 
         // Draw X Axis (Red)
-        D3DXMatrixRotationY(&r, -D3DX_PI / 2.0f); // Rotate cylinder to point X
+        D3DXMatrixRotationY(&r, D3DX_PI / 2.0f); // Rotate cylinder to point X
         D3DXMatrixTranslation(&t, pos.x() + m_gizmoSize*0.5f, pos.y(), pos.z()); // Offset so it starts at center
         world = r * t;
         device->SetTransform(D3DTS_WORLD, &world);
@@ -236,36 +258,85 @@ private:
         return D3DXVECTOR3(0, 0, 0);
     }
     // Helper: Distance between two lines (Ray and Axis)
-    float RayAxisDist(D3DXVECTOR3 rO, D3DXVECTOR3 rD, D3DXVECTOR3 axisO, D3DXVECTOR3 axisD) {
-        // Cross product logic to find distance between skew lines
+    float RayAxisDist(D3DXVECTOR3 rO, D3DXVECTOR3 rD, D3DXVECTOR3 axisO, D3DXVECTOR3 axisD)
+    {
         D3DXVECTOR3 w0 = rO - axisO;
-        float a = D3DXVec3Dot(&rD, &rD);
+        float a = D3DXVec3Dot(&rD, &rD);       // always 1.0 if normalized
         float b = D3DXVec3Dot(&rD, &axisD);
-        float c = D3DXVec3Dot(&axisD, &axisD);
+        float c = D3DXVec3Dot(&axisD, &axisD); // always 1.0 if normalized
         float d = D3DXVec3Dot(&rD, &w0);
         float e = D3DXVec3Dot(&axisD, &w0);
-        float sc = (b * e - c * d) / (a * c - b * b);
-        D3DXVECTOR3 Pt = rO + rD * sc; // Closest point on Ray
-        // Now project Pt onto axis line to check if it's within the arrow length (0 to 1.0)
-        D3DXVECTOR3 v = Pt - axisO;
-        float t = D3DXVec3Dot(&v, &axisD);
-        if (t < 0.0f || t > 1.0f) return 10000.0f; // Too far along axis
 
-        D3DXVECTOR3 Paxis = axisO + axisD * t;
-        return D3DXVec3Length(&(Pt - Paxis));
+        float det = a * c - b * b;
+        float sc, tc;
+
+        // Parallel check
+        if (det < 0.000001f)
+        {
+            sc = 0.0f;
+            tc = (b > c ? d / b : e / c); // fallback
+        }
+        else
+        {
+            sc = (b * e - c * d) / det;
+            tc = (a * e - b * d) / det;
+        }
+
+        // 'tc' is the distance along the Axis.
+        // We MUST clamp 'tc' to the physical length of the arrow (0 to gizmoSize)
+        // BEFORE calculating the distance.
+        float tClamped = tc;
+        if (tClamped < 0.0f) tClamped = 0.0f;
+        if (tClamped > m_gizmoSize) tClamped = m_gizmoSize;
+
+        // Calculate points
+        D3DXVECTOR3 P_ray = rO + rD * sc;          // Point on Ray
+        D3DXVECTOR3 P_axis = axisO + axisD * tClamped; // Point on Axis Segment
+
+        // Return distance between the Ray point and the *Clamped* Axis point
+        return D3DXVec3Length(&(P_ray - P_axis));
+    }
+    D3DXVECTOR3 GetPointOnAxis(D3DXVECTOR3 rO, D3DXVECTOR3 rD, D3DXVECTOR3 axisO, D3DXVECTOR3 axisD)
+    {
+        // 1. Compute a Plane Normal that contains the Axis and faces the Ray
+        // A plane containing the Axis has a normal perpendicular to the Axis.
+        // To make it face the camera, we cross the Axis with the result of (Ray x Axis).
+
+        D3DXVECTOR3 planeTangent;
+        D3DXVec3Cross(&planeTangent, &rD, &axisD);
+
+        // If Ray and Axis are parallel, this length is 0. Handle fallback.
+        if (D3DXVec3LengthSq(&planeTangent) < 0.001f) {
+            return axisO;
+        }
+
+        D3DXVECTOR3 planeNormal;
+        D3DXVec3Cross(&planeNormal, &axisD, &planeTangent);
+        D3DXVec3Normalize(&planeNormal, &planeNormal);
+
+        // 2. Intersect Ray with Plane
+        // Ray: P = rO + t * rD
+        // Plane: (P - axisO) . planeNormal = 0
+        // t = ((axisO - rO) . planeNormal) / (rD . planeNormal)
+
+        float denom = D3DXVec3Dot(&rD, &planeNormal);
+
+        // Avoid division by zero (grazing angle)
+        if (fabs(denom) < 0.0001f) return axisO;
+
+        D3DXVECTOR3 diff = axisO - rO;
+        float t = D3DXVec3Dot(&diff, &planeNormal) / denom;
+
+        // 3. Calculate Hit Point
+        D3DXVECTOR3 hitPoint = rO + rD * t;
+
+        // 4. Project Hit Point onto Axis (Clean up floating point noise)
+        // We strictly want a point ON the axis line.
+        D3DXVECTOR3 hitVector = hitPoint - axisO;
+        float scalarOnAxis = D3DXVec3Dot(&hitVector, &axisD);
+
+        return axisO + axisD * scalarOnAxis;
     }
 
-    D3DXVECTOR3 GetPointOnAxis(D3DXVECTOR3 rO, D3DXVECTOR3 rD, D3DXVECTOR3 axisO, D3DXVECTOR3 axisD) {
-        // Similar math to above, finding the point on the axis closest to the mouse ray
-        D3DXVECTOR3 w0 = rO - axisO;
-        float b = D3DXVec3Dot(&rD, &axisD);
-        float c = D3DXVec3Dot(&axisD, &axisD);
-        float d = D3DXVec3Dot(&rD, &w0);
-        float e = D3DXVec3Dot(&axisD, &w0);
-        // Simple projection if we assume camera ray and axis aren't parallel
-        // Solve for parameter on axis
-        float t = (b * d - D3DXVec3Dot(&rD, &rD) * e) / (D3DXVec3Dot(&rD, &rD) * c - b * b); // Approx
-        // Actually, for robust movement, we usually intersect Ray with a Plane defined by the Axis and the Camera Right vector.
-        return axisO + axisD * t; // (Simplified)
-    }
 };
+

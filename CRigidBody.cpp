@@ -16,6 +16,8 @@ CRigidBody::CRigidBody()
     , m_shape(nullptr)
     , m_world(nullptr)
     , m_ownsShape(false)
+    , m_name("object")
+    , m_eulerAngles(0, 0, 0)
 {
     D3DXQuaternionIdentity(&m_rotation);
     m_type = RB_BOX;
@@ -56,16 +58,17 @@ void CRigidBody::InitPhysics(btDynamicsWorld* world, btCollisionShape* shape, fl
     }
 
     m_isSelected = false;
+    RescaleObject(btVector3(m_scale.x, m_scale.y, m_scale.z));
 }
 
 // Helper: Create a box (Passive by default)
 void CRigidBody::InitBox(btDynamicsWorld* world, D3DXVECTOR3 size, float mass, bool isDynamic = false)
 {
 	m_type = RB_BOX;
-    btCollisionShape* boxShape = new btBoxShape(btVector3(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f));
+    btCollisionShape* boxShape = new btBoxShape(btVector3(1, 1, 1));
     // We pass 'true' for ownsShape because we just created it here
+    m_scale = size;
     InitPhysics(world, boxShape, mass, isDynamic, true);
-	m_scale = size;
 }
 // 2. SPHERE: simple radius
 void CRigidBody::InitSphere(btDynamicsWorld* world, float radius, float mass, bool isDynamic = false)

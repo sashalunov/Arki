@@ -90,6 +90,7 @@ private:
     CBulletDebugDrawer* btDebugDrawer;
     bool m_debugdraw = TRUE;
     bool m_usemouse = FALSE;
+    bool m_usesnap = FALSE;
     float m_val = 0.0f;
     bool m_inputLeft;
 	bool m_inputRight;
@@ -137,5 +138,5 @@ private:
     void CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld);
 	void SetRenderStateDefaults();
     bool RaycastFromMouse(int mouseX, int mouseY, btVector3& outHitPoint, btRigidBody*& outBody);
-    
+    void RenderObjectProperties();
 };

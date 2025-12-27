@@ -650,6 +650,8 @@ void ArkiGame::RenderGUI()
 			ImGui::Spacing();
             if (ImGui::Button("Back")) m_gameState = STATE_MENU;
             ImGui::End();
+
+            RenderObjectProperties();
             break;
         }
         case STATE_SETTINGS:
@@ -853,6 +855,16 @@ void ArkiGame::ProcessEditorInput(double dt)
     POINT p;
     // (Use a flag to ensure single-click, or GetAsyncKeyState logic)
     static bool wasPressed = false;
+
+    // CRITICAL FIX: Check if ImGui wants to capture the mouse
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.WantCaptureMouse)
+    {
+        // ImGui is handling mouse input (dialog, sliders, buttons, etc.)
+        // Don't process selection or gizmo input
+        wasPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+        return;
+    }
 
     if (GetAsyncKeyState(VK_MENU) & 0x8000)
     {
@@ -1198,3 +1210,95 @@ void ArkiGame::AddCube(btDiscreteDynamicsWorld* dynamicsWorld, IDirect3DDevice9*
    // m_sceneObjects.push_back(obj);
 }
 
+void ArkiGame::RenderObjectProperties()
+{
+    if (!g_selected) return;
+
+    ImGui::SetNextWindowSize(ImVec2(300, 400), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Object Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("Selected Object");
+        ImGui::Separator();
+
+        // Object Name Section
+        ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Object Name");
+        static char nameBuffer[128] = { 0 };
+
+        // Copy name to buffer on first display
+        if (nameBuffer[0] == 0)
+        {
+            strcpy_s(nameBuffer, sizeof(nameBuffer), g_selected->m_name.c_str());
+        }
+
+        if (ImGui::InputText("##name", nameBuffer, sizeof(nameBuffer)))
+        {
+            g_selected->SetName(std::string(nameBuffer));
+        }
+
+        ImGui::Separator();
+        // Position Section
+        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Position");
+        static float position[3] = { 0.0f, 0.0f, 0.0f };
+        position[0] = g_selected->m_position.x;
+        position[1] = g_selected->m_position.y;
+        position[2] = g_selected->m_position.z;
+
+        if (ImGui::DragFloat("X##pos", &position[0], 0.1f))
+            g_selected->SetPosition(position[0], position[1], position[2]);
+        if (ImGui::DragFloat("Y##pos", &position[1], 0.1f))
+            g_selected->SetPosition(position[0], position[1], position[2]);
+        if (ImGui::DragFloat("Z##pos", &position[2], 0.1f))
+            g_selected->SetPosition(position[0], position[1], position[2]);
+
+        ImGui::Spacing();
+
+        // Rotation Section (Euler Angles in Degrees for readability)
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "Rotation");
+        float eulerDegrees[3];
+        eulerDegrees[0] = D3DXToDegree(g_selected->m_eulerAngles.x);
+        eulerDegrees[1] = D3DXToDegree(g_selected->m_eulerAngles.y);
+        eulerDegrees[2] = D3DXToDegree(g_selected->m_eulerAngles.z);
+
+        if (ImGui::DragFloat("Yaw##rot", &eulerDegrees[0], 1.0f))
+            g_selected->SetRotation(D3DXToRadian(eulerDegrees[0]), D3DXToRadian(eulerDegrees[1]), D3DXToRadian(eulerDegrees[2]));
+        if (ImGui::DragFloat("Pitch##rot", &eulerDegrees[1], 1.0f))
+            g_selected->SetRotation(D3DXToRadian(eulerDegrees[0]), D3DXToRadian(eulerDegrees[1]), D3DXToRadian(eulerDegrees[2]));
+        if (ImGui::DragFloat("Roll##rot", &eulerDegrees[2], 1.0f))
+            g_selected->SetRotation(D3DXToRadian(eulerDegrees[0]), D3DXToRadian(eulerDegrees[1]), D3DXToRadian(eulerDegrees[2]));
+
+        ImGui::Spacing();
+
+        // Scale Section
+        ImGui::TextColored(ImVec4(1.0f, 0.0f, 1.0f, 1.0f), "Scale");
+        static float scale[3] = { 1.0f, 1.0f, 1.0f };
+        scale[0] = g_selected->m_scale.x;
+        scale[1] = g_selected->m_scale.y;
+        scale[2] = g_selected->m_scale.z;
+
+        if (ImGui::DragFloat("Scale X", &scale[0], 0.1f, 0.1f, 100.0f))
+            g_selected->m_scale = D3DXVECTOR3(scale[0], scale[1], scale[2]);
+        if (ImGui::DragFloat("Scale Y", &scale[1], 0.1f, 0.1f, 100.0f))
+            g_selected->m_scale = D3DXVECTOR3(scale[0], scale[1], scale[2]);
+        if (ImGui::DragFloat("Scale Z", &scale[2], 0.1f, 0.1f, 100.0f))
+            g_selected->m_scale = D3DXVECTOR3(scale[0], scale[1], scale[2]);
+
+        ImGui::Spacing();
+        ImGui::Separator();
+
+        // Reset Button
+        if (ImGui::Button("Reset Transform"))
+        {
+            g_selected->SetPosition(0.0f, 0.0f, 0.0f);
+            g_selected->SetRotation(0.0f, 0.0f, 0.0f);
+            g_selected->m_scale = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
+        }
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Snapping", &m_usesnap))
+        {
+            g_gizmo->SetSnapping(m_usesnap, 0.1f);
+        }
+        g_selected->RescaleObject(btVector3(g_selected->m_scale.x, g_selected->m_scale.y, g_selected->m_scale.z));
+
+        ImGui::End();
+    }
+}

@@ -22,11 +22,13 @@ class CRigidBody : public btMotionState
 public:
     bool         m_isSelected;
 	RigidBodyType m_type;
+    std::string  m_name;
+
     // Transforms
     D3DXVECTOR3    m_position;
     D3DXQUATERNION m_rotation;
     D3DXVECTOR3    m_scale;
-
+    D3DXVECTOR3    m_eulerAngles;
     // Physics
     btRigidBody* m_rigidBody;
     btCollisionShape* m_shape;
@@ -60,7 +62,11 @@ public:
     void InitCylinder(btDynamicsWorld* world, float radius, float height, float mass, bool isDynamic);
     // --- 2. CLEANUP ---
     void DestroyPhysics();
- 
+
+    // --- Naming Functions ---
+    void SetName(const std::string& name) { m_name = name; }
+    const std::string& GetName() const { return m_name; }
+
     // 1. Static Setup (Call this ONCE in Game::Init)
     static HRESULT InitSharedMesh(IDirect3DDevice9* device)
     {
@@ -162,6 +168,7 @@ public:
     // USE THIS to rotate objects
     void SetRotation(float yaw, float pitch, float roll)
     {
+        m_eulerAngles = D3DXVECTOR3(yaw, pitch, roll);
         // 1. Update CPU
         D3DXQuaternionRotationYawPitchRoll(&m_rotation, yaw, pitch, roll);
 
@@ -265,5 +272,31 @@ public:
         device->SetFVF(D3DFVF_XYZ);
         device->DrawIndexedPrimitiveUP(D3DPT_LINELIST, 0, 8, 12, indices, D3DFMT_INDEX16, corners, sizeof(D3DXVECTOR3));
         device->SetRenderState(D3DRS_LIGHTING, TRUE);
+    }
+
+    void RescaleObject( btVector3 newScale)
+    {
+        if (!m_rigidBody || !m_rigidBody->getCollisionShape()) return;
+
+        // 1. Apply the new scale to the shape
+        // Note: This is absolute, not relative. (1,1,1) resets to original size.
+        m_rigidBody->getCollisionShape()->setLocalScaling(newScale/2.0f);
+        m_scale = D3DXVECTOR3(newScale.x(), newScale.y(), newScale.z());
+        // 2. Recalculate inertia (Only needed for Dynamic objects like the Ball)
+        // For the Paddle (Kinematic), this step can be skipped, but it's safe to include.
+        if (!m_rigidBody->isStaticOrKinematicObject())
+        {
+            btScalar mass = 1.0f / m_rigidBody->getInvMass(); // Recover mass
+            btVector3 localInertia;
+            m_rigidBody->getCollisionShape()->calculateLocalInertia(mass, localInertia);
+            m_rigidBody->setMassProps(mass, localInertia);
+        }
+
+        // 3. CRITICAL: Tell the world the object size changed
+        // If you skip this, the broadphase won't update, and the object will clip/pass through things.
+        m_world->updateSingleAabb(m_rigidBody);
+
+        // 4. Wake the object up so it interacts immediately
+        m_rigidBody->activate(true);
     }
 };

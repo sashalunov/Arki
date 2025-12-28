@@ -14,6 +14,7 @@
 // Windows Header Files:
 #include <windows.h>
 #include <hidusage.h> // Required for usage codes
+#include <mmsystem.h>
 // C RunTime Header Files
 // --------------------------------------------------------------------------------
 #include <stdlib.h>
@@ -75,4 +76,3 @@ struct  TGAHEADER
 	BYTE	imageDesc;
 };
 #pragma	pack (pop)
-

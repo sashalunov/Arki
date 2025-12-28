@@ -18,7 +18,8 @@
 #include "CGrid.h"
 #include "CGizmo.h"
 #include "COrbitCamera.h"
-#include "CArkiCliff.h"
+#include "CArkiCliffTreadmill.h"
+
 enum GameState {
     STATE_MENU,
     STATE_PLAYING,
@@ -32,8 +33,6 @@ enum GameState {
 std::wstring OpenFileDialog( HWND owner );
 // Helper: Opens a Windows "Save As" file picker (Wide String Version)
 std::wstring SaveFileDialog( HWND owner );
-
-
 
 
 class ArkiGame
@@ -67,7 +66,8 @@ private:
     ParticleEmitter* emmiter1;
     BoidEmitter* eb;
 	SphereEmitter* es;
-    std::vector<CArkiCliff*> m_cliffs;
+    std::vector<CArkiCliffTreadmill*> m_leftWalls;
+    std::vector<CArkiCliffTreadmill*> m_rightWalls;
 
     long mouseDeltaX;
     long mouseDeltaY;
@@ -89,7 +89,7 @@ private:
     btCollisionDispatcher* g_dispatcher;
     btSequentialImpulseConstraintSolver* g_solver;
     btDiscreteDynamicsWorld* g_dynamicsWorld;
-    btAlignedObjectArray<btCollisionShape*> collisionShapes;
+
     CBulletDebugDrawer* btDebugDrawer;
     bool m_debugdraw = TRUE;
     bool m_pfxdraw = TRUE;
@@ -142,4 +142,7 @@ private:
 	void SetRenderStateDefaults();
     bool RaycastFromMouse(int mouseX, int mouseY, btVector3& outHitPoint, btRigidBody*& outBody);
     void RenderObjectProperties();
+    void UpdateWalls(float DeltaTime);
+
+
 };

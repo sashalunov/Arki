@@ -45,7 +45,7 @@ public:
         m_pMesh = NULL;
         // 1. Create Sphere Shape
         btCollisionShape* shape = new btSphereShape(radius);
-        D3DXCreateSphere(device, radius, 32, 24, &m_pMesh, NULL);
+        D3DXCreateSphere(device, radius, 64, 48, &m_pMesh, NULL);
         // 2. Setup Mass and Inertia (Dynamic object, so mass > 0)
         btScalar mass = 1.0f;
         btVector3 localInertia(0, 0, 0);
@@ -274,7 +274,7 @@ public:
             device->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_CAMERASPACEREFLECTIONVECTOR);
             // This rotates the 3D reflection vector around the Y axis
             D3DXMATRIX matTextureRot;
-            D3DXMatrixRotationY(&matTextureRot, rotationAngle);
+            D3DXMatrixRotationX(&matTextureRot, rotationAngle);
             // C. Apply the Matrix to Texture Stage 0
             device->SetTransform(D3DTS_TEXTURE0, &matTextureRot);
             // Tell DX9 this is a Cube Map (requires 3D coordinates)

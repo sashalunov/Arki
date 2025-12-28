@@ -53,7 +53,8 @@ float Hash(float n)
 
 float Hash3D(D3DXVECTOR3 p)
 {
-    float dotP = D3DXVec3Dot(&p, &D3DXVECTOR3(12.9898f, 78.233f, 45.164f));
+    D3DXVECTOR3 v = D3DXVECTOR3(12.9898f, 78.233f, 45.164f);
+    float dotP = D3DXVec3Dot(&p, &v);
     return Hash(dotP);
 }
 

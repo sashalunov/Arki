@@ -18,7 +18,8 @@ VOID WINAPI ProceduralSpaceGen(D3DXVECTOR4* pOut, const D3DXVECTOR3* pTexCoord, 
 class CSkybox
 {
     IDirect3DCubeTexture9* g_pSkyboxTexture = NULL;
-    float m_fCurrentRotationY;     // Accumulated Y rotation angle
+    float m_fCurrentRotationX;     // Accumulated Y rotation angle
+
     const float m_fRotationSpeed;  // Speed of rotation in radians/second
 
     HRESULT GenerateSkyboxTexture(IDirect3DDevice9* pd3dDevice, UINT size = 512)
@@ -89,12 +90,12 @@ public:
     }
 
 	CSkybox::CSkybox()
-        : m_fCurrentRotationY(0.0f)
-        , m_fRotationSpeed(0.01f) // Example: 0.01 radians per second (approx 0.57 degrees/sec)
+        : m_fCurrentRotationX(0.0f)
+        , m_fRotationSpeed(-0.01f) // Example: 0.01 radians per second (approx 0.57 degrees/sec)
     {}
     CSkybox::CSkybox(IDirect3DDevice9* pd3dDevice, TCHAR* skyboxTexturePath)
-        : m_fCurrentRotationY(0.0f)
-        , m_fRotationSpeed(0.01f) // Example: 0.01 radians per second (approx 0.57 degrees/sec)
+        : m_fCurrentRotationX(0.0f)
+        , m_fRotationSpeed(-0.01f) // Example: 0.01 radians per second (approx 0.57 degrees/sec)
     {
         // Initialize Skybox Texture from file
         HRESULT hr = InitSkyboxTexture(pd3dDevice, skyboxTexturePath);
@@ -147,7 +148,8 @@ public:
 
 	IDirect3DCubeTexture9* GetTexture() { return g_pSkyboxTexture; }
 
-	float GetRotationY() const { return m_fCurrentRotationY; }
+	float GetRotationY() const { return m_fCurrentRotationX; }
+    float GetRotationX() const { return m_fCurrentRotationX; }
 
 };
 

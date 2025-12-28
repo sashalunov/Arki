@@ -54,12 +54,12 @@ VOID WINAPI ProceduralSpaceGen(D3DXVECTOR4* pOut, const D3DXVECTOR3* pTexCoord,c
 void CSkybox::DrawSkybox(IDirect3DDevice9* pd3dDevice, D3DXMATRIX matView, double deltaTime)
 {
     // Accumulate rotation over time
-    m_fCurrentRotationY += m_fRotationSpeed * deltaTime;
+    m_fCurrentRotationX += m_fRotationSpeed * deltaTime;
     // Optional: Keep rotation within 0 to 2*PI to prevent large float values
   // This maintains precision for longer running applications.
-    while (m_fCurrentRotationY > D3DX_PI * 2.0f) // 2*PI is a full circle
+    while (m_fCurrentRotationX > D3DX_PI * 2.0f) // 2*PI is a full circle
     {
-        m_fCurrentRotationY -= D3DX_PI * 2.0f;
+        m_fCurrentRotationX -= D3DX_PI * 2.0f;
     }
     // 1. Remove translation from View Matrix
     // The translation in a standard DX9 view matrix is in the 4th row (_41, _42, _43)
@@ -76,11 +76,11 @@ void CSkybox::DrawSkybox(IDirect3DDevice9* pd3dDevice, D3DXMATRIX matView, doubl
 	D3DXVECTOR3 camPos = GetCameraPos(matView);
     D3DXMatrixTranslation(&matWorld, camPos.x, camPos.y, camPos.z);
     // Create the rotation matrix around the Y-axis
-    D3DXMATRIX matRotY;
-    D3DXMatrixRotationY(&matRotY, m_fCurrentRotationY);
+    D3DXMATRIX matRotX;
+    D3DXMatrixRotationX(&matRotX, m_fCurrentRotationX);
     // Combine rotation and translation for the world matrix
    // Order: Rotate the skybox, then translate it to appear centered on the camera.
-    matWorld = matRotY * matWorld;
+    matWorld = matRotX * matWorld;
     pd3dDevice->SetTransform(D3DTS_WORLD, &matWorld);
 
     // ... Rendering continues below ...

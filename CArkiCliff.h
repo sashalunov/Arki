@@ -25,6 +25,11 @@ struct CliffVertex {
 // -----------------------------------------------------------------------------------------------
 class CArkiCliff
 {
+public:
+    // Store exact position state
+    float m_currentY;      // Current Y position of the segment start
+    float m_height;        // Height of this segment
+    float m_lastJaggedX;   // The X offset of the very top vertex (needed for stitching)
 private:
     btRigidBody* m_pBody;
     btBvhTriangleMeshShape* m_pMeshShape;
@@ -55,7 +60,7 @@ public:
         m_pMeshShape = nullptr;
         m_pSharedMesh = nullptr;
 
-        int segments = 40;
+        int segments = 64;
         float height = endY - startY;
         float segHeight = height / segments;
 
@@ -123,15 +128,39 @@ public:
         m_pBody->setUserPointer(pData);
     }
 
-    ~CArkiCliff() {
+    ~CArkiCliff() 
+    {
         if (m_pBody) {
             m_pWorld->removeRigidBody(m_pBody);
             if (m_pBody->getUserPointer()) delete (PhysicsData*)m_pBody->getUserPointer();
             delete m_pBody->getMotionState();
-            delete m_pBody;
+            
+
+  
+           // if (m_pBody && m_pBody->getCollisionShape()) delete m_pBody->getCollisionShape();
+            if (m_pBody) delete m_pBody;
         }
         delete m_pMeshShape;
         delete m_pSharedMesh;
+    }
+
+    // 1. Move the wall down by 'speed'
+    void Scroll(float speed)
+    {
+        m_currentY -= speed;
+
+        // Move Physics Body
+        if (m_pBody) {
+            btTransform trans;
+            m_pBody->getMotionState()->getWorldTransform(trans);
+
+            // We only update the Y translation
+            btVector3 origin = trans.getOrigin();
+            origin.setY(origin.getY() - speed);
+
+            trans.setOrigin(origin);
+            m_pBody->getMotionState()->setWorldTransform(trans);
+        }
     }
 
     void Animate(float dt, float speed)

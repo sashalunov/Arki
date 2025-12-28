@@ -118,6 +118,9 @@
     <ClInclude Include="CGizmo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CArkiCliff.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -202,6 +205,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CSpriteBatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CArkiCliff.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

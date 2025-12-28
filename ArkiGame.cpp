@@ -211,6 +211,15 @@ bool ArkiGame::Init()
 	es->SetSurfaceOnly(true);
     SetRenderStateDefaults();
 
+    // Create Left Wall (Facing Right)
+// Assuming Screen Height is -20 to +20, and Left Edge is -15
+    CArkiCliff* leftCliff = new CArkiCliff(g_dynamicsWorld, -20.0f, 40.0f, -25.0f, false);
+    m_cliffs.push_back(leftCliff);
+
+    // Create Right Wall (Facing Left)
+    CArkiCliff* rightCliff = new CArkiCliff(g_dynamicsWorld, -20.0f, 40.0f, 25.0f, true);
+    m_cliffs.push_back(rightCliff);
+
     _log(L"Initializing Done\n");
 
 
@@ -266,7 +275,7 @@ void ArkiGame::Update(double dt)
     if (m_isPaused) return;
     // Clamp huge spikes (e.g. if you dragged the window or hit a breakpoint)
     if (fDeltaTime > MAX_FRAME_TIME) fDeltaTime = MAX_FRAME_TIME;
-    
+
     // Add to accumulator
     g_accumulator += fDeltaTime;
     // Consume accumulator in fixed chunks
@@ -304,6 +313,10 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     // 4. Cleanup (Actually delete the bullets now that physics is done using them)
     if (m_player) m_player->CleanupBullets(); 
     if (m_currentLevel) m_currentLevel->CleanupBlocks();
+	for (auto& cliff : m_cliffs)
+    {
+		cliff->Animate(fixedDeltaTime, -2.0f);
+    }
 
     // Update Powerups (Check bounds)
     for (int i = 0; i < m_powerups.size(); i++)
@@ -320,7 +333,7 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
             i--;
         }
     }
-
+    //m_leftWall->Animate(dt, 10.0f);
     // Update Time Accumulators for Tweens
     tweenElapsedTime += fixedDeltaTime;
     // Calculate progress based on the fixed accumulation
@@ -359,6 +372,12 @@ void ArkiGame::Shutdown()
     CRigidBody::CleanupSharedMesh();
 
     CArkiBlock::CleanupSharedMesh();
+
+    for (auto* cliff : m_cliffs)
+    {
+		SAFE_DELETE(cliff);
+    }
+	m_cliffs.clear();
 
     for (CRigidBody* obj : m_sceneObjects)// 1. Loop through every object and delete it
     {
@@ -544,7 +563,7 @@ void ArkiGame::RenderGUI()
     if (ImGui::Button("Reset Level")) {
         //ResetDevice(); 
 		//m_currentLevel->GenerateFractalLevel(20, 18);
-		m_currentLevel->GenerateMengerLevel(20, 18);
+		m_currentLevel->GenerateFractalLevel(20, 18);
 
     }
     if (ImGui::Button("Save Settings")) {
@@ -568,6 +587,10 @@ void ArkiGame::RenderGUI()
         // Optional: Run code only when clicked
         // e.g. Play a sound or reset something
     }
+    if (ImGui::Checkbox("Particles", &m_pfxdraw))
+    {
+    }
+
     ImGui::End();
 
 
@@ -684,6 +707,16 @@ void ArkiGame::RenderEditorScene()
     // Render grid, gizmos, selection boxes, etc.
     if(m_grid)m_grid->Render(d3d9->GetDevice());
 
+
+    for (auto obj : m_sceneObjects)
+    {   
+		    obj->Render(d3d9->GetDevice());
+    }
+
+
+
+
+
     if(g_gizmo)g_gizmo->Render(d3d9->GetDevice());
 
 }
@@ -733,8 +766,14 @@ void ArkiGame::Render(double dt)
             d3d9->GetDevice()->SetRenderState(D3DRS_LIGHTING, TRUE);
 
             //m_floor->Render(d3d9->GetDevice());
-            m_wallL->Render(d3d9->GetDevice());
-            m_wallR->Render(d3d9->GetDevice());
+            //m_wallL->Render(d3d9->GetDevice());
+            //m_wallR->Render(d3d9->GetDevice());
+
+            for (auto& cliff : m_cliffs)
+            {
+                cliff->Render(d3d9->GetDevice());
+            }
+
 
             D3DMATERIAL9 sphereMaterial;
             InitMaterialS(sphereMaterial, 1.0f, 1.0f, 0.5f, 0.5f);
@@ -769,7 +808,12 @@ void ArkiGame::Render(double dt)
 
             m_font->RenderBatch(d3d9->GetDevice());
 
-            if (m_sbatch)
+            // Render Cliffs
+            //for (auto* cliff : m_cliffs)
+            //{
+                //cliff->Render(d3d9->GetDevice());
+            //}
+            if (m_sbatch && m_pfxdraw)
             {
                 m_sbatch->Begin(m_pCam0->GetViewMatrix());
                 {
@@ -782,6 +826,8 @@ void ArkiGame::Render(double dt)
                 }
                 m_sbatch->End();
             }
+
+        
         }
         //// 1. Get the raw vertex data from the emitter
         //eb->GetRenderData(renderBuffer);

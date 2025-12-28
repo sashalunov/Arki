@@ -21,6 +21,7 @@ class CRigidBody : public btMotionState
 {
 public:
     bool         m_isSelected;
+	bool 	 m_isVisible;
 	RigidBodyType m_type;
     std::string  m_name;
 
@@ -199,47 +200,55 @@ public:
     void Render(IDirect3DDevice9* device)
     {
         D3DXMATRIXA16 worldMat, matRot, matScale;
-        worldMat = GetWorldMatrix();
-        device->SetTransform(D3DTS_WORLD, &worldMat);
 
-        // Simple white material
-        static D3DMATERIAL9 WHITE_MTRL =
+        if (m_isVisible)
         {
+            worldMat = GetWorldMatrix();
+            device->SetTransform(D3DTS_WORLD, &worldMat);
+			device->SetRenderState(D3DRS_LIGHTING, TRUE);
+            device->SetTexture(0, NULL);
 
-            1.0f, 1.0f, 1.0f, 1.0f , // Diffuse
-         0.8f, 0.8f, 0.8f, 1.0f , // Ambient
-         0.0f, 0.0f, 0.0f, 1.0f , // Specular
-         0.0f, 0.0f, 0.0f, 1.0f , // Emissive
-        0.0f};                        // Power
-	
-        device->SetMaterial(&WHITE_MTRL);
+            // Simple white material
+            static D3DMATERIAL9 WHITE_MTRL =
+            {
 
-        switch (m_type)
-        {
-        case RB_BOX:
-            s_pRigidBodyBoxMesh->DrawSubset(0);
-            break;
-        case RB_BALL:
-            //device->SetMaterial(&WHITE_MTRL);
-            s_pRigidBodySphereMesh->DrawSubset(0);
-            break;
-        case RB_CAPSULE:
-            //device->SetMaterial(&WHITE_MTRL);
-            s_pRigidBodyCapsuleMesh->DrawSubset(0);
-            break;
-        case RB_ROD:
-            //device->SetMaterial(&WHITE_MTRL);
-            s_pRigidBodyCylinderMesh->DrawSubset(0);
-            break;
-        default:
-            break;
+                1.0f, 1.0f, 1.0f, 1.0f , // Diffuse
+             0.8f, 0.8f, 0.8f, 1.0f , // Ambient
+             0.0f, 0.0f, 0.0f, 1.0f , // Specular
+             0.0f, 0.0f, 0.0f, 1.0f , // Emissive
+            0.0f };                        // Power
+
+            device->SetMaterial(&WHITE_MTRL);
+
+            switch (m_type)
+            {
+            case RB_BOX:
+                s_pRigidBodyBoxMesh->DrawSubset(0);
+                break;
+            case RB_BALL:
+                //device->SetMaterial(&WHITE_MTRL);
+                s_pRigidBodySphereMesh->DrawSubset(0);
+                break;
+            case RB_CAPSULE:
+                //device->SetMaterial(&WHITE_MTRL);
+                s_pRigidBodyCapsuleMesh->DrawSubset(0);
+                break;
+            case RB_ROD:
+                //device->SetMaterial(&WHITE_MTRL);
+                s_pRigidBodyCylinderMesh->DrawSubset(0);
+                break;
+            default:
+                break;
+            }
         }
-
         // Render Selection Box if selected
         if (m_isSelected)
         {
             RenderBoundingBox(device);
         }
+
+		D3DXMatrixIdentity(&worldMat);
+		device->SetTransform(D3DTS_WORLD, &worldMat);
 	}
 
     void RenderBoundingBox(IDirect3DDevice9* device)

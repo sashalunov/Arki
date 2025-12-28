@@ -197,6 +197,7 @@
     <ClInclude Include="ArkiGame.h" />
     <ClInclude Include="CArkiBall.h" />
     <ClInclude Include="CArkiBullet.h" />
+    <ClInclude Include="CArkiCliff.h" />
     <ClInclude Include="CArkiLevel.h" />
     <ClInclude Include="CArkiPlayer.h" />
     <ClInclude Include="CArkiBlock.h" />
@@ -234,6 +235,7 @@
     <ClCompile Include="..\tools\imgui-1.92.5\imgui_widgets.cpp" />
     <ClCompile Include="ArkiGame.cpp" />
     <ClCompile Include="CArkiBall.cpp" />
+    <ClCompile Include="CArkiCliff.cpp" />
     <ClCompile Include="CArkiLevel.cpp" />
     <ClCompile Include="CArkiPlayer.cpp" />
     <ClCompile Include="CArkiBlock.cpp" />

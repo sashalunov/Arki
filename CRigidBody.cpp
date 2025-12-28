@@ -18,6 +18,7 @@ CRigidBody::CRigidBody()
     , m_ownsShape(false)
     , m_name("object")
     , m_eulerAngles(0, 0, 0)
+    , m_isVisible(true)
 {
     D3DXQuaternionIdentity(&m_rotation);
     m_type = RB_BOX;

@@ -10,8 +10,8 @@ void CArkiBall::InitTrail(IDirect3DDevice9* device, const TCHAR* textureFilename
     // Create a 256x256 texture fading from Red to Blue
     HRESULT hr = CreateHorizontalGradientTexture(
         device,            // Your initialized D3D9 Device
-        256,                   // Width
-        256,                   // Height
+        128,                   // Width
+        128,                   // Height
         D3DCOLOR_ARGB(155, 0, 100,250),// Start Color (Red)
         D3DCOLOR_ARGB(0, 0, 255,0),// End Color (Blue)
         &m_pTrailTexture          // Output pointer

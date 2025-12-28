@@ -150,7 +150,7 @@ bool ArkiGame::Init()
     InitPhysics();
 
     m_pCam0 = new CQuatCamera();
-    m_pCam0->MoveLocal(-40, 0, 5);
+    m_pCam0->MoveLocal(-50, 0, 0);
 
     m_pCamEditor = new COrbitCamera();
 
@@ -173,7 +173,7 @@ bool ArkiGame::Init()
     //m_currentLevel->GenerateRandomLevel(20, 18, false);
     m_currentLevel->GenerateMathLevel(20, 18);
     m_ball = new CArkiBall(g_dynamicsWorld, d3d9->GetDevice(), D3DXVECTOR3(0, -7, 0), 0.3f, 20.0f);
-    m_player = new CArkiPlayer(g_dynamicsWorld, D3DXVECTOR3(0, -8, 0));
+    m_player = new CArkiPlayer(g_dynamicsWorld, D3DXVECTOR3(0, -16, 0));
 
     DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
     #if defined( DEBUG ) || defined( _DEBUG )
@@ -218,7 +218,7 @@ bool ArkiGame::Init()
 
     for (int i = 0; i < 3; i++)
     {
-        float startY = -50.0f + (i * segmentHeight); 
+        float startY = -100.0f + (i * segmentHeight); 
 
         // Left Wall
         CArkiCliffTreadmill* l = new CArkiCliffTreadmill(g_dynamicsWorld, d3d9->GetDevice(), segmentHeight, startY, -25.0f, false, currentVirtualY);
@@ -228,6 +228,9 @@ bool ArkiGame::Init()
         CArkiCliffTreadmill* r = new CArkiCliffTreadmill(g_dynamicsWorld, d3d9->GetDevice(), segmentHeight, startY, 25.0f, true, currentVirtualY + 500.0f);
         m_rightWalls.push_back(r);
     }
+
+    InitBagSystem();
+   
 
     _log(L"Initializing Done\n");
 
@@ -300,7 +303,7 @@ void ArkiGame::Update(double dt)
 void ArkiGame::UpdateWalls(float dt)
 {
     float scrollSpeed = 3.0f;
-    float killY = -40.0f; // Point where wall is fully off-screen
+    float killY = -50.0f; // Point where wall is fully off-screen
 
     // ---------------------------------------------------------
     // STEP 1: MOVE EVERYTHING FIRST
@@ -380,7 +383,7 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
         float y = static_cast<float>(p->m_pBody->getWorldTransform().getOrigin().getY());
 
         // If it falls off the bottom of the screen (-15.0f depending on your cam)
-        if (y < -15.0f || p->m_markForDelete)
+        if (y < -25.0f || p->m_markForDelete)
         {
             g_dynamicsWorld->removeRigidBody(p->m_pBody);
             delete p;
@@ -428,6 +431,7 @@ void ArkiGame::Shutdown()
 
     CArkiBlock::CleanupSharedMesh();
 
+
     for (auto* cliff : m_leftWalls)
     {
 		SAFE_DELETE(cliff);
@@ -446,6 +450,12 @@ void ArkiGame::Shutdown()
         delete obj;
     }
     m_sceneObjects.clear();// 2. Clear the vector so it has size 0
+
+	for (auto* powerup : m_powerups)
+    {
+        SAFE_DELETE(powerup);
+    }
+
 
     m_font->Shutdown();
     SAFE_DELETE( m_font);
@@ -508,23 +518,23 @@ void ArkiGame::InitPhysics()
     //m_ball->InitSphere(g_dynamicsWorld, 0.5f, 5.0f, true);
     //m_sceneObjects.push_back(m_ball);
     m_floor = new CRigidBody();
-    m_floor->InitBox(g_dynamicsWorld, D3DXVECTOR3(90, 2, 2), 0.0f, false);
-    m_floor->SetPosition(0, -10, 0);
+    m_floor->InitBox(g_dynamicsWorld, D3DXVECTOR3(64, 2, 2), 0.0f, false);
+    m_floor->SetPosition(0, -22, 0);
     m_sceneObjects.push_back(m_floor);    // Add to list so we don't lose track of it
 
     m_top = new CRigidBody();
-    m_top->InitBox(g_dynamicsWorld, D3DXVECTOR3(90, 2, 2), 0.0f, false);
-    m_top->SetPosition(0, 20, 0);
+    m_top->InitBox(g_dynamicsWorld, D3DXVECTOR3(64, 2, 2), 0.0f, false);
+    m_top->SetPosition(0, 22, 0);
     m_sceneObjects.push_back(m_top);    // Add to list so we don't lose track of it
 
     m_wallL = new CRigidBody();
-    m_wallL->InitBox(g_dynamicsWorld, D3DXVECTOR3(2, 50, 2), 0.0f, false);
-    m_wallL->SetPosition(-27, 0, 0);
+    m_wallL->InitBox(g_dynamicsWorld, D3DXVECTOR3(2, 44, 2), 0.0f, false);
+    m_wallL->SetPosition(-29, 0, 0);
     m_sceneObjects.push_back(m_wallL);    // Add to list so we don't lose track of it
 
     m_wallR = new CRigidBody();
-    m_wallR->InitBox(g_dynamicsWorld, D3DXVECTOR3(2, 50, 2), 0.0f, false);
-    m_wallR->SetPosition(27, 0, 0);
+    m_wallR->InitBox(g_dynamicsWorld, D3DXVECTOR3(2, 44, 2), 0.0f, false);
+    m_wallR->SetPosition(29, 0, 0);
     m_sceneObjects.push_back(m_wallR);    // Add to list so we don't lose track of it
 
 
@@ -862,13 +872,12 @@ void ArkiGame::Render(double dt)
             D3DXMatrixIdentity(&matWorld);
             d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
 
-            m_font->RenderBatch(d3d9->GetDevice());
 
-            // Render Cliffs
-            //for (auto* cliff : m_cliffs)
-            //{
-                //cliff->Render(d3d9->GetDevice());
-            //}
+			for (auto& powerup : m_powerups)
+            {
+                powerup->Render(d3d9->GetDevice(), m_font);
+            }
+
             if (m_sbatch && m_pfxdraw)
             {
                 m_sbatch->Begin(m_pCam0->GetViewMatrix());
@@ -883,7 +892,8 @@ void ArkiGame::Render(double dt)
                 m_sbatch->End();
             }
 
-        
+            m_font->RenderBatch(d3d9->GetDevice());
+
         }
         //// 1. Get the raw vertex data from the emitter
         //eb->GetRenderData(renderBuffer);
@@ -1162,6 +1172,7 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
         PhysicsData* blockData = nullptr;
         PhysicsData* playerData = nullptr;
         PhysicsData* bulletData = nullptr;
+        PhysicsData* powerupData = nullptr;
 
 
         if (dataA->type == TYPE_BALL) ballData = dataA;
@@ -1176,6 +1187,9 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
         if (dataA->type == TYPE_BULLET) bulletData = dataA;
         if (dataB->type == TYPE_BULLET) bulletData = dataB;
 
+        if (dataA->type == TYPE_POWERUP) powerupData = dataA;
+        if (dataB->type == TYPE_POWERUP) powerupData = dataB;
+
 
         // --- SCENARIO 1: Ball hit Block ---
         if (ballData && blockData)
@@ -1187,24 +1201,22 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
                 pBlock->m_pendingDestruction = true;
 
 
-                std::vector<char> soundData = GenerateMutedKnock();
-
-                //std::cout << "Playing sound from RAM..." << std::endl;
-
-                // CASTING: .data() returns char*, PlaySound expects LPCSTR (const char*)
-                PlaySound((LPCWSTR)soundData.data(), NULL, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+                PlayAudioFromMemory(GenerateMutedKnock());
                 // Play Sound here...
                 // Add Score here...
+                if (PullFromDeck())
+                {
+                    // Get Block Position
+                    btTransform trans = pBlock->m_pBody->getWorldTransform();
 
-                //pBlock->m_isDestroyed = true; // Mark for rendering
+                    // Random Type
+                    //PowerupType type = (PowerupType)(rand() % 5); // Assuming you have 3 types defined
+                    PowerupType type = PickWeightedType();
 
-                // Move the block far away or remove from simulation immediately
-                // Removing immediately inside a collision loop is risky, 
-                // so usually we just move it to infinity for this frame:
-                //btTransform t;
-               //t.setIdentity();
-               // t.setOrigin(btVector3(0, -999, 0));
-                //pBlock->m_pBody->setWorldTransform(t);
+                    CArkiPowerup* newPowerup = new CArkiPowerup(g_dynamicsWorld, trans.getOrigin(), type);
+                    m_powerups.push_back(newPowerup);
+                }
+
             }
         }
         if (bulletData && blockData)
@@ -1216,7 +1228,6 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
             if (!pBlock->m_isDestroyed && !pBlock->m_pendingDestruction)
             {
                 pBlock->m_pendingDestruction = true;
-                //pBullet->m_markForDelete = true; // Destroy Bullet
                 // Play Sound here...
                 // Add Score here...
                
@@ -1225,7 +1236,53 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
             {
                 pBullet->m_markForDelete = true; // Destroy Bullet
             }
+
+            // 20% Chance to spawn powerup
+            //if (rand() % 100 < 20)
+            if (PullFromDeck())
+            {
+                // Get Block Position
+                btTransform trans = ((CArkiBlock*)dataB->pObject)->m_pBody->getWorldTransform();
+
+                // Random Type
+                //PowerupType type = (PowerupType)(rand() % 5); // Assuming you have 3 types defined
+                PowerupType type = PickWeightedType();
+
+                CArkiPowerup* newPowerup = new CArkiPowerup(g_dynamicsWorld, trans.getOrigin(), type);
+                m_powerups.push_back(newPowerup);
+            }
           
+        }
+		if (powerupData && playerData)
+        {
+            CArkiPowerup* pPowerup = (CArkiPowerup*)powerupData->pObject;
+            CArkiPlayer* pPlayer = (CArkiPlayer*)playerData->pObject;
+            if (!pPowerup->m_collected)
+            {
+                pPowerup->m_collected = true;
+                pPowerup->m_markForDelete = true;
+
+				PlayAudioFromMemory(GeneratePowerupSound());
+                // Apply effect based on type
+                switch (pPowerup->m_type)
+                {
+                    case PU_HEALTH:
+                        //pPlayer->m_lives += 1;
+                        break;
+                    //case POWERUP_SPEED_BOOST:
+                    //    pPlayer->ActivateSpeedBoost(10.0f); // 10 seconds
+                    //    break;
+                    //case POWERUP_SHIELD:
+                    //    pPlayer->ActivateShield(10.0f); // 10 seconds
+                    //    break;
+                    //case POWERUP_DOUBLE_POINTS:
+                    //    pPlayer->ActivateDoublePoints(15.0f); // 15 seconds
+                    //    break;
+                    //case POWERUP_MULTI_BALL:
+                    //    m_ball->SpawnAdditionalBalls(2); // Spawn 2 extra balls
+                    //    break;
+                }
+            }
         }
 
         // --- SCENARIO 2: Ball hit Player (The "English" Effect) ---
@@ -1412,4 +1469,81 @@ void ArkiGame::RenderObjectProperties()
 
         ImGui::End();
     }
+}
+
+// ---------------------------------------------------------
+// 1. INITIALIZATION (Call this in ArkiGame::Init)
+// ---------------------------------------------------------
+void ArkiGame::InitBagSystem()
+{
+    // Seed the RNG with hardware entropy (makes it truly random every run)
+    std::random_device rd;
+    m_rng.seed(rd());
+
+    // Prepare the first bag
+    m_deckIndex = 0;
+    m_dropDeck.clear();
+
+    // -- CONFIGURATION: 20% Chance --
+    // We put 10 items in the bag:
+    // 2 are TRUE (Powerup)
+    // 8 are FALSE (Nothing)
+
+    m_dropDeck.push_back(true);
+    m_dropDeck.push_back(true);
+
+    for (int i = 0; i < 8; i++) {
+        m_dropDeck.push_back(false);
+    }
+
+    // Shuffle the bag immediately
+    std::shuffle(m_dropDeck.begin(), m_dropDeck.end(), m_rng);
+}
+
+// ---------------------------------------------------------
+// 2. THE BAG LOGIC (Draws a card, reshuffles if empty)
+// ---------------------------------------------------------
+bool ArkiGame::PullFromDeck()
+{
+    // 1. Read the result at current index
+    bool result = m_dropDeck[m_deckIndex];
+
+    // 2. Move to next card
+    m_deckIndex++;
+
+    // 3. If we used all cards, reshuffle the deck!
+    if (m_deckIndex >= m_dropDeck.size())
+    {
+        // Shuffle existing values (2 Trues, 8 Falses) to new positions
+        std::shuffle(m_dropDeck.begin(), m_dropDeck.end(), m_rng);
+        m_deckIndex = 0;
+    }
+
+    return result;
+}
+
+// ---------------------------------------------------------
+// 3. WEIGHTED TYPE PICKER (Better than rand() % 5)
+// ---------------------------------------------------------
+PowerupType ArkiGame::PickWeightedType()
+{
+    // We roll a number 0-100 to decide rarity
+    std::uniform_int_distribution<int> dist(0, 100);
+    int roll = dist(m_rng);
+
+    // LOGIC:
+    // 50% chance for Paddle Increase
+    // 30% chance for Laser
+    // 15% chance for Sticky
+    // 5%  chance for Extra Life
+
+    if (roll < 50) return PU_HEALTH; // Most Common
+    roll -= 50;
+
+    if (roll < 30) return PU_ARMOR;
+    roll -= 30;
+
+    if (roll < 15) return PU_BALL;
+
+    return PU_GUN; // Rarest
 }

@@ -87,6 +87,9 @@ void CSpriteBatch::End()
     m_device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
     m_device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
     m_device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
+    m_device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+    m_device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+    m_device->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE); // Use vertex alpha
 
     // 3. Batching Loop
     int currentBatchCount = 0;

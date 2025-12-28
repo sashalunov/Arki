@@ -19,6 +19,7 @@
 #include "CGizmo.h"
 #include "COrbitCamera.h"
 #include "CArkiCliffTreadmill.h"
+#include <random>    // The modern random library
 
 enum GameState {
     STATE_MENU,
@@ -28,7 +29,6 @@ enum GameState {
     STATE_SETTINGS,
     STATE_LEVEL_COMPLETE
 };
-
 // Helper: Opens a Windows file picker (Wide String Version)
 std::wstring OpenFileDialog( HWND owner );
 // Helper: Opens a Windows "Save As" file picker (Wide String Version)
@@ -62,6 +62,10 @@ private:
     CGizmo* g_gizmo;
     // powerups
     std::vector<CArkiPowerup*> m_powerups;
+    std::vector<bool> m_dropDeck;
+    int m_deckIndex;
+    std::mt19937 m_rng;              // High-quality Random Number Generator
+
     // particle systems
     ParticleEmitter* emmiter1;
     BoidEmitter* eb;
@@ -144,5 +148,8 @@ private:
     void RenderObjectProperties();
     void UpdateWalls(float DeltaTime);
 
-
+    // Helper functions
+    void InitBagSystem();
+    bool PullFromDeck();              // Draws the next card
+    PowerupType PickWeightedType();  // Decides WHICH powerup it is
 };

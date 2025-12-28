@@ -78,8 +78,8 @@ public:
         m_pBody->setCcdSweptSphereRadius(radius * 0.5f);
         // Disable Gravity for the ball (it floats until hit)
         m_pBody->setGravity(btVector3(0, 0, 0));
-
-        dynamicsWorld->addRigidBody(m_pBody);
+        // Collides with Paddle, Walls, Blocks (Ignores Powerups, Bullets)
+        dynamicsWorld->addRigidBody(m_pBody, COL_BALL, COL_PADDLE | COL_WALL | COL_BLOCK | COL_POWERUP);
         // Prevent the ball from ever falling asleep (stopping simulation)
         m_pBody->setActivationState(WANTS_DEACTIVATION);
         // Save pointer for collisions

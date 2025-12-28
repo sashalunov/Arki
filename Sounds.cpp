@@ -122,8 +122,8 @@ std::vector<char> GeneratePlasmaShot() {
     std::vector<short> rawSamples;
     rawSamples.reserve(totalSamples);
 
-    double frequency = 1200.0; // Start HIGH (1500Hz = piercing tone)
-    double volume = 0.43;
+    double frequency = 1300.0; // Start HIGH (1500Hz = piercing tone)
+    double volume = 0.23;
     double phase = 0.0;
 
     for (int i = 0; i < totalSamples; ++i) {
@@ -179,7 +179,7 @@ std::vector<char> GeneratePowerupSound() {
     rawSamples.reserve(totalSamples);
 
     double phase = 0.0;
-    double volume = 0.5;
+    double volume = 0.15;
 
     // Define a C Major Chord: C5, E5, G5, C6 (One octave up)
     double notes[] = { 523.25, 659.25, 783.99, 1046.50 };

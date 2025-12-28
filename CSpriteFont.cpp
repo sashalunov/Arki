@@ -181,7 +181,7 @@ void CSpriteFont::DrawString(float startX, float startY, const std::string& text
 }
 
 // New signature: 3D position (pos), scaling factor (scale), and billboard mode option
-void CSpriteFont::DrawString3D(D3DXVECTOR3 pos, float scale, const std::string& text, D3DCOLOR color) {
+void CSpriteFont::DrawString3D(D3DXVECTOR3 pos, float scale, const std::wstring& text, D3DCOLOR color) {
     // --- STEP 1: Calculate the total width of the text first ---
     float totalWidth = 0.0f;
     for (char c : text) {

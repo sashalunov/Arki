@@ -36,7 +36,10 @@ public:
         m_pBody->setCcdMotionThreshold(0.2f);
         m_pBody->setCcdSweptSphereRadius(0.1f);
 
-        dynamicsWorld->addRigidBody(m_pBody);
+        int myGroup = COL_BULLET;
+        int myMask = COL_BLOCK | COL_WALL;
+
+        dynamicsWorld->addRigidBody(m_pBody, myGroup    , myMask);
 
         // Assume TYPE_BULLET is added to your enums
         PhysicsData* pData = new PhysicsData{ TYPE_BULLET, this };

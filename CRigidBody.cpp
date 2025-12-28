@@ -55,7 +55,7 @@ void CRigidBody::InitPhysics(btDynamicsWorld* world, btCollisionShape* shape, fl
     m_rigidBody->setUserPointer(m_pPhysicsData);
     // 3. Add to World
     if (m_world) {
-        m_world->addRigidBody(m_rigidBody);
+        m_world->addRigidBody(m_rigidBody, COL_WALL, COL_BALL|COL_POWERUP|COL_BULLET);
     }
 
     m_isSelected = false;

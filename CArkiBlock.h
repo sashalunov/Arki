@@ -7,6 +7,17 @@
 #include "CSpriteFont.h"
 #include <btBulletDynamicsCommon.h>
 
+// Collision Categories (Bitmasks)
+enum CollisionGroup {
+    COL_NOTHING = 0,
+    COL_WALL = 1 << 0, // 1
+    COL_BALL = 1 << 1, // 2
+    COL_PADDLE = 1 << 2, // 4
+    COL_BLOCK = 1 << 3, // 8
+    COL_POWERUP = 1 << 4, // 16
+    COL_BULLET = 1 << 5  // 32
+};
+
 enum EntityType { 
     TYPE_BALL, 
     TYPE_BLOCK, 
@@ -93,8 +104,10 @@ public:
         // Heap allocate this so it persists (remember to delete in destructor!)
         PhysicsData* pData = new PhysicsData{ TYPE_BLOCK, this };
         m_pBody->setUserPointer(pData);
+
+        // Collides with Ball and Bullet
         // 4. Add to world
-        dynamicsWorld->addRigidBody(m_pBody);
+        dynamicsWorld->addRigidBody(m_pBody, COL_BLOCK, COL_BALL | COL_BULLET);
         scoreValue = score;
     }
 
@@ -148,7 +161,7 @@ public:
         textPos.y += 0.3f; // Center text roughly
 
         // Scale: 0.05f reduces the huge font pixels to reasonable 3D units
-        font->DrawString3D(textPos, 0.012f, std::to_string(scoreValue), D3DCOLOR_XRGB(255, 255, 0));
+        font->DrawString3D(textPos, 0.012f, std::to_wstring(scoreValue), D3DCOLOR_XRGB(255, 255, 0));
 
 
     }

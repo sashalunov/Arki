@@ -62,7 +62,7 @@ public:
 
     // Queue text to be drawn. Does NOT render immediately.
     void DrawString(float x, float y, const std::string& text, D3DCOLOR color);
-    void DrawString3D(D3DXVECTOR3 pos, float scale, const std::string& text, D3DCOLOR color);
+    void DrawString3D(D3DXVECTOR3 pos, float scale, const std::wstring& text, D3DCOLOR color);
 
     // Flushes the batch and renders everything to the screen.
     // Call this before EndScene()

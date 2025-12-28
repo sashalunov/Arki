@@ -39,7 +39,7 @@ public:
         m_pBody->setCollisionFlags(m_pBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
         m_pBody->setActivationState(DISABLE_DEACTIVATION); // Always active
 
-        dynamicsWorld->addRigidBody(m_pBody);
+        dynamicsWorld->addRigidBody(m_pBody, COL_PADDLE, COL_BALL | COL_POWERUP);
 
         PhysicsData* pData = new PhysicsData{ TYPE_PLAYER, this };
         m_pBody->setUserPointer(pData);
@@ -62,8 +62,7 @@ public:
     void Shoot()
     {
         if (m_shootCooldown > 0) return;
-        std::vector<char> soundData = GeneratePlasmaShot();
-        PlaySound((LPCWSTR)soundData.data(), NULL, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+        PlayAudioFromMemory(GeneratePlasmaShot());
 
         btTransform trans;
         m_pBody->getMotionState()->getWorldTransform(trans);

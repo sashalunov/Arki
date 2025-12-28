@@ -145,7 +145,7 @@ public:
         m_pBody->setCollisionFlags(m_pBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
         m_pBody->setActivationState(DISABLE_DEACTIVATION);
 
-        m_pWorld->addRigidBody(m_pBody);
+        m_pWorld->addRigidBody(m_pBody, COL_WALL, COL_BALL|COL_BULLET|COL_POWERUP|COL_PADDLE|COL_BLOCK);
         PhysicsData* pData = new PhysicsData{ TYPE_WALL, nullptr };
         m_pBody->setUserPointer(pData);
 

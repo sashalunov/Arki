@@ -39,4 +39,5 @@ std::vector<char> GenerateMutedKnock();
 std::vector<char> GeneratePlasmaShot();
 std::vector<char> GeneratePowerupSound();
 std::vector<char> GenerateExplosion();
+std::vector<char> GenerateMetallicDing();
 

@@ -237,6 +237,7 @@ bool ArkiGame::Init()
     xau->LoadSoundFromMemory("knock", GenerateMutedKnock());
     xau->LoadSoundFromMemory("powerup", GeneratePowerupSound());
     xau->LoadSoundFromMemory("jump", GenerateJumpSound());
+    xau->LoadSoundFromMemory("ding", GenerateMetallicDing());
 
 
     _log(L"Initializing Done\n");
@@ -1250,6 +1251,13 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
                 pPowerup->m_collected = true;
                 pPowerup->m_markForDelete = true;
 
+                btTransform trans;
+                pPowerup->m_pBody->getMotionState()->getWorldTransform(trans);
+                // Fireball is to the RIGHT (5,0,0)
+                btVector3 firePos = trans.getOrigin();
+                // This will sound like it's coming from the RIGHT speaker
+                xau->Play3D("powerup", firePos, listenerPos);
+
 				//PlayAudioFromMemory(GeneratePowerupSound());
                 // Apply effect based on type
                 switch (pPowerup->m_type)
@@ -1294,6 +1302,15 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
             btVector3 velocity = pBall->m_pBody->getLinearVelocity();
             velocity.setX(velocity.getX() + (diff * 5.0f)); // 5.0f is the "spin" strength
             pBall->m_pBody->setLinearVelocity(velocity);
+
+            btTransform trans;
+            pBall->m_pBody->getMotionState()->getWorldTransform(trans);
+            // Fireball is to the RIGHT (5,0,0)
+            btVector3 firePos = trans.getOrigin();
+            // This will sound like it's coming from the RIGHT speaker
+            xau->Play3D("ding", firePos, listenerPos);
+
+
         }
     }
 }

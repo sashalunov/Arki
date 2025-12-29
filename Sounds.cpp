@@ -303,3 +303,66 @@ std::vector<char> GenerateExplosion() {
     return wavBuffer;
 }
 
+std::vector<char> GenerateMetallicDing() {
+    const int SAMPLE_RATE = 44100;
+    const int DURATION_MS = 850; // Metals ring out longer (1 second)
+    int totalSamples = (SAMPLE_RATE * DURATION_MS) / 1000;
+
+    std::vector<short> rawSamples;
+    rawSamples.reserve(totalSamples);
+
+    // --- SOUND PARAMETERS ---
+    double baseFreq = 600.0;  // High pitch fundamental (2kHz)
+
+    // The "Metal" Ratio: 
+    // Multiplying by a non-integer (like 2.6 or 3.5) creates the "clang"
+    double overtoneFreq = baseFreq * 2.62;
+
+    double phase1 = 0.0;
+    double phase2 = 0.0;
+    double volume = 0.6;
+
+    for (int i = 0; i < totalSamples; ++i) {
+        // 1. UPDATE PHASES
+        phase1 += baseFreq / SAMPLE_RATE;
+        if (phase1 > 1.0) phase1 -= 1.0;
+
+        phase2 += overtoneFreq / SAMPLE_RATE;
+        if (phase2 > 1.0) phase2 -= 1.0;
+
+        // 2. GENERATE SINE WAVES
+        float sine1 = (float)sin(phase1 * 6.28318);
+        float sine2 = (float)sin(phase2 * 6.28318);
+
+        // 3. MIX THEM
+        // We mix the overtone slightly quieter (0.5).
+        // This combination creates the metallic timbre.
+        float sampleValue = sine1 + (sine2 * 0.35f);
+
+        // 4. APPLY DECAY (The "Ring")
+        // Exponential decay mimics real physics better than linear.
+        // We multiply volume by 0.99995 every sample.
+        volume *= 0.99991;
+
+        // 5. CLAMP AND STORE
+        // Since we added two waves, max amplitude could be 1.5, so we divide by 1.5 to normalize
+        sampleValue = (sampleValue / 1.5f) * volume;
+
+        rawSamples.push_back(static_cast<short>(sampleValue * 32000));
+    }
+
+    // --- PACK INTO WAV HEADER ---
+    int dataSize = totalSamples * sizeof(short);
+    int headerSize = sizeof(WAVHeader);
+    std::vector<char> wavBuffer(headerSize + dataSize);
+
+    WAVHeader header;
+    header.data_size = dataSize;
+    header.overall_size = dataSize + 36;
+
+    std::memcpy(wavBuffer.data(), &header, headerSize);
+    std::memcpy(wavBuffer.data() + headerSize, rawSamples.data(), dataSize);
+
+    return wavBuffer;
+}
+

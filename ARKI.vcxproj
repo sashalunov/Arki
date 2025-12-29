@@ -133,7 +133,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d9.lib;d3dx9d.lib;dinput8.lib;dxguid.lib;BulletDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;d3dx9d.lib;dinput8.lib;dxguid.lib;BulletDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;winmm.lib;xaudio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -213,11 +213,13 @@
     <ClInclude Include="CSkybox.h" />
     <ClInclude Include="CSpriteBatch.h" />
     <ClInclude Include="CSpriteFont.h" />
+    <ClInclude Include="CXAudio.h" />
     <ClInclude Include="D3DCamera.h" />
     <ClInclude Include="D3DRender.h" />
     <ClInclude Include="EmbeddedAssets.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="midi.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Sounds.h" />
     <ClInclude Include="stdafx.h" />
@@ -250,6 +252,7 @@
     <ClCompile Include="CSkybox.cpp" />
     <ClCompile Include="CSpriteBatch.cpp" />
     <ClCompile Include="CSpriteFont.cpp" />
+    <ClCompile Include="CXAudio.cpp" />
     <ClCompile Include="D3DCamera.cpp" />
     <ClCompile Include="D3DRender.cpp" />
     <ClCompile Include="Logger.cpp" />

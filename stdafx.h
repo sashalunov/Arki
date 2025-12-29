@@ -23,7 +23,8 @@
 #include <tchar.h>
 #include <deque>
 #include <commdlg.h> // Required for GetOpenFileName
-
+#include <map>
+#include <string>
 
 // TODO: reference additional headers your program requires here
 // --------------------------------------------------------------------------------
@@ -37,7 +38,8 @@
 #include <string>
 #include <list>
 #include <fstream> // Required for file I/O
-
+#include <xaudio2.h>
+#include <x3daudio.h>
 #include "resource.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -76,3 +78,8 @@ struct  TGAHEADER
 	BYTE	imageDesc;
 };
 #pragma	pack (pop)
+// Random float in range [min, max]
+inline float RandomFloatInRange(float min, float max)
+{
+	return min + (max - min) * ((float)rand() / RAND_MAX);
+}

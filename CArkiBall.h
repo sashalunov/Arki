@@ -35,6 +35,9 @@ public:
     btRigidBody* m_pBody;
     float m_radius;
     float m_targetSpeed; // The speed we want to maintain constant
+    bool  m_isActive;
+    float m_lifetime;
+
     ID3DXMesh* m_pMesh;
 
     CArkiBall(btDiscreteDynamicsWorld* dynamicsWorld, IDirect3DDevice9* device, D3DXVECTOR3 startPos, float radius, float speed)
@@ -43,6 +46,8 @@ public:
         m_radius = radius;
         m_targetSpeed = speed;
         m_pMesh = NULL;
+        m_isActive = false;
+        m_lifetime = -1.0f; //infinite lifetime
         // 1. Create Sphere Shape
         btCollisionShape* shape = new btSphereShape(radius);
         D3DXCreateSphere(device, radius, 64, 48, &m_pMesh, NULL);
@@ -79,7 +84,7 @@ public:
         // Disable Gravity for the ball (it floats until hit)
         m_pBody->setGravity(btVector3(0, 0, 0));
         // Collides with Paddle, Walls, Blocks (Ignores Powerups, Bullets)
-        dynamicsWorld->addRigidBody(m_pBody, COL_BALL, COL_PADDLE | COL_WALL | COL_BLOCK | COL_POWERUP);
+        dynamicsWorld->addRigidBody(m_pBody, COL_BALL, COL_PADDLE | COL_WALL | COL_BLOCK | COL_POWERUP | COL_BALL);
         // Prevent the ball from ever falling asleep (stopping simulation)
         m_pBody->setActivationState(WANTS_DEACTIVATION);
         // Save pointer for collisions
@@ -111,6 +116,15 @@ public:
 		SAFE_RELEASE(m_pTrailVB);
 		SAFE_RELEASE(m_pTrailTexture);
     }
+    void SetPosition(float x, float y, float z)
+    {   
+        btTransform trans = m_pBody->getWorldTransform();
+        trans.setOrigin(btVector3(x, y, z));
+        m_pBody->setWorldTransform(trans);
+        //btTransform trans;
+        //m_pBody->getMotionState()->getWorldTransform(trans);
+		m_pBody->getMotionState()->setWorldTransform(btTransform(btQuaternion(0, 0, 0, 1), btVector3(x, y, z)));
+    }
 
     D3DXVECTOR3 GetCameraPos(const D3DXMATRIX& matView)
     {
@@ -131,12 +145,14 @@ public:
     // Launch the ball (e.g., when pressing Space)
     void Launch()
     {
+		if (m_isActive)return;
         // Activate the body (in case it was sleeping)
         m_pBody->activate(true);
+		m_isActive = true;
 
         // Apply an initial velocity upwards and slightly to the right
         // We normalize the vector and multiply by our target speed
-        btVector3 velocity(0.3f, 1.0f, 0.0f);
+        btVector3 velocity(RandomFloatInRange(-0.5f,0.5f), 1.0f, 0.0f);
         velocity.normalize();
         velocity *= m_targetSpeed;
 
@@ -155,30 +171,26 @@ public:
     }
 
     // Call this every frame in your Update loop!
-    void UpdateLogic()
+    void Update(float dt)
     {
+		if (!m_isActive) return;
+
+        if (m_lifetime > 0.0f) {
+            m_lifetime -= dt;
+            if (m_lifetime <= 0.0f) {
+                m_isActive = false;
+                // Optionally, you can also set the ball to inactive in physics
+                m_pBody->setActivationState(WANTS_DEACTIVATION);
+				m_lifetime = 0.0f;
+                return;
+			}
+        }
+
         // 1. Clamp Speed
         // Physics collisions might slightly reduce speed or add floating point errors.
         // We force the velocity to always be exactly 'm_targetSpeed'.
         btVector3 velocity = m_pBody->getLinearVelocity();
         btScalar currentSpeed = velocity.length();
-
-        // 2. Prevent "Boring" Horizontal Loops
-// If vertical velocity is too small, the ball gets stuck moving left/right forever.
-// We add a tiny nudge to Y if it's too close to 0.
-
-        if (abs(velocity.getY()) < 1.22f && currentSpeed > 0.1f) {
-            velocity.setY(velocity.getY() > 0 ? 2.5f : -2.5f);
-
-            //velocity *= m_targetSpeed;
-            //m_pBody->setLinearVelocity(velocity);
-        }
-        if (abs(velocity.getX()) < 1.22f && currentSpeed > 0.1f) {
-            velocity.setX(velocity.getX() > 0 ? 2.5f : -2.5f);
-
-            //velocity *= m_targetSpeed;
-            //m_pBody->setLinearVelocity(velocity);
-        }
 
         // Only normalize if moving (avoid division by zero)
         if (currentSpeed > 0.1f) {
@@ -196,16 +208,16 @@ public:
 
         // Only add a new ghost if we are far enough from the last one
         // (This prevents the trail from bunching up when the ball is slow)
-        if (m_trailHistory.empty() || D3DXVec3LengthSq(&(m_trailHistory.front() - dxPos)) > 0.5f)
-        {
-            m_trailHistory.push_front(dxPos);
+        //if (m_trailHistory.empty() || D3DXVec3LengthSq(&(m_trailHistory.front() - dxPos)) > 0.5f)
+        //{
+        //    m_trailHistory.push_front(dxPos);
 
-            // Remove old ghosts
-            if (m_trailHistory.size() > m_maxTrailLength)
-            {
-                m_trailHistory.pop_back();
-            }
-        }
+        //    // Remove old ghosts
+        //    if (m_trailHistory.size() > m_maxTrailLength)
+        //    {
+        //        m_trailHistory.pop_back();
+        //    }
+        //}
 
         // --- RECORD PATH ---
         btTransform transr;
@@ -263,6 +275,7 @@ public:
         device->SetMaterial(&mtrl);
         device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
         device->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
+        device->SetRenderState(D3DRS_LIGHTING, TRUE);
 
         // --- 3. ENABLE REFLECTION MAPPING ---
         if (pReflectionTexture)

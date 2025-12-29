@@ -66,7 +66,7 @@ std::vector<char> GenerateMutedKnock() {
     rawSamples.reserve(totalSamples);
 
     double frequency = 790.0; // Start at 120Hz (Low thud)
-    double volume = 0.5;      // Start loud
+    double volume = 0.75;      // Start loud
     double phase = 0.0;
 
     for (int i = 0; i < totalSamples; ++i) {
@@ -123,7 +123,7 @@ std::vector<char> GeneratePlasmaShot() {
     rawSamples.reserve(totalSamples);
 
     double frequency = 1300.0; // Start HIGH (1500Hz = piercing tone)
-    double volume = 0.23;
+    double volume = 0.73;
     double phase = 0.0;
 
     for (int i = 0; i < totalSamples; ++i) {
@@ -179,7 +179,7 @@ std::vector<char> GeneratePowerupSound() {
     rawSamples.reserve(totalSamples);
 
     double phase = 0.0;
-    double volume = 0.15;
+    double volume = 0.35;
 
     // Define a C Major Chord: C5, E5, G5, C6 (One octave up)
     double notes[] = { 523.25, 659.25, 783.99, 1046.50 };
@@ -217,6 +217,75 @@ std::vector<char> GeneratePowerupSound() {
         sampleValue *= currentVolume;
 
         rawSamples.push_back(static_cast<short>(sampleValue * 32000));
+    }
+
+    // --- PACK HEADER ---
+    int dataSize = totalSamples * sizeof(short);
+    int headerSize = sizeof(WAVHeader);
+    std::vector<char> wavBuffer(headerSize + dataSize);
+
+    WAVHeader header;
+    header.data_size = dataSize;
+    header.overall_size = dataSize + 36;
+
+    std::memcpy(wavBuffer.data(), &header, headerSize);
+    std::memcpy(wavBuffer.data() + headerSize, rawSamples.data(), dataSize);
+
+    return wavBuffer;
+}
+
+std::vector<char> GenerateExplosion() {
+    // Seed the random number generator so it sounds different every time
+    std::srand(static_cast<unsigned int>(std::time(0)));
+
+    const int SAMPLE_RATE = 44100;
+    const int DURATION_MS = 600; // Explosions are longer (~600ms)
+    int totalSamples = (SAMPLE_RATE * DURATION_MS) / 1000;
+
+    std::vector<short> rawSamples;
+    rawSamples.reserve(totalSamples);
+
+    double volume = 1.0;
+
+    // --- NOISE PARAMETERS ---
+    float currentSample = 0.0f;
+
+    // "Hold" controls the pitch. 
+    // If hold = 1, we change the random number every sample (High Hiss)
+    // If hold = 20, we keep the same number for 20 samples (Low Rumble)
+    double holdDuration = 1.0;
+    double holdCounter = 0.0;
+
+    for (int i = 0; i < totalSamples; ++i) {
+
+        // 1. UPDATE THE NOISE GENERATOR
+        // Instead of generating a new number every single loop, we wait.
+        holdCounter -= 1.0;
+
+        if (holdCounter <= 0) {
+            // Generate a new random float between -1.0 and 1.0
+            // This is the "White Noise"
+            currentSample = (float)(rand() % 2000) / 1000.0f - 1.0f;
+
+            // Reset the counter
+            holdCounter = holdDuration;
+        }
+
+        // 2. APPLY VOLUME
+        float output = currentSample * volume;
+
+        // 3. FX: CRUNCHY PITCH DROP (The "BOOOOM" effect)
+        // We slowly increase the hold duration.
+        // This makes the noise get "slower" and "deeper" over time.
+        holdDuration += 0.02;
+
+        // 4. FX: EXPONENTIAL DECAY
+        // Linear decay sounds unnatural for explosions. 
+        // Exponential decay fades out smoothly.
+        volume *= 0.99992;
+        if (volume < 0) volume = 0;
+
+        rawSamples.push_back(static_cast<short>(output * 30000)); // Slightly lower amplitude to prevent clipping
     }
 
     // --- PACK HEADER ---

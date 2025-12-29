@@ -53,7 +53,6 @@ private:
     CXMesh* m_pSkullMesh;
     CXMesh* m_pTeapotMesh;
 	// rigid bodies
-    //CRigidBody* m_ball;
     CRigidBody* m_floor;    CRigidBody* m_top;
     CRigidBody* m_wallL;    CRigidBody* m_wallR;
 
@@ -106,8 +105,6 @@ private:
     //arkanoid game
     CArkiLevel* m_currentLevel;
     // Initialization
-    CArkiBall* m_ball;// = new CArkiBall(g_DynamicsWorld, D3DXVECTOR3(0, -8, 0), 0.5f, 25.0f);
-    bool isBallActive = FALSE;
 	CArkiPlayer* m_player;// = new CArkiPlayer(g_DynamicsWorld, D3DXVECTOR3(0, -10, 0), D3DXVECTOR3(3.0f, 0.5f, 0.5f));
     CSpriteFont* m_font;
 
@@ -115,6 +112,10 @@ private:
     // ... Texture loading ...
     IDirect3DTexture9* m_radialTex;
     D3DXVECTOR3 vNear, vFar, rayDir;
+
+    // Player is at Origin (0,0,0)
+    btVector3 listenerPos = { 0, 0, 0 };
+
 public:
     ArkiGame();
     ~ArkiGame() {};

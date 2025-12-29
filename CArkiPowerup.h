@@ -1,5 +1,5 @@
 #pragma once
-#include "CArkiBlock.h" // For shared mesh or headers
+#include "CRigidBody.h"
 #include "stdafx.h"
 
 enum PowerupType {
@@ -9,6 +9,8 @@ enum PowerupType {
     PU_BALL,
     PU_MISSILE,
     PU_LASER,
+    PU_BOMB,
+    PU_SENTRY,
     PU_WIDE_PADDLE
     // Add more here...
 };
@@ -31,7 +33,7 @@ public:
         m_collected = false;
 		m_pWorld = dynamicsWorld;
         // 1. Setup Physics (Small Box or Sphere)
-        btCollisionShape* shape = new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
+        btCollisionShape* shape = new btSphereShape(0.5f);
 
         btTransform transform;
         transform.setIdentity();
@@ -47,6 +49,7 @@ public:
         // Prevent moving in Z (depth) and prevent ALL rotation
         m_pBody->setLinearFactor(btVector3(1, 1, 0));
         m_pBody->setAngularFactor(btVector3(0, 0, 0));
+        m_pBody->setActivationState(DISABLE_DEACTIVATION);
 
         int myGroup = COL_POWERUP;
         int myMask = COL_PADDLE | COL_WALL | COL_BLOCK | COL_POWERUP | COL_PADDLE;
@@ -80,29 +83,29 @@ public:
         // Simple Color Coding based on Type
         D3DMATERIAL9 mtrl;
         ZeroMemory(&mtrl, sizeof(mtrl));
+        InitMaterialS(mtrl);
         // Offset Z slightly towards the camera (-0.1f) to prevent "Z-Fighting" (flickering)
         D3DXVECTOR3 textPos = D3DXVECTOR3((float)trans.getOrigin().getX(), (float)trans.getOrigin().getY(), (float)trans.getOrigin().getZ());
-        textPos.z += 0.5f; // Assuming camera is at -Z, move text closer to camera
+        textPos.z += 0.01f; // Assuming camera is at -Z, move text closer to camera
         textPos.x -= 0.0f; // Center text roughly
         textPos.y += 0.3f; // Center text roughly
 
         switch (m_type) {
         case PU_HEALTH:     
-            mtrl.Diffuse = D3DXCOLOR(0, 1, 0, 1); 
-            // Scale: 0.05f reduces the huge font pixels to reasonable 3D units
-            font->DrawString3D(textPos, 0.012f, L"H", D3DCOLOR_XRGB(255, 255, 0));
+            mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(0, 0.7f, 0, 1);
+            font->DrawString3D(textPos, 0.016f, L"H", D3DCOLOR_XRGB(255, 255, 0));
             break; // Green
-		case PU_ARMOR:      mtrl.Diffuse = D3DXCOLOR(0, 0, 1, 1); 
-            font->DrawString3D(textPos, 0.012f, L"A", D3DCOLOR_XRGB(255, 255, 0));
+		case PU_ARMOR:      mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(0, 0.3f, 0.7f, 1);
+            font->DrawString3D(textPos, 0.016f, L"A", D3DCOLOR_XRGB(255, 255, 0));
             break; // Blue
-        case PU_GUN:        mtrl.Diffuse = D3DXCOLOR(1, 0, 0, 1);
-            font->DrawString3D(textPos, 0.012f, L"G", D3DCOLOR_XRGB(255, 255, 0));
+        case PU_GUN:        mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(1, 0, 0, 1);
+            font->DrawString3D(textPos, 0.016f, L"G", D3DCOLOR_XRGB(255, 255, 0));
             break; // RED
-        case PU_BALL:       mtrl.Diffuse = D3DXCOLOR(1, 1, 0, 1);
-            font->DrawString3D(textPos, 0.012f, L"B", D3DCOLOR_XRGB(255, 255, 0));
+        case PU_BALL:       mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1);
+            font->DrawString3D(textPos, 0.016f, L"B", D3DCOLOR_XRGB(255, 255, 0));
             break; // Yellow
-		case PU_MISSILE:    mtrl.Diffuse = D3DXCOLOR(1, 0.5f, 0, 1);
-            font->DrawString3D(textPos, 0.012f, L"M", D3DCOLOR_XRGB(255, 255, 0));
+		case PU_MISSILE:    mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(1, 0.5f, 0, 1);
+            font->DrawString3D(textPos, 0.016f, L"M", D3DCOLOR_XRGB(255, 255, 0));
             break; // Orange 
         default:            mtrl.Diffuse = D3DXCOLOR(1, 1, 1, 1); break; 
         }
@@ -118,7 +121,7 @@ public:
         device->SetTransform(D3DTS_WORLD, &matTrans);
 
         // Draw (Using shared block mesh for now, or load a capsule mesh)
-        if (CArkiBlock::s_pSharedBoxMesh) CArkiBlock::s_pSharedBoxMesh->DrawSubset(0);
+        if (CRigidBody::s_pRigidBodySphereMesh) CRigidBody::s_pRigidBodySphereMesh->DrawSubset(0);
 		D3DXMatrixIdentity(&matWorld);
 		device->SetTransform(D3DTS_WORLD, &matWorld);
     }

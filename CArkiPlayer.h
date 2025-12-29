@@ -1,6 +1,8 @@
 #pragma once
 #include "CArkiBlock.h"
 #include "CArkiBullet.h"
+#include "CArkiBall.h"
+#include "CSkybox.h"
 #include "Sounds.h"
 
 class CArkiPlayer
@@ -9,12 +11,16 @@ public:
     btRigidBody* m_pBody;
     float m_speed;
     btDiscreteDynamicsWorld* m_pDynamicsWorld; // Store reference to world to spawn bullets
+	IDirect3DDevice9* m_pDevice;
     // Gun Management
     std::vector<CArkiBullet*> m_bullets;
+	std::vector<CArkiBall*> m_balls; // Balls spawned from power-ups
+
     float m_shootCooldown;
 
-    CArkiPlayer(btDiscreteDynamicsWorld* dynamicsWorld, D3DXVECTOR3 startPos)
+    CArkiPlayer(btDiscreteDynamicsWorld* dynamicsWorld, IDirect3DDevice9* device, D3DXVECTOR3 startPos)
     {
+		m_pDevice = device;
         m_pDynamicsWorld = dynamicsWorld;
         m_speed = 20.0f;
         m_shootCooldown = 0.0f;
@@ -43,6 +49,8 @@ public:
 
         PhysicsData* pData = new PhysicsData{ TYPE_PLAYER, this };
         m_pBody->setUserPointer(pData);
+
+		AddBall(); // Start with one ball
     }
     ~CArkiPlayer()
     {
@@ -52,6 +60,10 @@ public:
             delete b;
         }
         m_bullets.clear();
+		for (auto* ball : m_balls) {
+			delete ball;
+		}
+		m_balls.clear();
         // ... existing cleanup ...
         if (m_pBody && m_pBody->getUserPointer())
         {
@@ -59,10 +71,30 @@ public:
         }
     }
 
+    void AddBall()
+    {
+        btTransform trans;
+        m_pBody->getMotionState()->getWorldTransform(trans);
+        btVector3 spawnPos = trans.getOrigin();
+        // Spawn slightly above the paddle so it doesn't get stuck inside it
+        spawnPos.setY(spawnPos.getY() + 1.0f);
+		D3DXVECTOR3 spawnPosVec(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
+		CArkiBall* ball = new CArkiBall(m_pDynamicsWorld, m_pDevice, spawnPosVec, 0.3f, 20.0f);
+        m_balls.push_back(ball);
+	}
+
+    void LaunchBalls()
+    {
+        for (auto* ball : m_balls)
+        {
+            ball->Launch();
+        }
+	}   
+
     void Shoot()
     {
         if (m_shootCooldown > 0) return;
-        PlayAudioFromMemory(GeneratePlasmaShot());
+        //PlayAudioFromMemory(GeneratePlasmaShot());
 
         btTransform trans;
         m_pBody->getMotionState()->getWorldTransform(trans);
@@ -96,6 +128,16 @@ public:
         if (m_shootCooldown > 0) m_shootCooldown -= deltaTime;
         //if (fireInput) Shoot();
 
+		for (auto* ball : m_balls)
+        {
+            if(ball->m_isActive)
+                ball->Update(deltaTime);
+            else
+            {
+				ball->SetPosition(origin.getX(), origin.getY() + 1.0f, origin.getZ());  
+            }
+        }
+
        // 3. Update Bullet Timers (BUT DO NOT DELETE HERE)
         for (auto* b : m_bullets)
         {
@@ -122,9 +164,21 @@ public:
                 i--;
             }
         }
+
+        for (int i = 0; i < m_balls.size(); i++)
+        {
+            CArkiBall* ball = m_balls[i];
+            if (ball->m_lifetime == 0.0f)
+            {
+                m_pDynamicsWorld->removeRigidBody(ball->m_pBody);
+                delete ball;
+                m_balls.erase(m_balls.begin() + i);
+                i--;
+            }
+		}
     }
 
-    void Render(IDirect3DDevice9* device)
+    void Render(CSkybox* sky, D3DXMATRIXA16 view)
     {
         btTransform trans;
         m_pBody->getMotionState()->getWorldTransform(trans);
@@ -135,12 +189,35 @@ public:
         D3DXMatrixScaling(&matScale, 4, 0.5f, 1);
         D3DXMatrixTranslation(&matTrans, trans.getOrigin().getX(), trans.getOrigin().getY(), 0);
         matWorld = matScale * matTrans;
-        device->SetTransform(D3DTS_WORLD, &matWorld);
+        m_pDevice->SetTransform(D3DTS_WORLD, &matWorld);
         CArkiBlock::s_pSharedBoxMesh->DrawSubset(0);
+
+
+        for (auto* ball : m_balls)
+        {
+            ball->Render(m_pDevice, sky->GetTexture(), view, sky->GetRotationX());
+		}
+
         // Render Bullets
         for (auto* b : m_bullets)
         {
-            b->Render(device);
+            b->Render(m_pDevice);
         }
     }
+
+    void OnDeviceLost()
+    {
+        for (auto* ball : m_balls)
+        {
+            ball->OnDeviceLost();
+        }
+	}
+
+    void OnDeviceReset()
+    {
+        for (auto* ball : m_balls)
+        {
+            ball->OnDeviceReset(m_pDevice);
+        }
+	}
 };

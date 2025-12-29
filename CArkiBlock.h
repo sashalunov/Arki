@@ -107,7 +107,7 @@ public:
 
         // Collides with Ball and Bullet
         // 4. Add to world
-        dynamicsWorld->addRigidBody(m_pBody, COL_BLOCK, COL_BALL | COL_BULLET);
+        dynamicsWorld->addRigidBody(m_pBody, COL_BLOCK, COL_BALL | COL_BULLET | COL_POWERUP);
         scoreValue = score;
     }
 

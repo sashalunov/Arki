@@ -20,7 +20,7 @@ std::vector<char> GenerateJumpSound() {
         if (phase >= 1.0) phase -= 1.0;
 
         float sampleValue = (phase < 0.5) ? 1.0f : -1.0f;
-        sampleValue *= volume;
+        sampleValue *= (FLOAT)volume;
 
         // Apply NES-style effects
         frequency += 1.5;           // Pitch slide up
@@ -76,10 +76,10 @@ std::vector<char> GenerateMutedKnock() {
         if (phase > 1.0) phase -= 1.0;
 
         // Sine formula: sin( 2 * PI * phase )
-        float sampleValue = sin(phase * 6.28318f);
+        float sampleValue = (FLOAT)sin(phase * 6.28318f);
 
         // 2. APPLY ENVELOPE (Volume)
-        sampleValue *= volume;
+        sampleValue *= (FLOAT)volume;
 
         // 3. MODIFY SOUND CHARACTERISTICS
         // A. Pitch Drop: Drop frequency quickly to simulate an impact
@@ -140,7 +140,7 @@ std::vector<char> GeneratePlasmaShot() {
         sampleValue += (float)(sin(phase * 20.0) * 0.3);
 
         // 4. APPLY VOLUME
-        sampleValue *= volume;
+        sampleValue *= (FLOAT)volume;
 
         // 5. FX: EXPONENTIAL PITCH DROP
         // Instead of subtracting (linear), we multiply (exponential).
@@ -212,7 +212,7 @@ std::vector<char> GeneratePowerupSound() {
         float noteProgress = (float)samplesIntoCurrentNote / samplesPerNote;
 
         // Linear decay for each individual note
-        float currentVolume = volume * (1.0f - noteProgress * 0.5f);
+        float currentVolume = (FLOAT)volume * (1.0f - noteProgress * 0.5f);
 
         sampleValue *= currentVolume;
 
@@ -239,13 +239,13 @@ std::vector<char> GenerateExplosion() {
     std::srand(static_cast<unsigned int>(std::time(0)));
 
     const int SAMPLE_RATE = 44100;
-    const int DURATION_MS = 600; // Explosions are longer (~600ms)
+    const int DURATION_MS = 1200; // Explosions are longer (~600ms)
     int totalSamples = (SAMPLE_RATE * DURATION_MS) / 1000;
 
     std::vector<short> rawSamples;
     rawSamples.reserve(totalSamples);
 
-    double volume = 1.0;
+    double volume = 2.5;
 
     // --- NOISE PARAMETERS ---
     float currentSample = 0.0f;
@@ -272,7 +272,7 @@ std::vector<char> GenerateExplosion() {
         }
 
         // 2. APPLY VOLUME
-        float output = currentSample * volume;
+        float output = currentSample * (FLOAT)volume;
 
         // 3. FX: CRUNCHY PITCH DROP (The "BOOOOM" effect)
         // We slowly increase the hold duration.
@@ -285,7 +285,7 @@ std::vector<char> GenerateExplosion() {
         volume *= 0.99992;
         if (volume < 0) volume = 0;
 
-        rawSamples.push_back(static_cast<short>(output * 30000)); // Slightly lower amplitude to prevent clipping
+        rawSamples.push_back(static_cast<short>(output * 32000)); // Slightly lower amplitude to prevent clipping
     }
 
     // --- PACK HEADER ---
@@ -346,7 +346,7 @@ std::vector<char> GenerateMetallicDing() {
 
         // 5. CLAMP AND STORE
         // Since we added two waves, max amplitude could be 1.5, so we divide by 1.5 to normalize
-        sampleValue = (sampleValue / 1.5f) * volume;
+        sampleValue = (sampleValue / 1.5f) * (FLOAT)volume;
 
         rawSamples.push_back(static_cast<short>(sampleValue * 32000));
     }

@@ -55,7 +55,7 @@ void CRigidBody::InitPhysics(btDynamicsWorld* world, btCollisionShape* shape, fl
     m_rigidBody->setUserPointer(m_pPhysicsData);
     // 3. Add to World
     if (m_world) {
-        m_world->addRigidBody(m_rigidBody, COL_WALL, COL_BALL|COL_POWERUP|COL_BULLET);
+        m_world->addRigidBody(m_rigidBody, COL_WALL, COL_BALL|COL_POWERUP|COL_BULLET| COL_WALL| COL_BLOCK);
     }
 
     m_isSelected = false;
@@ -113,7 +113,8 @@ void CRigidBody::DestroyPhysics()
         m_pPhysicsData = nullptr;
     }
     if (m_rigidBody) {
-        //delete m_rigidBody->getMotionState();
+        m_rigidBody->setMotionState(nullptr);
+        delete m_rigidBody->getMotionState();
         delete m_rigidBody;
         m_rigidBody = nullptr;
     }

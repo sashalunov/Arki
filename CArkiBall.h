@@ -204,7 +204,7 @@ public:
         btTransform trans;
         m_pBody->getMotionState()->getWorldTransform(trans);
         btVector3 currPos = trans.getOrigin();
-        D3DXVECTOR3 dxPos(currPos.getX(), currPos.getY(), currPos.getZ());
+        D3DXVECTOR3 dxPos((FLOAT)currPos.getX(), (FLOAT)currPos.getY(), (FLOAT)currPos.getZ());
 
         // Only add a new ghost if we are far enough from the last one
         // (This prevents the trail from bunching up when the ball is slow)
@@ -223,7 +223,7 @@ public:
         btTransform transr;
         m_pBody->getMotionState()->getWorldTransform(transr);
         btVector3 btPosr = transr.getOrigin();
-        D3DXVECTOR3 currPosr(btPosr.getX(), btPosr.getY(), btPosr.getZ());
+        D3DXVECTOR3 currPosr((FLOAT)btPosr.getX(), (FLOAT)btPosr.getY(), (FLOAT)btPosr.getZ());
 
         // Optimization: Only add point if we moved enough
         if (m_pathHistory.empty() || D3DXVec3LengthSq(&(m_pathHistory.front() - currPosr)) > m_minPointDistSq)

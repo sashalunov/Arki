@@ -2,6 +2,8 @@
 #include "btBulletCollisionCommon.h"
 #include <btBulletDynamicsCommon.h>
 #include "D3DRender.h"
+#include "tweeny.h"
+using tweeny::easing;
 
 
 // Bullet uses a Right-Handed coordinate system (Z comes toward you).
@@ -13,6 +15,13 @@ private:
     btVector3 m_position;
     btQuaternion m_rotation; // The master rotation state
     float m_accumulatedPitch;
+
+    // --- SHAKE VARIABLES ---
+    float     m_shakeDuration;     // Current time left to shake
+    float     m_shakeStrength;     // Intensity of the shake
+    float     m_startShakeDuration;// To calculate fade-out ratio
+    btVector3 m_shakeOffset;       // The temporary offset applied this frame
+    tweeny::tween<float> m_shakeTween;
 public:
     float fovY;
     float aspectRatio;
@@ -22,6 +31,8 @@ public:
 public:
     CQuatCamera();
 
+    // Trigger the shake
+    void Shake(float strength, float duration);
     // --- Movement & Rotation ---
     // Move relative to the camera's current view (Forward/Back/Strafing)
     void MoveLocal(float distForward, float distRight, float distUp);
@@ -47,8 +58,8 @@ public:
     btVector3 GetPosition() const { return m_position; }
     btQuaternion GetRotation() const { return m_rotation; }
 
-    void Render(IDirect3DDevice9* device, double deltaTime);
-
+    void Render(IDirect3DDevice9* device);
+    void Update(double deltaTime);
 
     // Get the vector pointing strictly to the "Right" of the camera (Local +X)
     btVector3 CQuatCamera::GetRightVector() const

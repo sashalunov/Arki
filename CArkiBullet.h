@@ -77,7 +77,7 @@ public:
 
         // Scale small for bullet
         D3DXMatrixScaling(&matScale, 0.4f, 0.4f, 0.4f);
-        D3DXMatrixTranslation(&matTrans, trans.getOrigin().getX(), trans.getOrigin().getY(), 0);
+        D3DXMatrixTranslation(&matTrans, (FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), 0);
 
         matWorld = matScale * matTrans;
         device->SetTransform(D3DTS_WORLD, &matWorld);

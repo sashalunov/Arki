@@ -54,7 +54,7 @@ VOID WINAPI ProceduralSpaceGen(D3DXVECTOR4* pOut, const D3DXVECTOR3* pTexCoord,c
 void CSkybox::DrawSkybox(IDirect3DDevice9* pd3dDevice, D3DXMATRIX matView, double deltaTime)
 {
     // Accumulate rotation over time
-    m_fCurrentRotationX += m_fRotationSpeed * deltaTime;
+    m_fCurrentRotationX += m_fRotationSpeed * (FLOAT)deltaTime;
     // Optional: Keep rotation within 0 to 2*PI to prevent large float values
   // This maintains precision for longer running applications.
     while (m_fCurrentRotationX > D3DX_PI * 2.0f) // 2*PI is a full circle

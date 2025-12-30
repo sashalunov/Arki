@@ -78,7 +78,7 @@ public:
         btVector3 spawnPos = trans.getOrigin();
         // Spawn slightly above the paddle so it doesn't get stuck inside it
         spawnPos.setY(spawnPos.getY() + 1.0f);
-		D3DXVECTOR3 spawnPosVec(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
+		D3DXVECTOR3 spawnPosVec((FLOAT)spawnPos.getX(), (FLOAT)spawnPos.getY(), (FLOAT)spawnPos.getZ());
 		CArkiBall* ball = new CArkiBall(m_pDynamicsWorld, m_pDevice, spawnPosVec, 0.3f, 20.0f);
         m_balls.push_back(ball);
 	}
@@ -134,7 +134,7 @@ public:
                 ball->Update(deltaTime);
             else
             {
-				ball->SetPosition(origin.getX(), origin.getY() + 1.0f, origin.getZ());  
+				ball->SetPosition((FLOAT)origin.getX(), (FLOAT)origin.getY() + 1.0f, (FLOAT)origin.getZ());
             }
         }
 
@@ -187,7 +187,7 @@ public:
         D3DXMATRIXA16 matWorld, matRot, matScale, matTrans;
 
         D3DXMatrixScaling(&matScale, 4, 0.5f, 1);
-        D3DXMatrixTranslation(&matTrans, trans.getOrigin().getX(), trans.getOrigin().getY(), 0);
+        D3DXMatrixTranslation(&matTrans, (FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), 0);
         matWorld = matScale * matTrans;
         m_pDevice->SetTransform(D3DTS_WORLD, &matWorld);
         CArkiBlock::s_pSharedBoxMesh->DrawSubset(0);

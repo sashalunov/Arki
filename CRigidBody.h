@@ -47,7 +47,11 @@ public:
 public:
     CRigidBody();
     virtual ~CRigidBody() { DestroyPhysics(); }
-
+    // 2. Add this virtual function
+    // The empty body {} means normal objects do nothing.
+    virtual void Update( double deltaTime) {}
+    // 3. Add a check for cleanup
+    virtual bool IsDead() const { return false; }
     // --- 1. SETUP: Now with Active/Passive Control ---
     // isDynamic = false (Default): Mass is forced to 0. Object is STATIC.
     // isDynamic = true:            Mass is used. Object is ACTIVE.
@@ -253,19 +257,22 @@ public:
 
     void RenderBoundingBox(IDirect3DDevice9* device)
     {
-        btVector3 min, max;
-        GetAabb(min, max);
+        btVector3 bmin, bmax;
+        D3DXVECTOR3 min, max;
+        GetAabb(bmin, bmax);
 
+		min = D3DXVECTOR3((FLOAT)bmin.x(), (FLOAT)bmin.y(), (FLOAT)bmin.z());
+		max = D3DXVECTOR3((FLOAT)bmax.x(), (FLOAT)bmax.y(), (FLOAT)bmax.z());
         // Calculate 8 corners
         D3DXVECTOR3 corners[8];
-        corners[0] = D3DXVECTOR3(min.x(), min.y(), min.z());
-        corners[1] = D3DXVECTOR3(max.x(), min.y(), min.z());
-        corners[2] = D3DXVECTOR3(min.x(), max.y(), min.z());
-        corners[3] = D3DXVECTOR3(max.x(), max.y(), min.z());
-        corners[4] = D3DXVECTOR3(min.x(), min.y(), max.z());
-        corners[5] = D3DXVECTOR3(max.x(), min.y(), max.z());
-        corners[6] = D3DXVECTOR3(min.x(), max.y(), max.z());
-        corners[7] = D3DXVECTOR3(max.x(), max.y(), max.z());
+        corners[0] = D3DXVECTOR3(min.x, min.y, min.z);
+        corners[1] = D3DXVECTOR3(max.x, min.y, min.z);
+        corners[2] = D3DXVECTOR3(min.x, max.y, min.z);
+        corners[3] = D3DXVECTOR3(max.x, max.y, min.z);
+        corners[4] = D3DXVECTOR3(min.x, min.y, max.z);
+        corners[5] = D3DXVECTOR3(max.x, min.y, max.z);
+        corners[6] = D3DXVECTOR3(min.x, max.y, max.z);
+        corners[7] = D3DXVECTOR3(max.x, max.y, max.z);
 
         // Indices for lines
         short indices[] = {
@@ -290,7 +297,7 @@ public:
         // 1. Apply the new scale to the shape
         // Note: This is absolute, not relative. (1,1,1) resets to original size.
         m_rigidBody->getCollisionShape()->setLocalScaling(newScale/2.0f);
-        m_scale = D3DXVECTOR3(newScale.x(), newScale.y(), newScale.z());
+        m_scale = D3DXVECTOR3((FLOAT)newScale.x(), (FLOAT)newScale.y(), (FLOAT)newScale.z());
         // 2. Recalculate inertia (Only needed for Dynamic objects like the Ball)
         // For the Paddle (Kinematic), this step can be skipped, but it's safe to include.
         if (!m_rigidBody->isStaticOrKinematicObject())

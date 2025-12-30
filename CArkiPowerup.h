@@ -4,8 +4,9 @@
 
 enum PowerupType {
     PU_HEALTH,
-    PU_ARMOR,
+    PU_FLOOR,
     PU_GUN,
+    PU_SPEED,
     PU_BALL,
     PU_MISSILE,
     PU_LASER,
@@ -52,7 +53,7 @@ public:
         m_pBody->setActivationState(DISABLE_DEACTIVATION);
 
         int myGroup = COL_POWERUP;
-        int myMask = COL_PADDLE | COL_WALL | COL_BLOCK | COL_POWERUP | COL_PADDLE;
+        int myMask = COL_PADDLE | COL_WALL | COL_BLOCK | COL_POWERUP |  COL_BALL;
         // 3. Add to world
         dynamicsWorld->addRigidBody(m_pBody, myGroup, myMask);
 
@@ -73,7 +74,7 @@ public:
         }
     }
 
-    void Render(IDirect3DDevice9* device, CSpriteFont* font)
+    void Render(IDirect3DDevice9* device, CSpriteFont* font, IDirect3DCubeTexture9* pReflectionTexture, float rotationAngle)
     {
         // Transform
         btTransform trans;
@@ -92,13 +93,13 @@ public:
 
         switch (m_type) {
         case PU_HEALTH:     
-            mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(0, 0.7f, 0, 1);
+            mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(0, 0.7f, 0.3f, 1.0f);
             font->DrawString3D(textPos, 0.016f, L"H", D3DCOLOR_XRGB(255, 255, 0));
             break; // Green
-		case PU_ARMOR:      mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(0, 0.3f, 0.7f, 1);
-            font->DrawString3D(textPos, 0.016f, L"A", D3DCOLOR_XRGB(255, 255, 0));
+		case PU_BOMB:      mtrl.Diffuse =  D3DXCOLOR(0.83f, 0.03f, 0.0f, 1);
+            font->DrawString3D(textPos, 0.016f, L"B", D3DCOLOR_XRGB(255, 255, 0));
             break; // Blue
-        case PU_GUN:        mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(1, 0, 0, 1);
+        case PU_GUN:        mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(0.25f, 0.15f, 0, 1);
             font->DrawString3D(textPos, 0.016f, L"G", D3DCOLOR_XRGB(255, 255, 0));
             break; // RED
         case PU_BALL:       mtrl.Diffuse = mtrl.Emissive = D3DXCOLOR(0.2f, 0.2f, 0.2f, 1);
@@ -117,6 +118,28 @@ public:
 		device->SetRenderState(D3DRS_LIGHTING, TRUE);
 
 
+        // --- 3. ENABLE REFLECTION MAPPING ---
+        if (pReflectionTexture)
+        {
+            // Bind the Skybox Texture
+            device->SetTexture(0, pReflectionTexture);
+            // MAGIC: Tell DX9 to automatically calculate the Reflection Vector based on Camera Angle
+            device->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, D3DTSS_TCI_CAMERASPACEREFLECTIONVECTOR);
+            // This rotates the 3D reflection vector around the Y axis
+            D3DXMATRIX matTextureRot;
+            D3DXMatrixRotationX(&matTextureRot, rotationAngle);
+            // C. Apply the Matrix to Texture Stage 0
+            device->SetTransform(D3DTS_TEXTURE0, &matTextureRot);
+            // Tell DX9 this is a Cube Map (requires 3D coordinates)
+            device->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_COUNT3);
+            // Optional: Mix the reflection with the material color (Modulate or Add)
+            device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_ADD); // Add makes it look shiny/glowing
+            device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_CURRENT); // Add makes it look shiny/glowing
+            device->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_TEXTURE); // Add makes it look shiny/glowing
+
+            // device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE4X);
+        }
+
         D3DXMatrixTranslation(&matTrans, (float)trans.getOrigin().getX(), (float)trans.getOrigin().getY(), 0);
         device->SetTransform(D3DTS_WORLD, &matTrans);
 
@@ -124,5 +147,17 @@ public:
         if (CRigidBody::s_pRigidBodySphereMesh) CRigidBody::s_pRigidBodySphereMesh->DrawSubset(0);
 		D3DXMatrixIdentity(&matWorld);
 		device->SetTransform(D3DTS_WORLD, &matWorld);
+
+        // --- 5. CLEANUP (CRITICAL!) ---
+        D3DXMATRIX matIdentity;
+        D3DXMatrixIdentity(&matIdentity);
+        device->SetTransform(D3DTS_TEXTURE0, &matIdentity); // Reset Matrix
+        // If you don't turn this off, your Blocks and Text will look crazy/broken
+        device->SetTexture(0, NULL);
+        device->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0); // Reset to standard UVs
+        device->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
+        device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE); // Reset to standard mixing
+
+
     }
 };

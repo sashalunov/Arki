@@ -18,7 +18,7 @@ public:
     CMainMenu() {}
     ~CMainMenu() {}
 
-    MenuResult Render(IDirect3DDevice9* pDevice)
+    MenuResult Render()
     {
         MenuResult result = MENU_NO_ACTION;
 

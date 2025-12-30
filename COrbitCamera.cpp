@@ -131,13 +131,13 @@ D3DXMATRIXA16 COrbitCamera::GetViewMatrix() const
 
     D3DXMATRIXA16 view;
 
-    view._11 = right.x(); view._12 = up.x(); view._13 = -fwd.x(); view._14 = 0.0f;
-    view._21 = right.y(); view._22 = up.y(); view._23 = -fwd.y(); view._24 = 0.0f;
-    view._31 = right.z(); view._32 = up.z(); view._33 = -fwd.z(); view._34 = 0.0f;
+    view._11 = (FLOAT)right.x(); view._12 = (FLOAT)up.x(); view._13 = -(FLOAT)fwd.x(); view._14 = 0.0f;
+    view._21 = (FLOAT)right.y(); view._22 = (FLOAT)up.y(); view._23 = -(FLOAT)fwd.y(); view._24 = 0.0f;
+    view._31 = (FLOAT)right.z(); view._32 = (FLOAT)up.z(); view._33 = -(FLOAT)fwd.z(); view._34 = 0.0f;
 
-    view._41 = -pos.dot(right);
-    view._42 = -pos.dot(up);
-    view._43 = pos.dot(fwd); // Note sign change for RH Z-axis
+    view._41 = -(FLOAT)pos.dot(right);
+    view._42 = -(FLOAT)pos.dot(up);
+    view._43 = (FLOAT)pos.dot(fwd); // Note sign change for RH Z-axis
     view._44 = 1.0f;
 
     return view;

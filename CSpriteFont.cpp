@@ -184,7 +184,7 @@ void CSpriteFont::DrawString(float startX, float startY, const std::string& text
 void CSpriteFont::DrawString3D(D3DXVECTOR3 pos, float scale, const std::wstring& text, D3DCOLOR color) {
     // --- STEP 1: Calculate the total width of the text first ---
     float totalWidth = 0.0f;
-    for (char c : text) {
+    for (TCHAR c : text) {
         if (m_chars.find(c) != m_chars.end()) {
             totalWidth += m_chars[c].xadvance;
         }
@@ -193,7 +193,7 @@ void CSpriteFont::DrawString3D(D3DXVECTOR3 pos, float scale, const std::wstring&
     float cursorX = -totalWidth / 2.0f;
     float cursorY = 0.0f;
 
-    for (char charCode : text) {
+    for (TCHAR charCode : text) {
         if (m_chars.find(charCode) == m_chars.end()) continue;
         CharDesc& cd = m_chars[charCode];
 
@@ -263,17 +263,18 @@ void CSpriteFont::RenderBatch(IDirect3DDevice9* pDevice) {
     pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
     pDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
     pDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-    pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+    pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
     pDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+    pDevice->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
 
     // Draw everything in one call
-    pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, m_batchVertices.size() / 3, m_batchVertices.data(), sizeof(FontVertex3D));
+    pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, (UINT)m_batchVertices.size() / 3, m_batchVertices.data(), sizeof(FontVertex3D));
     pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
     //pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-    pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-    pDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-    pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-    pDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
+    //pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
+    //pDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+    //pDevice->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+    //pDevice->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
     pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
     pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 

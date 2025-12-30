@@ -16,6 +16,13 @@ CQuatCamera::CQuatCamera()
     zNear = 0.1f;
     zFar = 10000.0f;
 
+    m_shakeDuration = 0.0f;
+    m_shakeStrength = 0.0f;
+    m_shakeOffset = btVector3(0, 0, 0);
+
+    // Initialize tween to a "finished" state (0 to 0) so it doesn't shake at start
+    m_shakeTween = tweeny::from(0.0f).to(0.0f).during(0);
+
 }
 
 void CQuatCamera::MoveLocal(float distForward, float distRight, float distUp)
@@ -159,7 +166,7 @@ void CQuatCamera::LookAt(const btVector3& target)
     // Conveniently, asin(forward.y) gives us exactly that angle (in radians).
     // Note: Since Forward is -Z in this system, we might need to check sign depending on your exact setup,
     // but typically:
-    m_accumulatedPitch = asin(-forward.y());
+    m_accumulatedPitch = asin(-(FLOAT)forward.y());
 }
 
 void CQuatCamera::SlerpTo(const btQuaternion& targetRot, float t)
@@ -172,39 +179,64 @@ D3DXMATRIXA16 CQuatCamera::GetViewMatrix() const
 {
     // 1. Convert Bullet Quaternion to Matrix
     btMatrix3x3 rotMat(m_rotation);
-
     // 2. Extract Basis Vectors
     btVector3 right = rotMat.getColumn(0);
     btVector3 up = rotMat.getColumn(1);
     btVector3 fwd = rotMat.getColumn(2) * -1.0f; // RH Forward is -Z
 
+    // Apply the Shake Offset here
+    btVector3 finalPos = m_position + m_shakeOffset;
     // 3. Build View Matrix manually 
     // The View Matrix is the Inverse of the World Matrix.
     // Since it's a rotation+translation, Inverse = Transpose(Rotation) * Translation(-Pos)
-
     D3DXMATRIXA16 view;
 
     // Row 1: Right Vector & Dot Product
-    view._11 = right.x(); view._12 = up.x(); view._13 = -fwd.x(); view._14 = 0.0f;
-
+    view._11 = (FLOAT)right.x(); view._12 = (FLOAT)up.x(); view._13 = -(FLOAT)fwd.x(); view._14 = 0.0f;
     // Row 2: Up Vector & Dot Product
-    view._21 = right.y(); view._22 = up.y(); view._23 = -fwd.y(); view._24 = 0.0f;
-
+    view._21 = (FLOAT)right.y(); view._22 = (FLOAT)up.y(); view._23 = -(FLOAT)fwd.y(); view._24 = 0.0f;
     // Row 3: Forward Vector & Dot Product (Note the -fwd for Z axis inversion in LookAt logic)
-    view._31 = right.z(); view._32 = up.z(); view._33 = -fwd.z(); view._34 = 0.0f;
-
+    view._31 = (FLOAT)right.z(); view._32 = (FLOAT)up.z(); view._33 = -(FLOAT)fwd.z(); view._34 = 0.0f;
     // Row 4: Translation (Dot products of Pos and Axis)
     // In a View Matrix, the translation part is: -dot(Pos, Axis)
-    view._41 = -m_position.dot(right);
-    view._42 = -m_position.dot(up);
-    view._43 = m_position.dot(fwd); // Positive here because fwd is -Z
+    view._41 = -(FLOAT)finalPos.dot(right);
+    view._42 = -(FLOAT)finalPos.dot(up);
+    view._43 = (FLOAT)finalPos.dot(fwd); // Positive here because fwd is -Z
     view._44 = 1.0f;
 
     return view;
 }
+
+void CQuatCamera::Update(double dt)
+{
+    // 1. Convert dt to milliseconds for tweeny
+    int dtMs = (int)(dt * 1000.0f);
+
+    // 2. Step the animation
+    // 'step' advances the time and returns the current interpolated value (current strength)
+    float currentStrength = m_shakeTween.step(dtMs);
+
+    // 3. Apply Offset if still shaking
+    if (m_shakeTween.progress() < 1.0f && currentStrength > 0.001f)
+    {
+        // Generate random vector (-1.0 to 1.0)
+        float rx = ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
+        float ry = ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
+        float rz = ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
+
+        // Apply the tweened strength
+        m_shakeOffset = btVector3(rx, ry, rz) * currentStrength;
+    }
+    else
+    {
+        // Ensure perfect zero when finished
+        m_shakeOffset = btVector3(0, 0, 0);
+    }
+}
+
 // ------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------
-void CQuatCamera::Render(IDirect3DDevice9* device, double dt)
+void CQuatCamera::Render(IDirect3DDevice9* device)
 {
     
     SetAspectRatio((float)d3d9->GetWidth() , (float)d3d9->GetHeight());
@@ -227,4 +259,20 @@ void CQuatCamera::SetAspectRatio(float width, float height)
 {
     if (height > 0.0f) // Prevent divide by zero
         aspectRatio = width / height;
+}
+
+void CQuatCamera::Shake(float strength, float duration)
+{
+    // tweeny works in milliseconds (usually int), so convert seconds -> ms
+    int durationMs = (int)(duration * 1000.0f);
+
+    // Configure the Tween:
+    // 1. Start at 'strength'
+    // 2. Go to '0.0f'
+    // 3. Take 'durationMs' time
+    // 4. Use Quadratic Easing for smooth fade-out
+    m_shakeTween = tweeny::from(strength)
+        .to(0.0f)
+        .during(durationMs)
+        .via(tweeny::easing::quadraticOut);
 }

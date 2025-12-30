@@ -56,7 +56,7 @@ void CSpriteBatch::Draw(IDirect3DTexture9* tex, const btVector3& pos, const btVe
     info.rotation2D = 0.0f;
 
     // Calculate distance for sorting later
-    info.distToCamera = m_camPos.distance2(pos);
+    info.distToCamera = (FLOAT)m_camPos.distance2(pos);
 
     m_sprites.push_back(info);
 }
@@ -160,23 +160,23 @@ void CSpriteBatch::End()
 
         // Fill Vertex Buffer (2 Triangles = 6 Verts)
         // Triangle 1
-        pVerts->x = bl.x(); pVerts->y = bl.y(); pVerts->z = bl.z();
+        pVerts->x = (FLOAT)bl.x(); pVerts->y = (FLOAT)bl.y(); pVerts->z = (FLOAT)bl.z();
         pVerts->color = spr.color; pVerts->u = 0.0f; pVerts->v = 1.0f; pVerts++;
 
-        pVerts->x = tl.x(); pVerts->y = tl.y(); pVerts->z = tl.z();
+        pVerts->x = (FLOAT)tl.x(); pVerts->y = (FLOAT)tl.y(); pVerts->z = (FLOAT)tl.z();
         pVerts->color = spr.color; pVerts->u = 0.0f; pVerts->v = 0.0f; pVerts++;
 
-        pVerts->x = tr.x(); pVerts->y = tr.y(); pVerts->z = tr.z();
+        pVerts->x = (FLOAT)tr.x(); pVerts->y = (FLOAT)tr.y(); pVerts->z = (FLOAT)tr.z();
         pVerts->color = spr.color; pVerts->u = 1.0f; pVerts->v = 0.0f; pVerts++;
 
         // Triangle 2
-        pVerts->x = bl.x(); pVerts->y = bl.y(); pVerts->z = bl.z();
+        pVerts->x = (FLOAT)bl.x(); pVerts->y = (FLOAT)bl.y(); pVerts->z = (FLOAT)bl.z();
         pVerts->color = spr.color; pVerts->u = 0.0f; pVerts->v = 1.0f; pVerts++;
 
-        pVerts->x = tr.x(); pVerts->y = tr.y(); pVerts->z = tr.z();
+        pVerts->x = (FLOAT)tr.x(); pVerts->y = (FLOAT)tr.y(); pVerts->z = (FLOAT)tr.z();
         pVerts->color = spr.color; pVerts->u = 1.0f; pVerts->v = 0.0f; pVerts++;
 
-        pVerts->x = br.x(); pVerts->y = br.y(); pVerts->z = br.z();
+        pVerts->x = (FLOAT)br.x(); pVerts->y = (FLOAT)br.y(); pVerts->z = (FLOAT)br.z();
         pVerts->color = spr.color; pVerts->u = 1.0f; pVerts->v = 1.0f; pVerts++;
 
         currentBatchCount++;

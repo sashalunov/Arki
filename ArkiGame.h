@@ -1,5 +1,6 @@
 #pragma once
 #include <btBulletDynamicsCommon.h>
+#include <random>    // The modern random library
 #include "CBulletDebugDrawer.h"
 #include "Logger.h"
 #include "D3DRender.h"
@@ -19,7 +20,9 @@
 #include "CGizmo.h"
 #include "COrbitCamera.h"
 #include "CArkiCliffTreadmill.h"
-#include <random>    // The modern random library
+#include "tweeny.h"
+using tweeny::easing;
+
 
 enum GameState {
     STATE_MENU,
@@ -34,6 +37,63 @@ std::wstring OpenFileDialog( HWND owner );
 // Helper: Opens a Windows "Save As" file picker (Wide String Version)
 std::wstring SaveFileDialog( HWND owner );
 
+struct FloatingText3D {
+    // The Tween Object: Handles 3 values: Y-Offset, Alpha, Scale
+    tweeny::tween<float, float, float> anim;
+	std::wstring scoreText;
+    D3DXVECTOR3 startPos;
+    bool isActive;
+
+    void Spawn(D3DXVECTOR3 pos, const std::wstring& text)
+    {
+        startPos = pos;
+        isActive = true;
+		scoreText = text;
+        // Setup the animation:
+        // Value 1 (Y-Offset): From 0.0 to 20.0 (Float up)
+        // Value 2 (Alpha):    From 255.0 to 0.0 (Fade out)
+        // Value 3 (Scale):    From 0.05 to 0.10 (Grow)
+        anim = tweeny::from(0.0f, 255.0f, 0.012f)
+            .to(1.0f, 0.0f, 0.026f)
+            .during(60) // 60 Frames (approx 1 sec at 60fps)
+            .via(tweeny::easing::linear); // Nice "pop" effect
+    }
+
+    void Update(float dt) {
+        if (!isActive) return;
+
+        // Advance 1 frame
+        anim.step(1);
+
+        // Check completion
+        if (anim.progress() >= 1.0f) {
+            isActive = false;
+        }
+    }
+
+    void Render(CSpriteFont* font) {
+        if (!isActive) return;
+
+        // Get current values
+        // peek() returns a tuple, usually we use values struct or direct access
+        auto values = anim.peek();
+        float yOffset = std::get<0>(values);
+        float alpha   = std::get<1>(values);
+        float scale   = std::get<2>(values);
+
+        // Calculate current position
+        D3DXVECTOR3 drawPos = startPos;
+        drawPos.y += yOffset; // Move up
+        //drawPos.z += yOffset; // Move up
+
+
+        // Draw
+        // Note: You need to construct Color with the dynamic Alpha
+        D3DCOLOR color = D3DCOLOR_ARGB((int)alpha, 255, 255, 0); // Yellow fading out
+
+        font->DrawString3D(drawPos, scale, scoreText, color);
+    }
+};
 
 class ArkiGame
 {
@@ -81,7 +141,8 @@ private:
     const double FIXED_DT = 1.0 / 60.0;    // Target 60 updates per second (0.0166s)
     const double MAX_FRAME_TIME = 0.25;    // Cap time to prevent "spiral of death" if game lags
     double g_accumulator = 0.0;            // Stores accumulated time
-
+    
+    std::vector<FloatingText3D*> m_ftext;
 
     D3DLIGHT9 m_LightDefault;
 	D3DMATERIAL9 m_MaterialDefault;
@@ -94,8 +155,8 @@ private:
     btDiscreteDynamicsWorld* g_dynamicsWorld;
 
     CBulletDebugDrawer* btDebugDrawer;
-    bool m_debugdraw = TRUE;
-    bool m_pfxdraw = TRUE;
+    bool m_debugdraw = FALSE;
+    bool m_pfxdraw = FALSE;
     bool m_usemouse = FALSE;
     bool m_usesnap = FALSE;
     float m_val = 0.0f;
@@ -113,8 +174,6 @@ private:
     IDirect3DTexture9* m_radialTex;
     D3DXVECTOR3 vNear, vFar, rayDir;
 
-    // Player is at Origin (0,0,0)
-    btVector3 listenerPos = { 0, 0, 0 };
 
 public:
     ArkiGame();
@@ -146,6 +205,8 @@ private:
     void CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld);
 	void SetRenderStateDefaults();
     bool RaycastFromMouse(int mouseX, int mouseY, btVector3& outHitPoint, btRigidBody*& outBody);
+    PhysicsData* RaycastWithMask(btDynamicsWorld* world, btVector3 start, btVector3 end, int rayGroup, int rayMask);
+
     void RenderObjectProperties();
     void UpdateWalls(float DeltaTime);
 

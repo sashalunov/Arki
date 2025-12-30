@@ -8,6 +8,7 @@ struct SoundData {
     WAVEFORMATEX wfx = { 0 };
     std::vector<BYTE> audioBytes;
 };
+static const X3DAUDIO_CONE Listener_DirectionalCone = { X3DAUDIO_PI * 5.0f / 6.0f, X3DAUDIO_PI * 11.0f / 6.0f, 1.0f, 0.75f, 0.0f, 0.25f, 0.708f, 1.0f };
 
 class CXAudio
 {
@@ -16,6 +17,7 @@ private:
     IXAudio2MasteringVoice* pMasterVoice;
     std::map<std::string, SoundData> soundBank;
     X3DAUDIO_HANDLE x3DInstance; // The 3D Engine Handle
+    btVector3 m_listenerPos;
 
 public:
     CXAudio() : pXAudio2(nullptr), pMasterVoice(nullptr) {
@@ -62,6 +64,11 @@ public:
             pXAudio2 = nullptr;
         }
 		CoUninitialize();
+    }
+
+    void SetListenerPos(btVector3 v)
+    {
+        m_listenerPos = v;
     }
     // --------------------------------------------------------
     // NEW: Load raw WAV bytes directly from memory (RAM)
@@ -118,7 +125,7 @@ public:
     BOOL LoadSound(const std::string& id, const std::wstring& filename) {
         SoundData data;
         if (!LoadWAVFile(filename, data)) {
-            _log( L"Failed to load WAV: %s %s",filename.begin(), filename.end());
+            //_log( L"Failed to load WAV: %s %s",filename.begin(), filename.end());
             return false;
         }
         soundBank[id] = data;
@@ -126,7 +133,7 @@ public:
     }
 
     // -- - NEW: Play 3D Sound-- -
-    void Play3D(const std::string & id, btVector3 soundPos, btVector3 listenerPos) {
+    void Play3D(const std::string & id, btVector3 soundPos) {
         if (soundBank.find(id) == soundBank.end()) return;
         SoundData& sound = soundBank[id];
 
@@ -145,9 +152,9 @@ public:
         X3DAUDIO_LISTENER listener = {};
         listener.OrientFront = { 0.0f, 0.0f, 1.0f };
         listener.OrientTop   = { 0.0f, 1.0f, 0.0f };
-        listener.Position    = { static_cast<float>(listenerPos.x()), static_cast<float>(listenerPos.y()), static_cast<float>(listenerPos.z()) };
+        listener.Position    = { static_cast<float>(m_listenerPos.x()), static_cast<float>(m_listenerPos.y()), static_cast<float>(m_listenerPos.z()) };
         listener.Velocity    = { 0.0f, 0.0f, 0.0f };
-        listener.pCone       = nullptr;
+        listener.pCone       = (X3DAUDIO_CONE*)&Listener_DirectionalCone;
 
         X3DAUDIO_EMITTER emitter = { 0 };
         // Setup Emitter (Sound Source)

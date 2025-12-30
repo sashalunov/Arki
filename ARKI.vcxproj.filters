@@ -130,6 +130,9 @@
     <ClInclude Include="CXAudio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CArkiBomb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -226,6 +229,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CXAudio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CArkiBomb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -54,7 +54,7 @@ public:
         m_hoverAxis = AXIS_NONE;
 
         btVector3 pos = m_pTarget->GetPosition();
-        D3DXVECTOR3 center(pos.x(), pos.y(), pos.z());
+        D3DXVECTOR3 center((FLOAT)pos.x(), (FLOAT)pos.y(), (FLOAT)pos.z());
 
         // 1. Calculate Distances
         // Pass normalized axis vectors!
@@ -93,7 +93,7 @@ public:
 
 
             // Use startDragPos as the origin for the axis line
-            D3DXVECTOR3 startOrigin(m_startDragPos.x(), m_startDragPos.y(), m_startDragPos.z());
+            D3DXVECTOR3 startOrigin((FLOAT)m_startDragPos.x(), (FLOAT)m_startDragPos.y(), (FLOAT)m_startDragPos.z());
 
 
             D3DXVECTOR3 hitPoint = GetPointOnAxis(rayOrigin, rayDir, startOrigin, axisDir);
@@ -116,7 +116,7 @@ public:
         D3DXVECTOR3 axisDir = GetAxisVector(m_activeAxis);
 
         // Use the STATIC start position, not the moving current position
-        D3DXVECTOR3 origin(m_startDragPos.x(), m_startDragPos.y(), m_startDragPos.z());
+        D3DXVECTOR3 origin((FLOAT)m_startDragPos.x(), (FLOAT)m_startDragPos.y(), (FLOAT)m_startDragPos.z());
 
         // 1. Find where mouse is on the axis
         // We project the mouse ray onto the infinite line defined by the axis
@@ -155,9 +155,9 @@ public:
                 return floor(val / m_snapSize + 0.5f) * m_snapSize;
                 };
 
-            if (m_activeAxis == AXIS_X) newPos.setX(SnapVal(newPos.x()));
-            if (m_activeAxis == AXIS_Y) newPos.setY(SnapVal(newPos.y()));
-            if (m_activeAxis == AXIS_Z) newPos.setZ(SnapVal(newPos.z()));
+            if (m_activeAxis == AXIS_X) newPos.setX(SnapVal((FLOAT)newPos.x()));
+            if (m_activeAxis == AXIS_Y) newPos.setY(SnapVal((FLOAT)newPos.y()));
+            if (m_activeAxis == AXIS_Z) newPos.setZ(SnapVal((FLOAT)newPos.z()));
         }
 
         m_pTarget->SetPosition(newPos);
@@ -189,7 +189,7 @@ public:
 
         // Draw X Axis (Red)
         D3DXMatrixRotationY(&r, D3DX_PI / 2.0f); // Rotate cylinder to point X
-        D3DXMatrixTranslation(&t, pos.x() + m_gizmoSize*0.5f, pos.y(), pos.z()); // Offset so it starts at center
+        D3DXMatrixTranslation(&t, (FLOAT)pos.x() + m_gizmoSize*0.5f, (FLOAT)pos.y(), (FLOAT)pos.z()); // Offset so it starts at center
         world = r * t;
         device->SetTransform(D3DTS_WORLD, &world);
         // Highlight if selected
@@ -199,7 +199,7 @@ public:
         // --- Draw Y Axis (Green) ---
             // Cylinder is Z-aligned. Rotate -90 deg around X to point it along Y.
         D3DXMatrixRotationX(&r, -D3DX_PI / 2.0f);
-        D3DXMatrixTranslation(&t, pos.x(), pos.y() + m_gizmoSize * 0.5f, pos.z());
+        D3DXMatrixTranslation(&t, (FLOAT)pos.x(), (FLOAT)pos.y() + m_gizmoSize * 0.5f, (FLOAT)pos.z());
         world = r * t;
         device->SetTransform(D3DTS_WORLD, &world);
         D3DCOLOR yColor = (m_hoverAxis == AXIS_Y || m_activeAxis == AXIS_Y) ? 0xFFFFFF00 : 0xFF00FF00;
@@ -208,7 +208,7 @@ public:
         // --- Draw Z Axis (Blue) ---
             // Cylinder is ALREADY Z-aligned. No rotation needed, just translation.
         D3DXMatrixIdentity(&r); // No rotation needed
-        D3DXMatrixTranslation(&t, pos.x(), pos.y(), pos.z() + m_gizmoSize * 0.5f);
+        D3DXMatrixTranslation(&t, (FLOAT)pos.x(), (FLOAT)pos.y(), (FLOAT)pos.z() + m_gizmoSize * 0.5f);
         world = t;
         device->SetTransform(D3DTS_WORLD, &world);
 
@@ -294,7 +294,7 @@ private:
         D3DXVECTOR3 P_axis = axisO + axisD * tClamped; // Point on Axis Segment
 
         // Return distance between the Ray point and the *Clamped* Axis point
-        return D3DXVec3Length(&(P_ray - P_axis));
+        return D3DXVec3Length(&D3DXVECTOR3(P_ray - P_axis));
     }
     D3DXVECTOR3 GetPointOnAxis(D3DXVECTOR3 rO, D3DXVECTOR3 rD, D3DXVECTOR3 axisO, D3DXVECTOR3 axisD)
     {

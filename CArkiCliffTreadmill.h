@@ -117,10 +117,10 @@ public:
 
         // 2. Setup Physics Memory Bridge
         btIndexedMesh meshPart;
-        meshPart.m_numTriangles = m_indices.size() / 3;
+        meshPart.m_numTriangles = (int)m_indices.size() / 3;
         meshPart.m_triangleIndexBase = (const unsigned char*)m_indices.data();
         meshPart.m_triangleIndexStride = 3 * sizeof(short);
-        meshPart.m_numVertices = m_vertices.size();
+        meshPart.m_numVertices = (int)m_vertices.size();
         meshPart.m_vertexBase = (const unsigned char*)m_vertices.data();
         meshPart.m_vertexStride = sizeof(CliffVertex);
         meshPart.m_indexType = PHY_SHORT;
@@ -185,7 +185,7 @@ public:
     {
         m_scrollAccumulator -= speed * dt;
 
-        int numRows = m_vertices.size() / 8;
+        int numRows = (int)m_vertices.size() / 8;
         float width = 3.0f;
         float zFront = 2.0f;
         float zBack = -2.0f;
@@ -260,7 +260,7 @@ public:
         trans.setOrigin(btVector3(0, m_currentY, 0));
         m_pBody->getMotionState()->setWorldTransform(trans);
 
-        int numRows = m_vertices.size() / 8;
+        int numRows = (int)m_vertices.size() / 8;
         float width = 16.0f;
         float zFront = 2.0f;
         float zBack = -8.0f;
@@ -334,11 +334,19 @@ public:
         device->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE); // Use vertex alpha
         device->SetRenderState(D3DRS_LIGHTING, TRUE);
 
+
+
+		D3DMATERIAL9 mat;
+		InitMaterial(mat, 1.0f, 0.3f,0.6f,1.0f);
+		device->SetMaterial(&mat);
+
         device->SetFVF(CliffVertex::FVF);
         device->DrawIndexedPrimitiveUP(D3DPT_TRIANGLELIST,
-            0, m_vertices.size(), m_indices.size() / 3,
+            0, (UINT)m_vertices.size(), (UINT)m_indices.size() / 3,
             m_indices.data(), D3DFMT_INDEX16,
             m_vertices.data(), sizeof(CliffVertex));
+
+
     }
 
 private:

@@ -24,7 +24,9 @@ enum EntityType {
     TYPE_PLAYER, 
     TYPE_WALL, 
     TYPE_BULLET,
-    TYPE_POWERUP
+    TYPE_POWERUP,
+    TYPE_BOMB,
+	TYPE_UNKNOWN
 };
 struct PhysicsData
 {

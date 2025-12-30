@@ -19,12 +19,12 @@ void CBulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, co
 
     // Create Start Vertex
     DebugVertex v1;
-    v1.x = from.x(); v1.y = from.y(); v1.z = from.z();
+    v1.x = (FLOAT)from.x(); v1.y = (FLOAT)from.y(); v1.z = (FLOAT)from.z();
     v1.color = d3dColor;
 
     // Create End Vertex
     DebugVertex v2;
-    v2.x = to.x(); v2.y = to.y(); v2.z = to.z();
+    v2.x = (FLOAT)to.x(); v2.y = (FLOAT)to.y(); v2.z = (FLOAT)to.z();
     v2.color = d3dColor;
 
     // Add to buffer

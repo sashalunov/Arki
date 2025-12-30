@@ -303,7 +303,7 @@ void CArkiLevel::GenerateFractalLevel(int rows, int cols)
     // 0 = Julia Set (Swirls/Islands)
     // 1 = Sierpinski (Triangles)
     // 2 = XOR Pattern (Sci-fi Grid)
-    int fractalType = rand() % 3;
+    int fractalType = 0;// rand() % 3;
 
     // 3. Randomize Parameters (Zoom/Offset) so no two levels are identical
     // Zoom: Smaller number = bigger shapes
@@ -312,14 +312,14 @@ void CArkiLevel::GenerateFractalLevel(int rows, int cols)
     float offsetY = 0.0f;
 
     // Parameters for Julia Set
-    float cRe = -0.7f, cIm = 0.27015f; // Default "Seahorse" valley
+    float cRe = -0.725f, cIm = 0.27015f; // Default "Seahorse" valley
 
     if (fractalType == 0) // Randomize Julia Set
     {
         zoom = 0.8f + (rand() % 10) / 10.0f; // 0.8 to 1.8
         // Randomize the constant 'C' to change the island shapes entirely
         cRe = -0.8f + (rand() % 100) / 100.0f; // -0.8 to 0.2
-        cIm = 0.2f + (rand() % 50) / 100.0f;   // 0.2 to 0.7
+        cIm = 0.4f + (rand() % 80) / 100.0f;   // 0.2 to 0.7
     }
     else if (fractalType == 1) // Sierpinski
     {

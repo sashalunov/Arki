@@ -24,6 +24,8 @@ class CSkybox
 
     HRESULT GenerateSkyboxTexture(IDirect3DDevice9* pd3dDevice, UINT size = 512)
     {
+
+        SAFE_RELEASE(g_pSkyboxTexture);
         // 1. Create an empty Cube Texture
         // Size 512x512 is usually enough for generated noise
         HRESULT hr = D3DXCreateCubeTexture(pd3dDevice, size, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &g_pSkyboxTexture);

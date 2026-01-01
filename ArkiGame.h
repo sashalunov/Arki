@@ -20,6 +20,8 @@
 #include "CGizmo.h"
 #include "COrbitCamera.h"
 #include "CArkiCliffTreadmill.h"
+#include "CHUD.h"
+
 #include "tweeny.h"
 using tweeny::easing;
 
@@ -32,11 +34,7 @@ enum GameState {
     STATE_SETTINGS,
     STATE_LEVEL_COMPLETE
 };
-// Helper: Opens a Windows file picker (Wide String Version)
-std::wstring OpenFileDialog( HWND owner );
-// Helper: Opens a Windows "Save As" file picker (Wide String Version)
-std::wstring SaveFileDialog( HWND owner );
-
+// ------------------------------------------------------------------------------------
 struct FloatingText3D {
     // The Tween Object: Handles 3 values: Y-Offset, Alpha, Scale
     tweeny::tween<float, float, float> anim;
@@ -94,7 +92,7 @@ struct FloatingText3D {
         font->DrawString3D(drawPos, scale, scoreText, color);
     }
 };
-
+// ------------------------------------------------------------------------------------
 class ArkiGame
 {
 public:
@@ -103,6 +101,7 @@ public:
     float scrollAmount;
 private:
     CMainMenu* m_mainMenu;
+    CHUD* g_HUD;
     GameState m_gameState;
 	CGrid* m_grid;
     CTimer m_Timer;
@@ -115,7 +114,7 @@ private:
 	// rigid bodies
     CRigidBody* m_floor;    CRigidBody* m_top;
     CRigidBody* m_wallL;    CRigidBody* m_wallR;
-
+	ID3DXMesh* m_roundedBoxMesh;
     std::vector<CRigidBody*> m_sceneObjects;
     CRigidBody* g_selected;
     CGizmo* g_gizmo;

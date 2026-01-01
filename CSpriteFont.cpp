@@ -40,6 +40,15 @@ void CSpriteFont::Shutdown() {
         m_pTexture->Release();
         m_pTexture = nullptr;
     }
+
+    // 2. FIX: Iterate and release all texture pages
+    for (auto* pTex : m_pages) {
+        if (pTex) {
+            pTex->Release();
+        }
+    }
+    m_pages.clear(); // Clear the vector after releasing
+
     m_chars.clear();
     m_batchVertices.clear();
 }
@@ -136,15 +145,42 @@ void CSpriteFont::ParseLine(const std::string& line) {
     }
 }
 
-void CSpriteFont::DrawString(float startX, float startY, const std::string& text, D3DCOLOR color) {
+void CSpriteFont::DrawString(float startX, float startY, float maxWidth, const std::wstring& text, D3DCOLOR color) {
+    // --- STEP 1: MEASURE THE TEXT ---
+    float maxLineLength = 0.0f;
+    float currentLineLength = 0.0f;
+
+    for (wchar_t c : text) {
+        if (c == '\n') {
+            if (currentLineLength > maxLineLength) maxLineLength = currentLineLength;
+            currentLineLength = 0.0f;
+        }
+        else if (m_chars.find(c) != m_chars.end()) {
+            currentLineLength += m_chars[c].xadvance;
+        }
+    }
+    // Check the last line
+    if (currentLineLength > maxLineLength) maxLineLength = currentLineLength;
+
+    // --- STEP 2: CALCULATE SCALE FACTOR ---
+    float scale = 1.0f;
+    if (maxLineLength > maxWidth && maxLineLength > 0.0f) {
+        scale = maxWidth / maxLineLength;
+    }
+
+    // --- STEP 3: RENDER WITH SCALE ---
     float cursorX = startX;
     float cursorY = startY;
 
-    for (char charCode : text) {
+    // Standard line height (scaled)
+    float lineHeight = (m_chars.find('A') != m_chars.end()) ? m_chars['A'].height + 5.0f : 20.0f;
+    lineHeight *= scale;
+
+    for (wchar_t charCode : text) {
         // Handle newlines
         if (charCode == '\n') {
             cursorX = startX;
-            cursorY += m_chars['A'].height + 5; // Rough line height estimation
+            cursorY += lineHeight;
             continue;
         }
 
@@ -152,31 +188,36 @@ void CSpriteFont::DrawString(float startX, float startY, const std::string& text
 
         CharDesc& cd = m_chars[charCode];
 
-        // Screen Coordinates
-        float screenLeft = cursorX + cd.xoffset;
-        float screenTop = cursorY + cd.yoffset;
-        float screenRight = screenLeft + cd.width;
-        float screenBottom = screenTop + cd.height;
+        // 1. Calculate SCALED dimensions
+        float w = cd.width * scale;
+        float h = cd.height * scale;
+        float xOff = cd.xoffset * scale;
+        float yOff = cd.yoffset * scale;
+        float xAdv = cd.xadvance * scale;
 
-        // UV Coordinates
+        // 2. Screen Coordinates
+        float screenLeft = cursorX + xOff;
+        float screenTop = cursorY + yOff;
+        float screenRight = screenLeft + w;
+        float screenBottom = screenTop + h; // Use (+ h) for 2D UI, (- h) for 3D world
+
+        // 3. UV Coordinates (Unchanged, they refer to the texture)
         float u1 = (float)cd.x / m_texWidth;
         float v1 = (float)cd.y / m_texHeight;
         float u2 = (float)(cd.x + cd.width) / m_texWidth;
         float v2 = (float)(cd.y + cd.height) / m_texHeight;
 
-        // Create 2 Triangles (6 Vertices) for the Quad
-        // Triangle 1
-        //m_batchVertices.push_back({ screenLeft,  screenTop,    0.0f, 1.0f, color, u1, v1 });
-        //m_batchVertices.push_back({ screenRight, screenTop,    0.0f, 1.0f, color, u2, v1 });
-        //m_batchVertices.push_back({ screenLeft,  screenBottom, 0.0f, 1.0f, color, u1, v2 });
+        // 4. Create Triangles
+        m_batchVertices.push_back({ screenLeft,  screenTop,    0.0f, color, u1, v1 });
+        m_batchVertices.push_back({ screenRight, screenTop,    0.0f, color, u2, v1 });
+        m_batchVertices.push_back({ screenLeft,  screenBottom, 0.0f, color, u1, v2 });
 
-        //// Triangle 2
-        //m_batchVertices.push_back({ screenRight, screenTop,    0.0f, 1.0f, color, u2, v1 });
-        //m_batchVertices.push_back({ screenRight, screenBottom, 0.0f, 1.0f, color, u2, v2 });
-        //m_batchVertices.push_back({ screenLeft,  screenBottom, 0.0f, 1.0f, color, u1, v2 });
+        m_batchVertices.push_back({ screenRight, screenTop,    0.0f, color, u2, v1 });
+        m_batchVertices.push_back({ screenRight, screenBottom, 0.0f, color, u2, v2 });
+        m_batchVertices.push_back({ screenLeft,  screenBottom, 0.0f, color, u1, v2 });
 
-        // Advance cursor
-        cursorX += cd.xadvance;
+        // 5. Advance cursor (Scaled)
+        cursorX += xAdv;
     }
 }
 

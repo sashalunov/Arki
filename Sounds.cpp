@@ -366,3 +366,65 @@ std::vector<char> GenerateMetallicDing() {
     return wavBuffer;
 }
 
+
+std::vector<char> GenerateBallLost() {
+    const int SAMPLE_RATE = 44100;
+    const int DURATION_MS = 1200; // Long decay (1.2 seconds)
+    int totalSamples = (SAMPLE_RATE * DURATION_MS) / 1000;
+
+    std::vector<short> rawSamples;
+    rawSamples.reserve(totalSamples);
+
+    // --- SOUND PARAMETERS ---
+    double frequency = 600.0; // Start at a mid-tone
+    double phase = 0.0;
+
+    // LFO (Low Frequency Oscillator) for the "Wobble" effect
+    double lfoPhase = 0.0;
+    double lfoSpeed = 30.0; // Starts wobbling fast (30Hz)
+
+    for (int i = 0; i < totalSamples; ++i) {
+        // 1. GENERATE MAIN TONE (Sawtooth)
+        // Sawtooth has a harsh, buzzy sound suitable for "mechanical failure"
+        phase += frequency / SAMPLE_RATE;
+        if (phase >= 1.0) phase -= 1.0;
+        float baseSample = (float)(phase * 2.0 - 1.0);
+
+        // 2. CALCULATE WOBBLE (Tremolo)
+        // This makes the volume go Up/Down rapidly
+        lfoPhase += lfoSpeed / SAMPLE_RATE;
+        if (lfoPhase >= 1.0) lfoPhase -= 1.0;
+        float wobble = (float)sin(lfoPhase * 6.28318);
+
+        // 3. MIX AND APPLY
+        // We multiply the base tone by the wobble.
+        // (wobble + 2.0) ensures the volume stays mostly positive but pulses.
+        float finalSample = baseSample * (wobble * 0.5f + 0.5f);
+
+        // 4. THE "POWER DOWN" PHYSICS
+        // A. Pitch drops exponentially (Engine dying)
+        frequency *= 0.99994;
+
+        // B. The wobble itself slows down (Spinning parts stopping)
+        lfoSpeed *= 0.99990;
+
+        // C. Hard limit frequency to prevent artifacts at the very end
+        if (frequency < 20.0) frequency = 0;
+
+        rawSamples.push_back(static_cast<short>(finalSample * 25000));
+    }
+
+    // --- PACK INTO WAV HEADER ---
+    int dataSize = totalSamples * sizeof(short);
+    int headerSize = sizeof(WAVHeader);
+    std::vector<char> wavBuffer(headerSize + dataSize);
+
+    WAVHeader header;
+    header.data_size = dataSize;
+    header.overall_size = dataSize + 36;
+
+    std::memcpy(wavBuffer.data(), &header, headerSize);
+    std::memcpy(wavBuffer.data() + headerSize, rawSamples.data(), dataSize);
+
+    return wavBuffer;
+}

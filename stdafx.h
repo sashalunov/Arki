@@ -46,6 +46,11 @@ using json = nlohmann::json;
 
 // --------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------
+// Helper: Opens a Windows file picker (Wide String Version)
+std::wstring OpenFileDialog(HWND owner);
+// Helper: Opens a Windows "Save As" file picker (Wide String Version)
+std::wstring SaveFileDialog(HWND owner);
+
 
 #define SAFE_DELETE(p)       { if(p) { delete (p);     (p)=NULL; } }
 #define SAFE_DELETE_ARRAY(p) { if(p) { delete[] (p);   (p)=NULL; } }

@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include <btBulletDynamicsCommon.h>
 
 // Add this definition if btVector2 is not defined elsewhere
@@ -22,6 +21,13 @@ enum ESpriteMode
     SPRITE_FIXED           // Uses pre-defined rotation (no auto-facing)
 };
 
+// Define how sprites are sorted before rendering
+enum ESpriteSortMode {
+    SORT_BACK_TO_FRONT, // Standard for 3D Alpha (Default)
+    SORT_FRONT_TO_BACK, // Good for opaque objects (Early Z-rejection)
+    SORT_TEXTURE,       // Best for performance (Minimizes SetTexture calls)
+    SORT_IMMEDIATE      // Draws in the exact order you called Draw()
+};
 struct SpriteVertex
 {
     float x, y, z;
@@ -53,7 +59,7 @@ class CSpriteBatch
 private:
     IDirect3DDevice9* m_device;
     IDirect3DVertexBuffer9* m_vb;
-
+    ESpriteSortMode m_sortMode;
     // Batching Limits
     static const int MAX_BATCH_SIZE = 2048; // Sprites per draw call
     SpriteVertex m_cpuVertices[MAX_BATCH_SIZE * 6]; // 6 verts per sprite (2 tris)
@@ -78,7 +84,7 @@ public:
     // --- Frame Workflow ---
 
     // 1. Begin the batch. Pass the camera to calculate billboarding vectors.
-    void Begin(const D3DXMATRIX& viewMatrix);
+    void Begin(const D3DXMATRIX& viewMatrix, ESpriteSortMode mode);
 
     // 2. Add a sprite to the list
     void Draw(IDirect3DTexture9* tex, const btVector3& pos, const btVector2& size = btVector2(1, 1),
@@ -89,22 +95,14 @@ public:
     // Call this BEFORE device->Reset()
     void OnLostDevice()
     {
-        SAFE_RELEASE(m_vb);
+        Invalidate();
     }
 
     // Call this AFTER device->Reset()
     void OnResetDevice()
     {
         // Re-create the buffer exactly as we did in the constructor
-        if (!m_vb)
-        {
-            m_device->CreateVertexBuffer(
-                MAX_BATCH_SIZE * 6 * sizeof(SpriteVertex),
-                D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
-                SpriteVertex::FVF,
-                D3DPOOL_DEFAULT,
-                &m_vb, NULL);
-        }
+		Init(m_device);
     }
 
 private:

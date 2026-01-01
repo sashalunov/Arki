@@ -35,7 +35,7 @@ void InitMaterial(D3DMATERIAL9& mtrl, float a, float r, float g, float b)
 void InitMaterialS(D3DMATERIAL9& mtrl, float a, float r, float g, float b, float s)
 {
     ZeroMemory(&mtrl, sizeof(D3DMATERIAL9));
-    mtrl.Diffuse.a = mtrl.Ambient.a = a;
+    mtrl.Diffuse.a = mtrl.Ambient.a = mtrl.Specular.a = mtrl.Emissive.a = a ;
     mtrl.Diffuse.r = mtrl.Ambient.r = r;
     mtrl.Diffuse.g = mtrl.Ambient.g = g;
     mtrl.Diffuse.b = mtrl.Ambient.b = b;
@@ -72,5 +72,64 @@ float NebulaNoise(D3DXVECTOR3 p)
 
     // Normalize roughly to 0..1 range
     return (total / 3.0f) + 0.5f;
+}
+
+
+
+// Helper: Opens a Windows file picker (Wide String Version)
+std::wstring OpenFileDialog(HWND owner = NULL)
+{
+    OPENFILENAMEW ofn;       // Wide structure
+    wchar_t szFile[260];     // Wide buffer
+
+    // Initialize buffer
+    ZeroMemory(szFile, sizeof(szFile));
+
+    // Initialize OPENFILENAMEW
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = owner;
+    ofn.lpstrFile = szFile;
+    ofn.lpstrFile[0] = L'\0';
+    ofn.nMaxFile = sizeof(szFile) / sizeof(wchar_t); // Size in WCHARs
+    ofn.lpstrFilter = L"Arki Level\0*.txt;*.lvl\0All\0*.*\0"; // Wide string literals
+    ofn.nFilterIndex = 1;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+    if (GetOpenFileNameW(&ofn) == TRUE)
+    {
+        return std::wstring(ofn.lpstrFile);
+    }
+    return L""; // User cancelled
+}
+
+// Helper: Opens a Windows "Save As" file picker (Wide String Version)
+std::wstring SaveFileDialog(HWND owner = NULL)
+{
+    OPENFILENAMEW ofn;
+    wchar_t szFile[260];
+
+    ZeroMemory(szFile, sizeof(szFile));
+
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = owner;
+    ofn.lpstrFile = szFile;
+    ofn.lpstrFile[0] = L'\0';
+    ofn.nMaxFile = sizeof(szFile) / sizeof(wchar_t);
+    ofn.lpstrFilter = L"Arki Level\0*.txt;*.lvl\0All\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.lpstrDefExt = L"txt";
+
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+
+    if (GetSaveFileNameW(&ofn) == TRUE)
+    {
+        return std::wstring(ofn.lpstrFile);
+    }
+    return L"";
 }
 

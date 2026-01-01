@@ -206,6 +206,7 @@
     <ClInclude Include="CBulletDebugDrawer.h" />
     <ClInclude Include="CGizmo.h" />
     <ClInclude Include="CGrid.h" />
+    <ClInclude Include="CHUD.h" />
     <ClInclude Include="CMainMenu.h" />
     <ClInclude Include="COrbitCamera.h" />
     <ClInclude Include="CParticleSystem.h" />
@@ -247,6 +248,7 @@
     <ClCompile Include="CArkiBlock.cpp" />
     <ClCompile Include="CBulletDebugDrawer.cpp" />
     <ClCompile Include="CGrid.cpp" />
+    <ClCompile Include="CHUD.cpp" />
     <ClCompile Include="COrbitCamera.cpp" />
     <ClCompile Include="CParticleSystem.cpp" />
     <ClCompile Include="CQuatCamera.cpp" />

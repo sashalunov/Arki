@@ -9,6 +9,7 @@ CSpriteBatch::~CSpriteBatch() { Invalidate(); }
 
 void CSpriteBatch::Init(IDirect3DDevice9* device)
 {
+    Invalidate();
     m_device = device;
     // Create a DYNAMIC vertex buffer. 
     // D3DUSAGE_DYNAMIC + D3DUSAGE_WRITEONLY + D3DPOOL_DEFAULT is standard for batching.
@@ -25,11 +26,14 @@ void CSpriteBatch::Init(IDirect3DDevice9* device)
 
 void CSpriteBatch::Invalidate()
 {
+    m_sprites.clear();
+
 	SAFE_RELEASE(m_vb);
 }
 
-void CSpriteBatch::Begin(const D3DXMATRIX& viewMatrix)
+void CSpriteBatch::Begin(const D3DXMATRIX& viewMatrix, ESpriteSortMode mode)
 {
+	m_sortMode = mode;
     // Clear previous frame list
     m_sprites.clear();
 
@@ -64,10 +68,37 @@ void CSpriteBatch::Draw(IDirect3DTexture9* tex, const btVector3& pos, const btVe
 void CSpriteBatch::End()
 {
     if (m_sprites.empty()) return;
+    // SORTING LOGIC
+    switch (m_sortMode)
+    {
+    case SORT_BACK_TO_FRONT:
+        // Far objects first (Standard for Alpha)
+        std::sort(m_sprites.begin(), m_sprites.end(), [](const SpriteInfo& a, const SpriteInfo& b) {
+            return a.distToCamera > b.distToCamera;
+            });
+        break;
 
+    case SORT_FRONT_TO_BACK:
+        // Near objects first
+        std::sort(m_sprites.begin(), m_sprites.end(), [](const SpriteInfo& a, const SpriteInfo& b) {
+            return a.distToCamera < b.distToCamera;
+            });
+        break;
+
+    case SORT_TEXTURE:
+        // Group by texture to minimize state changes
+        std::sort(m_sprites.begin(), m_sprites.end(), [](const SpriteInfo& a, const SpriteInfo& b) {
+            return a.texture < b.texture;
+            });
+        break;
+
+    case SORT_IMMEDIATE:
+        // Do nothing! Render in the order Draw() was called.
+        break;
+    }
     // 1. Sort Sprites Back-to-Front
     // This is crucial for Alpha Blending to look correct.
-    std::sort(m_sprites.begin(), m_sprites.end());
+    //std::sort(m_sprites.begin(), m_sprites.end());
 
     // 2. Setup Device State
     m_device->SetFVF(SpriteVertex::FVF);

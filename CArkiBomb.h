@@ -1,14 +1,13 @@
 #pragma once
 #include "stdafx.h"
-#include "CRigidBody.h"
 #include "CXAudio.h"
 #include "CQuatCamera.h"
+#include "CArkiPlayer.h"
 #include <btBulletDynamicsCommon.h>
 
 // Assuming you have an Enum for types in CArkiBlock.h or similar
 // If not, just ensure Player is identified correctly via UserPointer
 // #include "CArkiPlayer.h" 
-
 class CArkiBomb : public CRigidBody
 {
 private:
@@ -18,8 +17,10 @@ private:
     float m_maxDamage;       // Damage at center of explosion
     bool  m_hasExploded;     // State tracker
     CQuatCamera* m_cam;
-    tweeny::tween<float> m_explTween;
-
+	CArkiPlayer* m_player;
+    tweeny::tween<float, float> m_explTween;
+	float m_animScale;
+    float m_animAlpha;
 public:
     CArkiBomb(btDynamicsWorld* world, D3DXVECTOR3 startPos, CQuatCamera* c)
     {
@@ -31,9 +32,10 @@ public:
         m_cam = c;
         m_position = startPos;
         m_rotation = D3DXQUATERNION(0, 0, 0, 1);
-        m_scale = D3DXVECTOR3(1, 1, 1);
+       // m_scale = D3DXVECTOR3(1, 1, 1);
         m_isVisible = true;
-
+        m_animAlpha = 0.0f;
+		m_animScale = 0.0f;
         // 1. Init as a Dynamic Sphere (Radius 0.5, Mass 10.0)
         // Mass must be > 0 for gravity to affect it
         InitSphere(world, 0.5f, 10.0f, true);
@@ -55,11 +57,62 @@ public:
         // 2. Go to '0.0f'
         // 3. Take 'durationMs' time
         // 4. Use Quadratic Easing for smooth fade-out
-        m_explTween = tweeny::from(1.0f)
-            .to(m_explodeRadius)
+        m_explTween = tweeny::from(1.0f, 0.0f)
+            .to(m_explodeRadius, 1.0f)
             .during(durationMs)
-            .via(tweeny::easing::quadraticOut);
+            .via(tweeny::easing::exponentialIn);
 
+
+    }
+    void Render(IDirect3DDevice9* device)
+    {
+        CRigidBody::Render(device); // Call base class render (if any)
+
+        device->SetRenderState(D3DRS_COLORVERTEX, FALSE);
+        device->SetRenderState(D3DRS_LIGHTING, FALSE);
+		device->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
+        device->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
+		device->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+        device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+		device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+		device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+
+        device->SetTextureStageState(0, D3DTSS_CONSTANT, D3DXCOLOR(1.0f, 0.8f, 0.3f, m_animAlpha));
+        device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
+        device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_CONSTANT);
+        device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
+		device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_CONSTANT); 
+
+        // 2. Set Material (Shiny White Ball)
+        D3DMATERIAL9 mtrl;
+        ZeroMemory(&mtrl, sizeof(mtrl));
+        mtrl.Diffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 0.4f); 
+        mtrl.Ambient = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f); // Grey ambient
+        mtrl.Specular = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f); // Bright specular highlight
+		mtrl.Emissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f); // No emissive
+        mtrl.Power = 5.0f; // Sharp highlight (Plastic/Metal look)
+
+        // Important: Disable Texture if you just want a colored glass look
+        device->SetTexture(0, NULL);
+        device->SetMaterial(&mtrl);
+        D3DXMATRIXA16 matScale;
+        D3DXMATRIXA16 worldMat = GetWorldMatrix();
+        D3DXMatrixScaling(&matScale, m_animScale, m_animScale, m_animScale);
+        D3DXMATRIXA16 finalMat = matScale * worldMat;
+        device->SetTransform(D3DTS_WORLD, &finalMat);
+
+
+        s_pRigidBodySphereMesh->DrawSubset(0);
+
+        device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+        device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+        device->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+        device->SetRenderState(D3DRS_LIGHTING, TRUE);
+        // Reset world transform
+        D3DXMATRIXA16 identity;
+        D3DXMatrixIdentity(&identity);
+        device->SetTransform(D3DTS_WORLD, &identity);
 
     }
 
@@ -83,7 +136,9 @@ public:
 
             // 2. Step the animation
             // 'step' advances the time and returns the current interpolated value (current strength)
-            float currentScale = m_explTween.step(dtMs);
+            auto values = m_explTween.step(dtMs);
+            m_animScale = std::get<0>(values);
+            m_animAlpha = std::get<1>(values); // Scale up for visual effect
             //RescaleObject(btVector3(currentScale, currentScale, currentScale));
 
         }
@@ -149,8 +204,9 @@ public:
                     if (m_cam)m_cam->Shake(impactFactor, 1.0f);
 
                     // Assuming player has a method TakeDamage(float amount)
-                    // CArkiPlayer* player = (CArkiPlayer*)pData->pObject;
-                    // player->TakeDamage(damage);
+                    CArkiPlayer* player = (CArkiPlayer*)pData->pObject;
+					m_player = player;
+                    player->TakeDamage(damage);
 
                     // printf("Player hit for %f damage!\n", damage);
                 }

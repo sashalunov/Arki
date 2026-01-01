@@ -44,6 +44,7 @@ private:
 
     // The batch buffer
     std::vector<FontVertex3D> m_batchVertices;
+    //std::vector<FontVertex2D> m_batchVertices2D;
 
     // Helper to parse a single line from the .fnt file
     void ParseLine(const std::string& line);
@@ -61,7 +62,7 @@ public:
     bool Init(IDirect3DDevice9* pDevice, const TCHAR* fontFilePath);
 
     // Queue text to be drawn. Does NOT render immediately.
-    void DrawString(float x, float y, const std::string& text, D3DCOLOR color);
+    void DrawString(float x, float y, float maxWidth, const std::wstring& text, D3DCOLOR color);
     void DrawString3D(D3DXVECTOR3 pos, float scale, const std::wstring& text, D3DCOLOR color);
 
     // Flushes the batch and renders everything to the screen.

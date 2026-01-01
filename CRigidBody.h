@@ -201,7 +201,7 @@ public:
         m_rigidBody->getAabb(min, max);
     }
 
-    void Render(IDirect3DDevice9* device)
+    virtual void Render(IDirect3DDevice9* device)
     {
         D3DXMATRIXA16 worldMat, matRot, matScale;
 
@@ -296,8 +296,15 @@ public:
 
         // 1. Apply the new scale to the shape
         // Note: This is absolute, not relative. (1,1,1) resets to original size.
-        m_rigidBody->getCollisionShape()->setLocalScaling(newScale/2.0f);
-        m_scale = D3DXVECTOR3((FLOAT)newScale.x(), (FLOAT)newScale.y(), (FLOAT)newScale.z());
+        if(m_type == RB_BOX)
+            m_rigidBody->getCollisionShape()->setLocalScaling(newScale/2.0f);
+		else if (m_type == RB_BALL)
+            m_rigidBody->getCollisionShape()->setLocalScaling(newScale);
+        else if(m_type == RB_CAPSULE)
+            m_rigidBody->getCollisionShape()->setLocalScaling(newScale);
+        else if(m_type == RB_ROD)
+            m_rigidBody->getCollisionShape()->setLocalScaling(newScale);
+        //m_scale = D3DXVECTOR3((FLOAT)newScale.x(), (FLOAT)newScale.y(), (FLOAT)newScale.z());
         // 2. Recalculate inertia (Only needed for Dynamic objects like the Ball)
         // For the Paddle (Kinematic), this step can be skipped, but it's safe to include.
         if (!m_rigidBody->isStaticOrKinematicObject())

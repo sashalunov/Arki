@@ -60,6 +60,8 @@ CXMesh::~CXMesh(void)
     //SAFE_DELETE_ARRAY(m_pTextures);
     //SAFE_DELETE_ARRAY(m_pMaterials);
 	SAFE_RELEASE(m_pSysMemMesh);
+	SAFE_RELEASE(m_pLocalMesh);
+
 }
 
 
@@ -67,6 +69,10 @@ CXMesh::~CXMesh(void)
 // --------------------------------------------------------------------------------
 HRESULT CXMesh::Load(TCHAR *pszFileName)
 {
+	// FIX: Ensure we don't leak an existing mesh if Load is called twice
+	SAFE_RELEASE(m_pSysMemMesh);
+	SAFE_RELEASE(m_pLocalMesh); // If you use this later
+
     HRESULT hr;
     LPD3DXBUFFER pAdjacencyBuffer	= NULL;
     LPD3DXBUFFER pMtrlBuffer		= NULL;
@@ -82,10 +88,14 @@ HRESULT CXMesh::Load(TCHAR *pszFileName)
 
 	hr = m_pSysMemMesh->OptimizeInplace(D3DXMESHOPT_COMPACT | D3DXMESHOPT_ATTRSORT | D3DXMESHOPT_VERTEXCACHE,
 		(DWORD*)pAdjacencyBuffer->GetBufferPointer(), NULL, NULL, NULL);
+
+	SAFE_RELEASE(pAdjacencyBuffer);
+	SAFE_RELEASE(pMtrlBuffer);
+
 	if(FAILED(hr))
 	{
-        SAFE_RELEASE(pAdjacencyBuffer);
-        SAFE_RELEASE(pMtrlBuffer);
+       // SAFE_RELEASE(pAdjacencyBuffer);
+        //SAFE_RELEASE(pMtrlBuffer);
 		return hr;
 	}
 /*	if(pMtrlBuffer && m_dwNumMaterials > 0)

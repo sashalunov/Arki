@@ -152,11 +152,11 @@ public:
         }
     }
 
-    void Render(IDirect3DDevice9* device, CSpriteFont* font)
+    void Render(IDirect3DDevice9* device, CSpriteFont* font, IDirect3DCubeTexture9* pReflectionTexture, float rotationAngle)
     {
         for (auto b : m_blocks)
         {
-            b->Render(device, font);
+            b->Render(device, font , pReflectionTexture, rotationAngle);
         }
     }
 };

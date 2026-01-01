@@ -77,8 +77,8 @@ void CRigidBody::InitSphere(btDynamicsWorld* world, float radius, float mass, bo
     m_type = RB_BALL;
 
     btCollisionShape* shape = new btSphereShape(radius);
+    m_scale = D3DXVECTOR3(radius , radius , radius ) * 2.0f;
     InitPhysics(world, shape, mass, isDynamic, true);
-	m_scale = D3DXVECTOR3(radius * 2.0f, radius * 2.0f, radius * 2.0f);
 
 }
 

@@ -33,7 +33,13 @@ public:
         // Create a cylinder to represent arrows
         D3DXCreateCylinder(device, 0.25f, 0.05f, m_gizmoSize, 8, 1, &m_pArrowMesh, NULL);
     }
-
+    ~CGizmo()
+    {
+        if (m_pArrowMesh) {
+            m_pArrowMesh->Release();
+            m_pArrowMesh = NULL;
+        }
+    }
     void SetTarget(CRigidBody* obj) { m_pTarget = obj; }
 
     // Toggle Snapping (Call this when user holds CTRL)

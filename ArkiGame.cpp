@@ -94,6 +94,7 @@ bool ArkiGame::Init()
     m_currentLevel = new CArkiLevel(g_dynamicsWorld);
     //m_currentLevel->GenerateRandomLevel(20, 18, false);
     m_currentLevel->GenerateMathLevel(21, 18);
+	p = m_currentLevel->m_currentParams;
     m_player = new CArkiPlayer(g_dynamicsWorld, d3d9->GetDevice(), D3DXVECTOR3(0, -16, 0));
 
     DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
@@ -161,6 +162,9 @@ bool ArkiGame::Init()
 
 	g_HUD = new CHUD();
     g_HUD->Init(d3d9->GetDevice(),m_font, 1280, 720);
+
+
+
     _log(L"Initializing Done\n");
 
 
@@ -592,6 +596,17 @@ BOOL ArkiGame::ResetDevice()
 // ------------------------------------------------------------------------------------
 void ArkiGame::RenderGUI()
 {
+    const char* formulaItems[] = {
+    "Rings",                // 0
+    "Waves",                // 1
+    "Plasma",               // 2
+    "Sierpinski Triangle",  // 3
+    "Sierpinski Carpet",    // 4
+    "Liquid Grid",          // 5
+    "Julia Set",            // 6
+    "Mandelbrot Set"        // 7
+    };
+    int currentSelection = (int)p.formulaType;
     // 1. Start Frame
     ImGui_ImplDX9_NewFrame();
     ImGui_ImplWin32_NewFrame();
@@ -602,22 +617,68 @@ void ArkiGame::RenderGUI()
     ImGui::SetNextWindowSize(ImVec2(-1, -1), ImGuiCond_Always);
     ImGui::Text("FPS: %.3f fps", ImGui::GetIO().Framerate);
 	ImGui::Text("Player pos: %.3f %.3f %.3f", m_player->GetPosition().x, m_player->GetPosition().y, m_player->GetPosition().z);
-    if (ImGui::Button("Reset Level")) {
+    // "Formula"      = Label displayed next to box
+    // formulaItems   = The array of strings defined above
+    // IM_ARRAYSIZE   = Helper macro to get array count automatically
+    if (ImGui::Combo("Formula Type", &currentSelection, formulaItems, IM_ARRAYSIZE(formulaItems)))
+    {
+        // 3. Update the struct ONLY if the user changed the value
+        p.formulaType = currentSelection;
+        m_currentLevel->UpdateParameters(p);
+        // Optional: Auto-set recommended scales if formula changes
+        if (p.formulaType == FORMULA_MANDELBROT) { // Mandelbrot
+            p.scaleX = 3.0f / p.cols;
+            p.scaleY = 2.5f / p.rows;
+        }
+        else if (p.formulaType == FORMULA_SIERPINSKI_CARPET) 
+        {
+            p.scaleX = 1.0f;
+            p.scaleY = 1.0f;
+        }
+		else
+        {
+            p.scaleX = (rand() % 5 + 3) / 10.0f;
+            p.scaleY = (rand() % 5 + 3) / 10.0f;
+        }
+    }
+    if (ImGui::Button("Level Generate")) {
         //ResetDevice(); 
-		//m_currentLevel->GenerateFractalLevel(20, 18);
-		m_currentLevel->GenerateFractalLevel(20, 18);
+       // p = LevelParams::Random(20, 20, p.formulaType);
+        // Create a random recipe
+		m_currentLevel->GenerateMathLevel(p);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Randomize Seed")) {
+        p.seed = rand();
+		m_currentLevel->UpdateParameters(p);
+        m_currentLevel->GenerateMathLevel(p);
+    }
+    // --------------------------------------------------------
+    // OTHER CONTROLS
+    // --------------------------------------------------------
+    ImGui::DragInt("Rows", &m_currentLevel->m_currentParams.rows, 1, 5, 100);
+    ImGui::DragInt("Cols", &m_currentLevel->m_currentParams.cols, 1, 5, 100);
 
-    }
-    if (ImGui::Button("Save Settings")) {
+    ImGui::DragInt("Offset X", &m_currentLevel->m_currentParams.offsetX, 1, -15, 15);
+    ImGui::DragInt("Offset Y", &m_currentLevel->m_currentParams.offsetY, 1, -15, 15);
+
+    // Sliders allow fine control for your Zoom/Scale
+    ImGui::SliderFloat("Scale X", &m_currentLevel->m_currentParams.scaleX, 0.01f, 2.0f);
+    ImGui::SliderFloat("Scale Y", &m_currentLevel->m_currentParams.scaleY, 0.01f, 2.0f);
+
+    // Random Seeds are usually big integers, so DragInt is best
+    ImGui::DragInt("Seed", &m_currentLevel->m_currentParams.seed);
+   
+    if (ImGui::Button("Save ...")) {
         //emmiter1->SaveConfig("config.json");
-        eb->Spawn(512, D3DXVECTOR3(0, 0, 0),10, 60.0f);
+        //eb->Spawn(512, D3DXVECTOR3(0, 0, 0),10, 60.0f);
         //mymesh->SaveAsOBJ("bodyl_save.obj");
     }
-    if (ImGui::Button("Particles Editor")) {
-        //emmiter1->SaveConfig("config.json");
-        //eb->Spawn(512, D3DXVECTOR3(0, 0, 0), 10, 60.0f);
-        //mymesh->SaveAsOBJ("bodyl_save.obj");
-    }
+    //if (ImGui::Button("Particles Editor")) {
+    //    //emmiter1->SaveConfig("config.json");
+    //    //eb->Spawn(512, D3DXVECTOR3(0, 0, 0), 10, 60.0f);
+    //    //mymesh->SaveAsOBJ("bodyl_save.obj");
+    //}
     if (ImGui::Button("Load ...")) {
         //emmiter1->SaveConfig("config.json");
         //eb->Spawn(512, D3DXVECTOR3(0, 0, 0),10, 60.0f);
@@ -631,15 +692,12 @@ void ArkiGame::RenderGUI()
 
     if (ImGui::Checkbox("Debug Draw", &m_debugdraw))
     {
-        // Optional: Run code only when clicked
-        // e.g. Play a sound or reset something
     }
     if (ImGui::Checkbox("Particles", &m_pfxdraw))
     {
     }
 
     ImGui::End();
-
 
     switch (m_gameState)
     {

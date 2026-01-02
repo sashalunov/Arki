@@ -51,6 +51,9 @@ std::wstring OpenFileDialog(HWND owner);
 // Helper: Opens a Windows "Save As" file picker (Wide String Version)
 std::wstring SaveFileDialog(HWND owner);
 
+// Helper: Converts Wide String to UTF-8 (ImGui format)
+// We use a static buffer so the pointer remains valid long enough for ImGui to draw it.
+const char* WToUTF8(const std::wstring& wide);
 
 #define SAFE_DELETE(p)       { if(p) { delete (p);     (p)=NULL; } }
 #define SAFE_DELETE_ARRAY(p) { if(p) { delete[] (p);   (p)=NULL; } }

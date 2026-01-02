@@ -100,6 +100,8 @@ public:
 	bool m_isEditorMode;
     float scrollAmount;
 private:
+    LevelParams p;
+
     CMainMenu* m_mainMenu;
     CHUD* g_HUD;
     GameState m_gameState;

@@ -133,3 +133,11 @@ std::wstring SaveFileDialog(HWND owner = NULL)
     return L"";
 }
 
+// Helper: Converts Wide String to UTF-8 (ImGui format)
+// We use a static buffer so the pointer remains valid long enough for ImGui to draw it.
+const char* WToUTF8(const std::wstring& wide) 
+{
+    static char buffer[256]; // Static buffer reuse
+    WideCharToMultiByte(CP_UTF8, 0, wide.c_str(), -1, buffer, 256, NULL, NULL);
+    return buffer;
+}

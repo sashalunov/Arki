@@ -24,6 +24,86 @@ D3DCOLOR palette[] = {
 };
 int paletteSize = 8;
 
+// -----------------------------------------------------------------------
+// SAVE: Serializes struct to Human-Readable JSON text
+// -----------------------------------------------------------------------
+void CArkiLevel::SaveLevel(const std::wstring& filename)
+{
+    // 1. Convert C++ Struct to JSON Object
+    // This uses the macro we defined in the header automatically.
+    json j = m_currentParams;
+
+    // 2. Open File Stream
+    std::ofstream outFile(filename.c_str());
+
+    if (outFile.is_open()) {
+        // 3. Write to file
+        // setw(4) enables "Pretty Printing" (indentation) so it looks nice in Notepad
+        outFile << j.dump(4);
+        outFile.close();
+    }
+}
+
+// -----------------------------------------------------------------------
+// LOAD: Parses JSON text back into C++ Struct
+// -----------------------------------------------------------------------
+void CArkiLevel::LoadLevel(const std::wstring& filename)
+{
+    std::ifstream inFile(filename.c_str());
+
+    if (!inFile.is_open()) {
+        // Optional: Log error
+        _log(L"Failed to open save file: %s", filename.c_str());
+        return;
+    }
+
+    try {
+        // 1. Parse the file into a JSON object
+        json j;
+        inFile >> j;
+
+        // 2. Convert JSON object back to LevelParams struct
+        LevelParams loadedParams = j.get<LevelParams>();
+
+        // 3. Regenerate the level
+        GenerateMathLevel(loadedParams);
+    }
+    catch (json::parse_error& e) {
+        // Handles corrupted files gracefully
+        _log(L"JSON Parse Error: %s" , e.what() );
+    }
+    catch (json::type_error& e) {
+        // Handles cases where a number is a string, etc.
+        _log(L"JSON Type Error: %s", e.what() );
+    }
+
+    inFile.close();
+}
+
+void CArkiLevel::UpdateParameters(const LevelParams& params)
+{
+    m_currentParams = params;
+
+    srand(params.seed);
+
+    m_currentParams.offsetX = rand() % 1000;
+    m_currentParams.offsetY = rand() % 1000;
+    m_currentParams.scaleX = (rand() % 5 + 3) / 10.0f;
+    m_currentParams.scaleY = (rand() % 5 + 3) / 10.0f;
+
+    // Auto-fix scales for specific fractals
+    if (params.formulaType ==  FORMULA_SIERPINSKI_CARPET) {
+        m_currentParams.scaleX = 1.0f; m_currentParams.scaleY = 1.0f;
+    }
+    if (params.formulaType == FORMULA_MANDELBROT) {
+        m_currentParams.scaleX = 3.0f / m_currentParams.cols; m_currentParams.scaleY = 2.5f / m_currentParams.rows;
+    }
+    if (params.formulaType == FORMULA_JULIA || params.formulaType == FORMULA_SIERPINSKI) {
+        m_currentParams.offsetX = 0.0f; m_currentParams.offsetY = 0.0f;
+    }
+
+}
+
 void CArkiLevel::GenerateRandomLevel(int rows, int cols, bool symmetric = true)
 {
     // 1. Clear existing blocks
@@ -285,7 +365,406 @@ void CArkiLevel::GenerateMathLevel(int rows, int cols)
     }
 }
 
-// Add to CArkiLevel.cpp
+
+void CArkiLevel::GenerateMathLevel(int rows, int cols, int patternType)
+{
+    Clear(); // Ensure old blocks are deleted
+
+    // 1. Setup Configuration
+    float blockWidth = 2.0f;
+    float blockHeight = 1.0f;
+    float padding = 0.1f;
+    float startY = 18.0f;
+    float totalWidth = cols * (blockWidth + padding);
+    float startX = -(totalWidth / 2.0f) + (blockWidth / 2.0f);
+
+    // Safety: Ensure we have a valid palette
+    if (paletteSize <= 0) return;
+
+    // 2. Setup Scaling (Zoom)
+    // Default: Random variation for organic patterns
+    float scaleX = (rand() % 5 + 3) / 10.0f; // 0.3 to 0.8
+    float scaleY = (rand() % 5 + 3) / 10.0f;
+
+    // OVERRIDE: Fractals need specific zoom levels to look correct
+    if (patternType == 3) { scaleX = 1.0f; scaleY = 1.0f; } // Sierpinski needs integer mapping
+    if (patternType == 4) { scaleX = 1.0f; scaleY = 1.0f; } // Sierpinski needs integer mapping
+    if (patternType == 6) { scaleX = 3.0f / cols; scaleY = 2.5f / rows; } // Fit Mandelbrot to screen
+
+    int randOffsetX = rand() % 100;
+    int randOffsetY = rand() % 100;
+
+    for (int r = 0; r < rows; r++)
+    {
+        for (int c = 0; c < cols; c++)
+        {
+            float val = 0.0f;
+
+            // Normalized coordinates (-1.0 to 1.0 is standard, usually)
+            float nx = (c - cols / 2.0f) * scaleX;
+            float ny = (r - rows / 2.0f) * scaleY;
+
+            // 3. Apply the Math
+            switch (patternType)
+            {
+            case 0: // Concentric Rings
+            {
+                float dist = sqrt(nx * nx + ny * ny);
+                val = sin(dist * 5.0f);
+                break;
+            }
+            case 1: // Interference Waves
+                val = sin(nx * 4.0f) + cos(ny * 4.0f);
+                break;
+            case 2: // Plasma
+                val = sin(nx * 3.0f + ny * 3.0f) * cos(nx * 3.0f - ny * 3.0f);
+                break;
+
+                // --- NEW FORMULAS ---
+
+            case 3: // Sierpinski Triangle (Bitwise Fractal)
+            {
+                
+                    // 1. Convert to positive integers + Add Random Offset
+                    // We use (rows - r) to flip it so the triangle base is at the bottom.
+                    int xInt = (c * 2) + randOffsetX;       // *2 to zoom out slightly
+                    int yInt = ((rows - r) * 2) + randOffsetY;
+
+                    // 2. The Logic: (x & y) == 0 implies a solid block in Sierpinski
+                    if ((xInt & yInt) == 0)
+                    {
+                        // 3. COLORING MAGIC
+                        // Instead of just 1.0f, we create a value based on hierarchy.
+                        // (xInt | yInt) gives us a value related to the structural layer.
+                        // We normalize it to generate a color index later.
+
+                        int structuralValue = (xInt | yInt);
+
+                        // Creates a gradient that follows the triangle structures
+                        val = 0.2f + (structuralValue % 10) / 10.0f;
+
+                        // Boost it to ensure it passes the threshold
+                        if (val < 0.2f) val = 0.25f;
+                    }
+                    else
+                    {
+                        val = 0.0f; // Hole
+                    }
+                    break;
+            }
+
+            case 4: // FORMULA_SIERPINSKI_CARPET (Denser & Less Voids)
+            {
+                // 1. Setup Integer Coordinates
+                int tx = c + randOffsetX;
+                int ty = (rows - r) + randOffsetY;
+
+                bool isHole = false;
+                int depth = 0;
+                int maxDepth = 2; // <--- CRITICAL: Low number = Less Voids (Denser)
+                // Set to 5 for a true empty fractal, 2 for a wall-like structure.
+
+                // 2. Base-3 Carpet Logic
+                while (tx > 0 || ty > 0)
+                {
+                    // If center square of a 3x3 grid, it's a hole
+                    if (tx % 3 == 1 && ty % 3 == 1) {
+                        isHole = true;
+                        break;
+                    }
+                    tx /= 3;
+                    ty /= 3;
+
+                    // 3. Density Check
+                    depth++;
+                    if (depth >= maxDepth) break; // Stop checking tiny holes to keep it solid
+                }
+
+                if (!isHole) {
+                    // Create a colorful banding effect based on position
+                    val = 0.5f + (float)((c + r) % 10) / 20.0f;
+                }
+                else {
+                    val = 0.0f;
+                }
+                break;
+            }
+
+            case 5: // Liquid Checkerboard
+            {
+                // Distortion factor
+                float distort = sin(nx * 2.0f) * 0.5f;
+                // Checkboard formula: sin(x) * sin(y) > 0
+                val = sin((nx + distort) * 6.0f) * cos(ny * 6.0f);
+                break;
+            }
+
+            case 6: // Mandelbrot Set (Iterative Fractal)
+            {
+                // Shift coordinates to center the fractal
+                float mx = ((c - cols / 1.5f) * scaleX);
+                float my = ((r - rows / 2.0f) * scaleY);
+
+                float zx = 0.0f, zy = 0.0f;
+                int maxIter = 16; // Low iterations for blocky style
+                int iter = 0;
+
+                while ((zx * zx + zy * zy < 4.0f) && (iter < maxIter)) {
+                    float temp = zx * zx - zy * zy + mx;
+                    zy = 2.0f * zx * zy + my;
+                    zx = temp;
+                    iter++;
+                }
+
+                // If iter == maxIter, it's inside the set (black usually).
+                // We invert it to make the "Edge" interesting.
+                if (iter < maxIter) {
+                    // Map iteration count to value for coloring
+                    val = (float)iter / (float)maxIter;
+                }
+                else {
+                    val = 0.0f; // Inside the "lake" (empty)
+                }
+                break;
+            }
+            } // End Switch
+
+            // 4. Thresholding & Placement
+            // Note: Lowered threshold slightly to catch thin fractal lines
+            if (val > 0.15f)
+            {
+                // 5. Coloring Strategy
+                // Safe Indexing Logic
+                float absVal = fabs(val);
+                if (absVal > 100.0f) absVal = 100.0f; // Clamp to prevent overflow
+
+                int colorIndex = (int)(absVal * 10) % paletteSize; // Increased multiplier for variety
+
+                D3DCOLOR blockColor = palette[colorIndex];
+                int rowScore = scorePalette[colorIndex];
+
+                // Calculate World Position
+                float x = startX + c * (blockWidth + padding);
+                float y = startY - r * (blockHeight + padding);
+
+                D3DXVECTOR3 halfSize(1.0f, 0.5f, 0.5f);
+                m_blocks.push_back(new CArkiBlock(m_pDynamicsWorld, D3DXVECTOR3(x, y, 0), halfSize, blockColor, rowScore));
+            }
+        }
+    }
+}
+
+// -----------------------------------------------------------------------
+// GENERATE: Now uses the "Recipe" (Params) instead of randomizing locally
+// -----------------------------------------------------------------------
+void CArkiLevel::GenerateMathLevel(const LevelParams& params)
+{
+    // 1. Save the params so we can save/retry this level later
+	//UpdateParameters(params);
+
+    // 2. Set the RNG Seed
+    // This is the magic. By setting srand(seed), all subsequent rand() calls 
+    // will be identical every time we run this with the same seed.
+    //srand(m_currentParams.seed);
+
+    Clear();
+
+    // 3. Setup Grid
+    float blockWidth = 2.0f;
+    float blockHeight = 1.0f;
+    float padding = 0.1f;
+    float startY = 18.0f;
+    float totalWidth = m_currentParams.cols * (blockWidth + padding);
+    float startX = -(totalWidth / 2.0f) + (blockWidth / 2.0f);
+
+    // 4. Use Params for logic
+    int attempts = 0;
+    // OVERRIDE: Fractals need specific zoom levels to look correct
+   // if (params.formulaType == 3) { m_currentParams.scaleX = 1.0f; m_currentParams.scaleY = 1.0f; } // Sierpinski needs integer mapping
+    //if (params.formulaType == 4) { m_currentParams.scaleX = 1.0f; m_currentParams.scaleY = 1.0f; } // Sierpinski needs integer mapping
+    //if (params.formulaType == 6) { m_currentParams.scaleX = 3.0f / m_currentParams.cols; m_currentParams.scaleY = 2.5f / m_currentParams.rows; } // Fit Mandelbrot to screen
+
+    // Note: The do-while loop for emptiness check needs care. 
+    // Since we are forcing a Seed, rand() will result in the same outcome.
+    // If a specific seed generates an empty level, we simply assume it's empty.
+    // To fix emptiness, we would need to mutate the seed, but that changes the "saved" level.
+    // For now, we run generation once.
+        // Parameters for Julia Set
+    float cRe = -0.725f, cIm = 0.27015f; // Default "Seahorse" valley
+    float zoom = 1.0f;
+    //zoom = 0.8f + (rand() % 10) / 10.0f; // 0.8 to 1.8
+    // Randomize the constant 'C' to change the island shapes entirely
+   // cRe = -0.8f + (rand() % 100) / 100.0f; // -0.8 to 0.2
+    //cIm = 0.4f + (rand() % 80) / 100.0f;   // 0.2 to 0.7
+
+
+    for (int r = 0; r < m_currentParams.rows; r++)
+    {
+        for (int c = 0; c < m_currentParams.cols; c++)
+        {
+            float val = 0.0f;
+            float nx = (c - m_currentParams.cols / 2.0f) * m_currentParams.scaleX;
+            float ny = (r - m_currentParams.rows / 2.0f) * m_currentParams.scaleY;
+
+            // Use m_currentParams.offsetX/Y for Fractal cases
+            int tx = c + m_currentParams.offsetX;
+            int ty = (m_currentParams.rows - r) + m_currentParams.offsetY;
+
+            bool isHole = false;
+            int tempX = tx;
+            int tempY = ty;
+            int depth = 0;
+
+            switch (m_currentParams.formulaType)
+            {
+            case FORMULA_RINGS:
+                val = sin(sqrt(nx * nx + ny * ny) * 5.0f);
+                break;
+            case FORMULA_WAVES: // Interference Waves
+                val = sin(nx * 4.0f) + cos(ny * 4.0f);
+                break;
+            case FORMULA_PLASMA: // Plasma
+                val = sin(nx * 3.0f + ny * 3.0f) * cos(nx * 3.0f - ny * 3.0f);
+                break;
+            case FORMULA_SIERPINSKI: // Sierpinski Triangle (Bitwise Fractal)
+            {
+                // 1. Convert to positive integers + Add Random Offset
+                // We use (rows - r) to flip it so the triangle base is at the bottom.
+                int xInt = (c * 2) + m_currentParams.offsetX;       // *2 to zoom out slightly
+                int yInt = ((m_currentParams.rows - r) * 2) + m_currentParams.offsetY;
+
+                // 2. The Logic: (x & y) == 0 implies a solid block in Sierpinski
+                if ((xInt & yInt) == 0)
+                {
+                    // 3. COLORING MAGIC
+                    // Instead of just 1.0f, we create a value based on hierarchy.
+                    // (xInt | yInt) gives us a value related to the structural layer.
+                    // We normalize it to generate a color index later.
+
+                    int structuralValue = (xInt | yInt);
+
+                    // Creates a gradient that follows the triangle structures
+                    val = 0.2f + (structuralValue % 10) / 10.0f;
+
+                    // Boost it to ensure it passes the threshold
+                    if (val < 0.2f) val = 0.25f;
+                }
+                else
+                {
+                    val = 0.0f; // Hole
+                }
+                break;
+            }
+            case FORMULA_SIERPINSKI_CARPET:
+                // Use the deterministic offsets from params
+                while (tempX > 0 || tempY > 0) {
+                    if (tempX % 3 == 1 && tempY % 3 == 1) { isHole = true; break; }
+                    tempX /= 3; tempY /= 3;
+                    if (++depth > 2) break;
+                }
+                val = isHole ? 0.0f : 0.5f + (float)((c + r) % 10) / 20.0f;
+                
+                break;
+
+            case FORMULA_LIQUID: // Liquid Checkerboard
+            {
+                // Distortion factor
+                float distort = sin(nx * 2.0f) * 0.5f;
+                // Checkboard formula: sin(x) * sin(y) > 0
+                val = sin((nx + distort) * 6.0f) * cos(ny * 6.0f);
+                break;
+            }
+            case FORMULA_JULIA:
+            {
+                // --- VARIATION A: JULIA SET (Swirly Islands) ---
+                // Map grid to Complex Plane (-1.5 to 1.5)
+                float newRe = 1.5f * (c - m_currentParams.cols / 2.0f) / (0.5f * zoom * m_currentParams.cols) + m_currentParams.offsetX;
+                float newIm = (r - m_currentParams.rows / 2.0f) / (0.5f * zoom * m_currentParams.rows) + m_currentParams.offsetY;
+
+                // Iterate the formula: Z = Z^2 + C
+                int i;
+                int maxIterations = 16; // Higher = more detail, fewer blocks
+                for (i = 0; i < maxIterations; i++)
+                {
+                    float oldRe = newRe;
+                    float oldIm = newIm;
+
+                    newRe = oldRe * oldRe - oldIm * oldIm + cRe;
+                    newIm = 2 * oldRe * oldIm + cIm;
+
+                    if ((newRe * newRe + newIm * newIm) > 4) break; // Escaped
+                }
+
+                // Use the "Escape Time" to determine color
+                // If i == maxIterations, it's inside the set (usually black/empty)
+                // If i is small, it's on the edge (colorful)
+                if (i < maxIterations && i > 3)
+                    val = (float)i / (float)maxIterations;
+                else
+					val = 0.0f; // Inside the set
+
+				break;
+            }
+            case FORMULA_MANDELBROT: // Mandelbrot Set (Iterative Fractal)
+            {
+                // Shift coordinates to center the fractal
+                float mx = ((c - m_currentParams.cols / 1.5f) * m_currentParams.scaleX);
+                float my = ((r - m_currentParams.rows / 2.0f) * m_currentParams.scaleY);
+
+                float zx = 0.0f, zy = 0.0f;
+                int maxIter = 16; // Low iterations for blocky style
+                int iter = 0;
+
+                while ((zx * zx + zy * zy < 4.0f) && (iter < maxIter)) {
+                    float temp = zx * zx - zy * zy + mx;
+                    zy = 2.0f * zx * zy + my;
+                    zx = temp;
+                    iter++;
+                }
+
+                // If iter == maxIter, it's inside the set (black usually).
+                // We invert it to make the "Edge" interesting.
+                if (iter < maxIter) {
+                    // Map iteration count to value for coloring
+                    val = (float)iter / (float)maxIter;
+                }
+                else {
+                    val = 0.0f; // Inside the "lake" (empty)
+                }
+                break;
+            }
+            default:
+                val = 0.5f; // Fallback
+                break;
+            }
+
+            // Threshold and Add Block
+            if (val > 0.15f)
+            {
+                // 5. Coloring Strategy
+                // Safe Indexing Logic
+                float absVal = fabs(val);
+                if (absVal > 100.0f) absVal = 100.0f; // Clamp to prevent overflow
+
+                int colorIndex = (int)(absVal * 10) % paletteSize; // Increased multiplier for variety
+
+                D3DCOLOR blockColor = palette[colorIndex];
+                int rowScore = scorePalette[colorIndex];
+
+                // Calculate World Position
+                float x = startX + c * (blockWidth + padding);
+                float y = startY - r * (blockHeight + padding);
+
+                D3DXVECTOR3 halfSize(1.0f, 0.5f, 0.5f);
+                m_blocks.push_back(new CArkiBlock(m_pDynamicsWorld, D3DXVECTOR3(x, y, 0), halfSize, blockColor, rowScore));
+            }
+        }
+    }
+}
+
+
+
+
 
 void CArkiLevel::GenerateFractalLevel(int rows, int cols)
 {
@@ -307,12 +786,12 @@ void CArkiLevel::GenerateFractalLevel(int rows, int cols)
 
     // 3. Randomize Parameters (Zoom/Offset) so no two levels are identical
     // Zoom: Smaller number = bigger shapes
-    float zoom = 1.0f;
     float offsetX = 0.0f;
     float offsetY = 0.0f;
 
     // Parameters for Julia Set
     float cRe = -0.725f, cIm = 0.27015f; // Default "Seahorse" valley
+    float zoom = 1.0f;
 
     if (fractalType == 0) // Randomize Julia Set
     {

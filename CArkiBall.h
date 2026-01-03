@@ -225,8 +225,9 @@ public:
         btVector3 btPosr = transr.getOrigin();
         D3DXVECTOR3 currPosr((FLOAT)btPosr.getX(), (FLOAT)btPosr.getY(), (FLOAT)btPosr.getZ());
 
+        D3DXVECTOR3 d = (m_pathHistory.front() - currPosr);
         // Optimization: Only add point if we moved enough
-        if (m_pathHistory.empty() || D3DXVec3LengthSq(&(m_pathHistory.front() - currPosr)) > m_minPointDistSq)
+        if (m_pathHistory.empty() || D3DXVec3LengthSq(&d) > m_minPointDistSq)
         {
             m_pathHistory.push_front(currPosr);
 

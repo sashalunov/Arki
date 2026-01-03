@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Logger.h"
 #include "CArkiLevel.h"
 
 int scorePalette[] = {
@@ -99,7 +100,7 @@ void CArkiLevel::UpdateParameters(const LevelParams& params)
         m_currentParams.scaleX = 3.0f / m_currentParams.cols; m_currentParams.scaleY = 2.5f / m_currentParams.rows;
     }
     if (params.formulaType == FORMULA_JULIA || params.formulaType == FORMULA_SIERPINSKI) {
-        m_currentParams.offsetX = 0.0f; m_currentParams.offsetY = 0.0f;
+        m_currentParams.offsetX = 0; m_currentParams.offsetY = 0;
     }
 
 }
@@ -557,13 +558,9 @@ void CArkiLevel::GenerateMathLevel(int rows, int cols, int patternType)
 // -----------------------------------------------------------------------
 void CArkiLevel::GenerateMathLevel(const LevelParams& params)
 {
-    // 1. Save the params so we can save/retry this level later
-	//UpdateParameters(params);
-
-    // 2. Set the RNG Seed
-    // This is the magic. By setting srand(seed), all subsequent rand() calls 
-    // will be identical every time we run this with the same seed.
-    //srand(m_currentParams.seed);
+    // 1. Create a Grid Map to track which cells are filled
+    // We use a flat vector: index = r * cols + c
+    std::vector<bool> occupied(m_currentParams.rows * m_currentParams.cols, false);
 
     Clear();
 
@@ -576,7 +573,7 @@ void CArkiLevel::GenerateMathLevel(const LevelParams& params)
     float startX = -(totalWidth / 2.0f) + (blockWidth / 2.0f);
 
     // 4. Use Params for logic
-    int attempts = 0;
+    //int attempts = 0;
     // OVERRIDE: Fractals need specific zoom levels to look correct
    // if (params.formulaType == 3) { m_currentParams.scaleX = 1.0f; m_currentParams.scaleY = 1.0f; } // Sierpinski needs integer mapping
     //if (params.formulaType == 4) { m_currentParams.scaleX = 1.0f; m_currentParams.scaleY = 1.0f; } // Sierpinski needs integer mapping
@@ -600,6 +597,8 @@ void CArkiLevel::GenerateMathLevel(const LevelParams& params)
     {
         for (int c = 0; c < m_currentParams.cols; c++)
         {
+            if (occupied[r * m_currentParams.cols + c]) continue;
+
             float val = 0.0f;
             float nx = (c - m_currentParams.cols / 2.0f) * m_currentParams.scaleX;
             float ny = (r - m_currentParams.rows / 2.0f) * m_currentParams.scaleY;
@@ -755,6 +754,7 @@ void CArkiLevel::GenerateMathLevel(const LevelParams& params)
 
                 D3DXVECTOR3 halfSize(1.0f, 0.5f, 0.5f);
                 m_blocks.push_back(new CArkiBlock(m_pDynamicsWorld, D3DXVECTOR3(x, y, 0), halfSize, blockColor, rowScore));
+                occupied[r * m_currentParams.cols + c] = true;
             }
         }
     }

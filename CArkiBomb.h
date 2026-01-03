@@ -154,7 +154,7 @@ public:
 
             // Calculate Distance
             btVector3 targetPos = body->getCenterOfMassPosition();
-            FLOAT dist = bombPos.distance(targetPos);
+            FLOAT dist = (FLOAT)bombPos.distance(targetPos);
 
             // Check if within Explosion Radius
             if (dist < m_explodeRadius)

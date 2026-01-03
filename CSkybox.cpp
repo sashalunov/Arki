@@ -114,5 +114,6 @@ void CSkybox::DrawSkybox(IDirect3DDevice9* pd3dDevice, D3DXMATRIX matView, doubl
     pd3dDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
     if (pVertDecl) pVertDecl->Release();
     // Restore World transform to identity
-    pd3dDevice->SetTransform(D3DTS_WORLD, &D3DXMATRIXA16(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f));
+    D3DXMATRIXA16 matEMpty = D3DXMATRIXA16(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+    pd3dDevice->SetTransform(D3DTS_WORLD, &matEMpty);
 }

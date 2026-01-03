@@ -57,7 +57,7 @@ public:
     D3DXMATRIXA16 GetViewMatrix() const;
 
     // Helper to apply transforms to device
-    void Render(IDirect3DDevice9* device, float deltaTime);
+    void Render(IDirect3DDevice9* device, double deltaTime);
 
     // --- Setters ---
     void SetProjection(float fov, float zNear, float zFar) {

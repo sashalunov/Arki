@@ -129,6 +129,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeaderFile />
+      <DisableSpecificWarnings>4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -204,6 +205,8 @@
     <ClInclude Include="CArkiBlock.h" />
     <ClInclude Include="CArkiPowerup.h" />
     <ClInclude Include="CBulletDebugDrawer.h" />
+    <ClInclude Include="CEnemyBullet.h" />
+    <ClInclude Include="CFlyingEnemy.h" />
     <ClInclude Include="CGizmo.h" />
     <ClInclude Include="CGrid.h" />
     <ClInclude Include="CHUD.h" />
@@ -219,9 +222,11 @@
     <ClInclude Include="D3DCamera.h" />
     <ClInclude Include="D3DRender.h" />
     <ClInclude Include="EmbeddedAssets.h" />
+    <ClInclude Include="EnemySpawner.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="midi.h" />
+    <ClInclude Include="MovementStrategy.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Sounds.h" />
     <ClInclude Include="stdafx.h" />
@@ -247,6 +252,7 @@
     <ClCompile Include="CArkiPlayer.cpp" />
     <ClCompile Include="CArkiBlock.cpp" />
     <ClCompile Include="CBulletDebugDrawer.cpp" />
+    <ClCompile Include="CFlyingEnemy.cpp" />
     <ClCompile Include="CGrid.cpp" />
     <ClCompile Include="CHUD.cpp" />
     <ClCompile Include="COrbitCamera.cpp" />
@@ -259,8 +265,11 @@
     <ClCompile Include="CXAudio.cpp" />
     <ClCompile Include="D3DCamera.cpp" />
     <ClCompile Include="D3DRender.cpp" />
+    <ClCompile Include="EnemyBullet.cpp" />
+    <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MovementStrategy.cpp" />
     <ClCompile Include="Sounds.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

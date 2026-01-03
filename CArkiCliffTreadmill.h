@@ -171,9 +171,9 @@ public:
     }
 
     // 1. Move the wall down by 'speed'
-    void Scroll(float dt, float speed)
+    void Scroll(double dt, float speed)
     {
-        m_currentY -= speed * dt;
+        m_currentY -= speed * (FLOAT)dt;
 
         btTransform trans;
         m_pBody->getMotionState()->getWorldTransform(trans);
@@ -181,9 +181,9 @@ public:
         m_pBody->getMotionState()->setWorldTransform(trans);
     }
 
-    void Animate(float dt, float speed)
+    void Animate(double dt, float speed)
     {
-        m_scrollAccumulator -= speed * dt;
+        m_scrollAccumulator -= speed * (FLOAT)dt;
 
         int numRows = (int)m_vertices.size() / 8;
         float width = 3.0f;
@@ -306,8 +306,8 @@ public:
             SetVert(i * 8 + 1, xJagged, localY, zBack, jnx, jny, 0, 1, v);
             SetVert(i * 8 + 2, xJagged, localY, zFront, 0, 0, 1, 0, v);
             SetVert(i * 8 + 3, xOuter, localY, zFront, 0, 0, 1, uOuter, v);
-            SetVert(i * 8 + 4, xOuter, localY, zFront, (m_facingRight ? 1 : -1), 0, 0, 0, v);
-            SetVert(i * 8 + 5, xOuter, localY, zBack, (m_facingRight ? 1 : -1), 0, 0, 1, v);
+            SetVert(i * 8 + 4, xOuter, localY, zFront, (m_facingRight ? 1.f : -1.f), 0, 0, 0, v);
+            SetVert(i * 8 + 5, xOuter, localY, zBack, (m_facingRight ? 1.f : -1.f), 0, 0, 1, v);
         }
 
         // Refit Physics

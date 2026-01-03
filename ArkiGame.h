@@ -20,6 +20,7 @@
 #include "CGizmo.h"
 #include "COrbitCamera.h"
 #include "CArkiCliffTreadmill.h"
+#include "CFlyingEnemy.h"
 #include "CHUD.h"
 
 #include "tweeny.h"
@@ -118,6 +119,7 @@ private:
     CRigidBody* m_wallL;    CRigidBody* m_wallR;
 	ID3DXMesh* m_roundedBoxMesh;
     std::vector<CRigidBody*> m_sceneObjects;
+    std::vector<CFlyingEnemy*> m_enemies;
     CRigidBody* g_selected;
     CGizmo* g_gizmo;
     // powerups
@@ -209,7 +211,7 @@ private:
     PhysicsData* RaycastWithMask(btDynamicsWorld* world, btVector3 start, btVector3 end, int rayGroup, int rayMask);
 
     void RenderObjectProperties();
-    void UpdateWalls(float DeltaTime);
+    void UpdateWalls(double DeltaTime);
 
     // Helper functions
     void InitBagSystem();

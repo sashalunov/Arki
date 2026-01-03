@@ -56,7 +56,7 @@ void CBulletDebugDrawer::Draw()
     // 3. Draw all lines in one go
     // D3DPT_LINELIST means every 2 vertices make 1 line
     // Primitive Count = Total Vertices / 2
-    m_pDevice->DrawPrimitiveUP(D3DPT_LINELIST, m_lineBuffer.size() / 2, &m_lineBuffer[0], sizeof(DebugVertex));
+    m_pDevice->DrawPrimitiveUP(D3DPT_LINELIST, (int)m_lineBuffer.size() / 2, &m_lineBuffer[0], sizeof(DebugVertex));
     m_pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
     // 4. Restore Lighting (optional, good practice)
     m_pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);

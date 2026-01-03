@@ -143,7 +143,7 @@ D3DXMATRIXA16 COrbitCamera::GetViewMatrix() const
     return view;
 }
 
-void COrbitCamera::Render(IDirect3DDevice9* device, float dt)
+void COrbitCamera::Render(IDirect3DDevice9* device, double dt)
 {
     //m_aspectRatio = aspectRatio;
     SetAspectRatio((float)d3d9->GetWidth(), (float)d3d9->GetHeight());

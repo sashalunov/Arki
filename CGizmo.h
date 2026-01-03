@@ -300,7 +300,8 @@ private:
         D3DXVECTOR3 P_axis = axisO + axisD * tClamped; // Point on Axis Segment
 
         // Return distance between the Ray point and the *Clamped* Axis point
-        return D3DXVec3Length(&D3DXVECTOR3(P_ray - P_axis));
+		D3DXVECTOR3 diff = P_ray - P_axis;
+        return D3DXVec3Length(&diff);
     }
     D3DXVECTOR3 GetPointOnAxis(D3DXVECTOR3 rO, D3DXVECTOR3 rD, D3DXVECTOR3 axisO, D3DXVECTOR3 axisD)
     {

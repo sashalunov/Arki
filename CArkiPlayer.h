@@ -99,7 +99,9 @@ public:
             // Flash effect: Toggle opacity or color interpolation
             // Simple linear interpolation back to white
             float t = 1.0f - (m_invulnerabilityTimer / 2.0f); // 0.0 to 1.0
-            D3DXColorLerp(&m_color, &D3DXCOLOR(1, 0, 0, 1), &D3DXCOLOR(1, 1, 1, 1), t);
+			D3DXCOLOR r = D3DXCOLOR(1, 0, 0, 1);
+			D3DXCOLOR w = D3DXCOLOR(1, 1, 1, 1);
+            D3DXColorLerp(&m_color, &r, &w, t);
         }
         else
         {
@@ -223,6 +225,6 @@ public:
         }
 	}
 
-    void TakeDamage(int damage);
+    void TakeDamage(float damage);
 
 };

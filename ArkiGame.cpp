@@ -233,7 +233,7 @@ void ArkiGame::Update(double dt)
 
 }
 
-void ArkiGame::UpdateWalls(float dt)
+void ArkiGame::UpdateWalls(double dt)
 {
     float scrollSpeed = 3.0f;
     float killY = -50.0f; // Point where wall is fully off-screen
@@ -296,14 +296,14 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     }
 
     // 1. UPDATE LOOP
-    for (int i = 0; i < m_sceneObjects.size(); i++)
+    for (int i = 0; i < (int)m_sceneObjects.size(); i++)
     {
         // This calls the Fuse Timer logic if it's a bomb
         m_sceneObjects[i]->Update(fixedDeltaTime);
     }
     // 2. CLEANUP LOOP (Remove exploded bombs)
     // We iterate backwards so we can delete without breaking the vector indices
-    for (int i = m_sceneObjects.size() - 1; i >= 0; i--)
+    for (int i = (int)m_sceneObjects.size() - 1; i >= 0; i--)
     {
         CRigidBody* obj = m_sceneObjects[i];
 
@@ -324,6 +324,10 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     //if (m_ball && isBallActive)m_ball->UpdateLogic();
 	if (m_player) m_player->Update((float)fixedDeltaTime, m_inputLeft, m_inputRight);
 	if (m_currentLevel) m_currentLevel->Update();
+    // Update Enemies
+    for (auto e : m_enemies) {
+        e->Update(fixedDeltaTime);
+    }
 
     CheckCollisions(g_dynamicsWorld);
 
@@ -331,18 +335,18 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     if (m_player) m_player->CleanupBullets(); 
     if (m_currentLevel) m_currentLevel->CleanupBlocks();
 
-
+    CArkiPowerup* ap = NULL;
     // Update Powerups (Check bounds)
     for (int i = 0; i < m_powerups.size(); i++)
     {
-        CArkiPowerup* p = m_powerups[i];
-        float y = static_cast<float>(p->m_pBody->getWorldTransform().getOrigin().getY());
+        ap = m_powerups[i];
+        float y = (FLOAT)ap->m_pBody->getWorldTransform().getOrigin().getY();
 
         // If it falls off the bottom of the screen (-15.0f depending on your cam)
-        if (y < -25.0f || p->m_markForDelete)
+        if (y < -25.0f || ap->m_markForDelete)
         {
-            g_dynamicsWorld->removeRigidBody(p->m_pBody);
-            delete p;
+            g_dynamicsWorld->removeRigidBody(ap->m_pBody);
+            delete ap;
             m_powerups.erase(m_powerups.begin() + i);
             i--;
         }
@@ -413,7 +417,10 @@ void ArkiGame::Shutdown()
 
     CArkiBlock::CleanupSharedMesh();
 
-
+    for (auto e : m_enemies) {
+        SAFE_DELETE(e);
+	}
+    
     for (auto* cliff : m_leftWalls)
     {
 		SAFE_DELETE(cliff);
@@ -737,7 +744,7 @@ void ArkiGame::RenderGUI()
             //{
                 ImGui::OpenPopup("PauseMenu"); // Force popup open
                 // Centered Window
-                ImGuiIO& io = ImGui::GetIO();
+                //ImGuiIO& io = ImGui::GetIO();
                 //ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
 
                 // Centered Popup
@@ -925,6 +932,9 @@ void ArkiGame::Render(double dt)
             m_currentLevel->Render(d3d9->GetDevice(), m_font, NULL, m_pSkybox->GetRotationX());
             m_player->Render(m_pSkybox, m_pCam0->GetViewMatrix());
 
+            for (auto e : m_enemies) {
+				e->Render(d3d9->GetDevice());
+            }
 
             D3DXMatrixIdentity(&matWorld);
             d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
@@ -990,7 +1000,7 @@ void ArkiGame::Render(double dt)
 
 void ArkiGame::ProcessEditorInput(double dt)
 {
-    POINT p;
+    POINT mpoint;
     // (Use a flag to ensure single-click, or GetAsyncKeyState logic)
     static bool wasPressed = false;
 
@@ -1029,11 +1039,11 @@ void ArkiGame::ProcessEditorInput(double dt)
         // Check Left Mouse Button Click
         bool isPressed = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
         // Get Mouse Position (Windows API)
-        GetCursorPos(&p);
-        ScreenToClient(d3d9->GetHWND(), &p); // Convert to window local coordinates
+        GetCursorPos(&mpoint);
+        ScreenToClient(d3d9->GetHWND(), &mpoint); // Convert to window local coordinates
         btVector3 hitPoint;
         btRigidBody* hitBody = nullptr;
-        bool raycastHit = RaycastFromMouse(p.x, p.y, hitPoint, hitBody);
+        bool raycastHit = RaycastFromMouse(mpoint.x, mpoint.y, hitPoint, hitBody);
 
             // 3. Convert to Bullet Vectors
             btVector3 rayFrom(vNear.x, vNear.y, vNear.z);
@@ -1165,9 +1175,11 @@ void ArkiGame::ProcessGameInput(double dt)
         btVector3 firePos = trans.getOrigin();
         // This will sound like it's coming from the RIGHT speaker
         xau->Play3D("shoot1", firePos );
-		CArkiBomb* newBomb;
-        newBomb = new CArkiBomb(g_dynamicsWorld, D3DXVECTOR3((FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), (FLOAT)trans.getOrigin().getZ()), m_pCam0);
-        m_sceneObjects.push_back(newBomb);
+
+        m_enemies.push_back(new CFlyingEnemy(g_dynamicsWorld, D3DXVECTOR3(-5, 15, 0), m_pTeapotMesh));
+		//CArkiBomb* newBomb;
+       // newBomb = new CArkiBomb(g_dynamicsWorld, D3DXVECTOR3((FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), (FLOAT)trans.getOrigin().getZ()), m_pCam0);
+       // m_sceneObjects.push_back(newBomb);
 
         //m_pCam0->Shake(1.0f, 1.0f);
         //fs->Spawn(D3DXVECTOR3(firePos.getX(), firePos.getY(), firePos.getY()), L"xXXXx");
@@ -1349,7 +1361,6 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
 		if (powerupData && playerData)
         {
             CArkiPowerup* pPowerup = (CArkiPowerup*)powerupData->pObject;
-            CArkiPlayer* pPlayer = (CArkiPlayer*)playerData->pObject;
             if (!pPowerup->m_collected)
             {
                 pPowerup->m_collected = true;

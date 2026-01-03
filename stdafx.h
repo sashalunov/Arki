@@ -44,8 +44,14 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+
+
 // --------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------
+static FLOAT Epsilon = 0.001f;// Helper: Check if float is approximately zero
+inline bool IsZero(float val, float epsilon = 0.001f) {
+	return std::abs(val) <= epsilon;
+}
 // Helper: Opens a Windows file picker (Wide String Version)
 std::wstring OpenFileDialog(HWND owner);
 // Helper: Opens a Windows "Save As" file picker (Wide String Version)
@@ -62,6 +68,8 @@ const char* WToUTF8(const std::wstring& wide);
 void InitLight(D3DLIGHT9& light, D3DLIGHTTYPE ltType, FLOAT x = 0.0f, FLOAT y = 0.0f, FLOAT z = 0.0f, FLOAT r = 1.0f, FLOAT g = 1.0f, FLOAT b = 1.0f);
 void InitMaterial(D3DMATERIAL9& mtrl, FLOAT a = 1.0f, FLOAT r = 0.5f, FLOAT g = 0.5f, FLOAT b = 0.5f);
 void InitMaterialS(D3DMATERIAL9& mtrl, FLOAT a = 1.0f, FLOAT r = 0.5f, FLOAT g = 0.5f, FLOAT b = 0.5f, FLOAT S = 0.5f);
+ID3DXMesh* CreateRoundedBox(IDirect3DDevice9* device, float width, float height, float depth, float radius, int slices);
+
 
 float Hash(float n);
 float Hash3D(D3DXVECTOR3 p);

@@ -1,7 +1,9 @@
+
 #include "StdAfx.h"
-#include "btBulletDynamicsCommon.h"
 #include "Logger.h"
 #include "D3DRender.h"
+
+#include "btBulletDynamicsCommon.h"
 
 #include "XMesh.h"
 

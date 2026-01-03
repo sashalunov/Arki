@@ -16,13 +16,16 @@ void CArkiBall::InitTrail(IDirect3DDevice9* device, const TCHAR* textureFilename
         D3DCOLOR_ARGB(0, 0, 255,0),// End Color (Blue)
         &m_pTrailTexture          // Output pointer
     );
-
+	if (FAILED(hr))
+    {
+        //_log(L"Failed to create trail texture!");
+    }
     // 2. Create Dynamic Vertex Buffer
     // Size: MaxSegments * 2 vertices (left side + right side)
     int numVerts = m_maxPathSegments * 2;
 
     // USAGE_DYNAMIC and POOL_DEFAULT are required for frequent CPU updates
-    device->CreateVertexBuffer(
+    hr = device->CreateVertexBuffer(
         numVerts * sizeof(TRAILVERTEX),
         D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY,
         TRAILVERTEX::FVF,
@@ -37,7 +40,7 @@ void CArkiBall::RenderTrail(IDirect3DDevice9* device,const D3DXVECTOR3& cameraPo
     // Need at least 2 points to make a strip segment
     if (m_pathHistory.size() < 2 || !m_pTrailVB) return;
 
-    int numPoints = m_pathHistory.size();
+    int numPoints = (int)m_pathHistory.size();
     int numVertices = numPoints * 2;
 
     // 1. Lock Dynamic Buffer (D3DLOCK_DISCARD is fast!)

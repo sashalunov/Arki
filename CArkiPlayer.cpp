@@ -46,7 +46,7 @@ CArkiPlayer::CArkiPlayer(btDiscreteDynamicsWorld* dynamicsWorld, IDirect3DDevice
     AddBall(); // Start with one ball
 }
 
-void CArkiPlayer::TakeDamage(int damage)
+void CArkiPlayer::TakeDamage(float damage)
 {
     // 1. Check Invulnerability and Death state
     if (m_isDead || m_invulnerabilityTimer > 0.0f) return;

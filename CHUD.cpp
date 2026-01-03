@@ -90,9 +90,9 @@ void CHUD::Render(IDirect3DDevice9* device, CSpriteBatch* spriteBatch,   float h
     // --- DRAW TEXT USING CSpriteFont ---
 
     m_font->DrawString(pixelX, pixelY, pixelW, L"Health", D3DCOLOR_ARGB(255, 255, 155, 255));
-    m_font->DrawString(pixelX, m_screenHeight * 0.1, pixelW, healthText, D3DCOLOR_ARGB(255, 255, 155, 255));
+    m_font->DrawString(pixelX, m_screenHeight * 0.1f, pixelW, healthText, D3DCOLOR_ARGB(255, 255, 155, 255));
 
-    m_font->DrawString(m_screenWidth*0.80, m_screenHeight*0.05f, m_screenWidth*0.1, scoreText, D3DCOLOR_ARGB(255, 155, 255, 255));
+    m_font->DrawString(m_screenWidth*0.80f, m_screenHeight*0.05f, m_screenWidth*0.1f, scoreText, D3DCOLOR_ARGB(255, 155, 255, 255));
 
     m_font->RenderBatch(device);
 

@@ -93,7 +93,7 @@ bool ArkiGame::Init()
 	CRigidBody::InitSharedMesh(d3d9->GetDevice());
     m_currentLevel = new CArkiLevel(g_dynamicsWorld);
     //m_currentLevel->GenerateRandomLevel(20, 18, false);
-    m_currentLevel->GenerateMathLevel(21, 18);
+    m_currentLevel->GenerateMathLevel(21, 21);
 	p = m_currentLevel->m_currentParams;
     m_player = new CArkiPlayer(g_dynamicsWorld, d3d9->GetDevice(), D3DXVECTOR3(0, -16, 0));
 
@@ -289,7 +289,7 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     // Bullet Physics
     // We pass '1' as maxSubSteps because we are manually controlling the loop 
     // using our accumulator. We force Bullet to take exactly one step of fixedDeltaTime.
-        UpdateWalls(fixedDeltaTime);
+    UpdateWalls(fixedDeltaTime);
 
     if (g_dynamicsWorld) {
         g_dynamicsWorld->stepSimulation((btScalar)fixedDeltaTime, 1, (btScalar)fixedDeltaTime);
@@ -299,7 +299,7 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     for (int i = 0; i < m_sceneObjects.size(); i++)
     {
         // This calls the Fuse Timer logic if it's a bomb
-        m_sceneObjects[i]->Update((float)fixedDeltaTime);
+        m_sceneObjects[i]->Update(fixedDeltaTime);
     }
     // 2. CLEANUP LOOP (Remove exploded bombs)
     // We iterate backwards so we can delete without breaking the vector indices
@@ -1166,8 +1166,8 @@ void ArkiGame::ProcessGameInput(double dt)
         // This will sound like it's coming from the RIGHT speaker
         xau->Play3D("shoot1", firePos );
 		CArkiBomb* newBomb;
-        //newBomb = new CArkiBomb(g_dynamicsWorld, D3DXVECTOR3((FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), (FLOAT)trans.getOrigin().getZ()), m_pCam0);
-        //m_sceneObjects.push_back(newBomb);
+        newBomb = new CArkiBomb(g_dynamicsWorld, D3DXVECTOR3((FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), (FLOAT)trans.getOrigin().getZ()), m_pCam0);
+        m_sceneObjects.push_back(newBomb);
 
         //m_pCam0->Shake(1.0f, 1.0f);
         //fs->Spawn(D3DXVECTOR3(firePos.getX(), firePos.getY(), firePos.getY()), L"xXXXx");

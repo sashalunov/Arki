@@ -25,6 +25,7 @@ public:
 	RigidBodyType m_type;
     std::string  m_name;
 
+	D3DMATERIAL9 m_material;
     // Transforms
     D3DXVECTOR3    m_position;
     D3DXQUATERNION m_rotation;
@@ -210,19 +211,11 @@ public:
             worldMat = GetWorldMatrix();
             device->SetTransform(D3DTS_WORLD, &worldMat);
 			device->SetRenderState(D3DRS_LIGHTING, TRUE);
+            device->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
+
             device->SetTexture(0, NULL);
 
-            // Simple white material
-            static D3DMATERIAL9 WHITE_MTRL =
-            {
-
-                1.0f, 1.0f, 1.0f, 1.0f , // Diffuse
-             0.8f, 0.8f, 0.8f, 1.0f , // Ambient
-             0.0f, 0.0f, 0.0f, 1.0f , // Specular
-             0.0f, 0.0f, 0.0f, 1.0f , // Emissive
-            0.0f };                        // Power
-
-            device->SetMaterial(&WHITE_MTRL);
+            device->SetMaterial(&m_material);
 
             switch (m_type)
             {
@@ -287,7 +280,6 @@ public:
         device->SetRenderState(D3DRS_LIGHTING, FALSE);
         device->SetFVF(D3DFVF_XYZ);
         device->DrawIndexedPrimitiveUP(D3DPT_LINELIST, 0, 8, 12, indices, D3DFMT_INDEX16, corners, sizeof(D3DXVECTOR3));
-        device->SetRenderState(D3DRS_LIGHTING, TRUE);
     }
 
     void RescaleObject( btVector3 newScale)

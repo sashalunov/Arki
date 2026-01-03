@@ -22,6 +22,9 @@ CRigidBody::CRigidBody()
 {
     D3DXQuaternionIdentity(&m_rotation);
     m_type = RB_BOX;
+    // Simple white material
+	InitMaterialS(m_material, 1.0f, 0.8f, 0.6f, 0.8f, 0.75f);
+
 }
 
 // --- 1. SETUP: Now with Active/Passive Control ---

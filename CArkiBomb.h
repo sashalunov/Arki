@@ -4,6 +4,7 @@
 #include "CQuatCamera.h"
 #include "CArkiPlayer.h"
 #include <btBulletDynamicsCommon.h>
+#include <LinearMath/btMinMax.h>
 
 // Assuming you have an Enum for types in CArkiBlock.h or similar
 // If not, just ensure Player is identified correctly via UserPointer
@@ -11,7 +12,7 @@
 class CArkiBomb : public CRigidBody
 {
 private:
-    float m_lifeTimer;       // Fuse timer
+    double m_lifeTimer;       // Fuse timer
     float m_explodeRadius;   // How far the explosion reaches
     float m_maxForce;        // Physical push strength
     float m_maxDamage;       // Damage at center of explosion
@@ -52,12 +53,17 @@ public:
         // tweeny works in milliseconds (usually int), so convert seconds -> ms
         int durationMs = (int)(1.0f * 1000.0f);
 
+		InitMaterialS(m_material, 1.0f, 0.05f, 0.02f, 0.02f, 0.8f); // Slightly shiny orange material
+		m_material.Power = 60.0f;
+		m_material.Ambient = D3DXCOLOR(0.1f, 0.0f, 0.0f, 1.0f);
+        m_material.Emissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+
         // Configure the Tween:
         // 1. Start at 'strength'
         // 2. Go to '0.0f'
         // 3. Take 'durationMs' time
         // 4. Use Quadratic Easing for smooth fade-out
-        m_explTween = tweeny::from(1.0f, 0.0f)
+        m_explTween = tweeny::from(0.98f, 0.0f)
             .to(m_explodeRadius, 1.0f)
             .during(durationMs)
             .via(tweeny::easing::exponentialIn);
@@ -67,53 +73,24 @@ public:
     void Render(IDirect3DDevice9* device)
     {
         CRigidBody::Render(device); // Call base class render (if any)
-
-        device->SetRenderState(D3DRS_COLORVERTEX, FALSE);
-        device->SetRenderState(D3DRS_LIGHTING, FALSE);
-		device->SetRenderState(D3DRS_SPECULARENABLE, FALSE);
         device->SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
 		device->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-
         device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
 		device->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 		device->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
 
-        device->SetTextureStageState(0, D3DTSS_CONSTANT, D3DXCOLOR(1.0f, 0.8f, 0.3f, m_animAlpha));
-        device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
-        device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_CONSTANT);
-        device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-		device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_CONSTANT); 
-
-        // 2. Set Material (Shiny White Ball)
-        D3DMATERIAL9 mtrl;
-        ZeroMemory(&mtrl, sizeof(mtrl));
-        mtrl.Diffuse = D3DXCOLOR(1.0f, 0.0f, 0.0f, 0.4f); 
-        mtrl.Ambient = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f); // Grey ambient
-        mtrl.Specular = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f); // Bright specular highlight
-		mtrl.Emissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 0.0f); // No emissive
-        mtrl.Power = 5.0f; // Sharp highlight (Plastic/Metal look)
-
         // Important: Disable Texture if you just want a colored glass look
         device->SetTexture(0, NULL);
-        device->SetMaterial(&mtrl);
         D3DXMATRIXA16 matScale;
         D3DXMATRIXA16 worldMat = GetWorldMatrix();
         D3DXMatrixScaling(&matScale, m_animScale, m_animScale, m_animScale);
         D3DXMATRIXA16 finalMat = matScale * worldMat;
         device->SetTransform(D3DTS_WORLD, &finalMat);
-
-
         s_pRigidBodySphereMesh->DrawSubset(0);
 
         device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
         device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
         device->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-        device->SetRenderState(D3DRS_LIGHTING, TRUE);
-        // Reset world transform
-        D3DXMATRIXA16 identity;
-        D3DXMatrixIdentity(&identity);
-        device->SetTransform(D3DTS_WORLD, &identity);
-
     }
 
     // Call this every frame from Game Loop
@@ -121,18 +98,21 @@ public:
     {
         if (m_hasExploded) return;
 
-        m_lifeTimer -= (FLOAT)dt;
+        m_lifeTimer -= dt;
 
         // Flash Color or Pulse size logic could go here
         if (m_lifeTimer < 1.0f)
         {
             // Example: Pulse size
             //float scaleFactor = 1.0f + 0.6f * sinf(m_lifeTimer * 20.0f);
-            //m_scale = D3DXVECTOR3(scaleFactor, scaleFactor, scaleFactor);
-           // RescaleObject(btVector3(m_scale.x, m_scale.y, m_scale.z));
+			m_material.Diffuse = D3DXCOLOR(0.75f, 0.45f, 0.0f, 1.0f) *  (FLOAT)btClamped((1.0 - m_lifeTimer),0.0,1.0); // Glow more as it nears explosion
+            m_material.Emissive = D3DXCOLOR(0.75f, 0.45f, 0.0f, 1.0f) * (FLOAT)btClamped((1.0 - m_lifeTimer), 0.0, 1.0); // Glow more as it nears explosion
+
+           // m_scale = D3DXVECTOR3(scaleFactor, scaleFactor, scaleFactor);
+            //RescaleObject(btVector3(m_scale.x, m_scale.y, m_scale.z));
 
                 // 1. Convert dt to milliseconds for tweeny
-            int dtMs = (int)(dt * 1000.0f);
+            int dtMs = (int)(dt * 1000);
 
             // 2. Step the animation
             // 'step' advances the time and returns the current interpolated value (current strength)

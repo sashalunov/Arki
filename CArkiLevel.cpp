@@ -188,8 +188,6 @@ void CArkiLevel::GenerateRandomLevel(int rows, int cols, bool symmetric = true)
     }
 }
 
-// Add to CArkiLevel.cpp
-#include <cmath> // Required for sqrt (distance calculation)
 
 void CArkiLevel::GenerateIslandLevel(int rows, int cols, int numIslands)
 {
@@ -309,7 +307,7 @@ void CArkiLevel::GenerateMathLevel(int rows, int cols)
 
     // 2. Pick a random "Formula" for this level
     // 0 = Concentric Rings, 1 = Interference Waves, 2 = Plasmas
-    int patternType = rand() % 3;
+    int patternType = 2;// rand() % 3;
 
     // Scale factors zoom the math pattern in/out
     float scaleX = (rand() % 5 + 3) / 10.0f; // Random 0.3 to 0.8

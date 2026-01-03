@@ -54,7 +54,7 @@ struct LevelParams {
             p.scaleX = 3.0f / c; p.scaleY = 2.5f / r;
         }
 		if (p.formulaType == FORMULA_JULIA || p.formulaType == FORMULA_SIERPINSKI) {
-            p.offsetX = 0.0f; p.offsetY = 0.0f ;
+            p.offsetX = 0; p.offsetY = 0 ;
         }
         return p;
     }

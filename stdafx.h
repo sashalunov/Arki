@@ -33,9 +33,9 @@
 //#include <dinput.h>
 #include <stdio.h>
 #include <math.h> // Required for sqrt
+#include <cmath> // Required for sqrt (distance calculation)
 #include <algorithm> // For standard math operations
 #include <vector>
-#include <string>
 #include <list>
 #include <fstream> // Required for file I/O
 #include <xaudio2.h>

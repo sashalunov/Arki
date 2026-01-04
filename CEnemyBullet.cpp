@@ -2,12 +2,10 @@
 #include "stdafx.h"
 #include "CEnemyBullet.h"
 
-CEnemyBullet::CEnemyBullet(btDiscreteDynamicsWorld* world, CXMesh* mesh, D3DXVECTOR3 startPos, D3DXVECTOR3 targetPos, EProjectileType type)
+CEnemyBullet::CEnemyBullet(btDiscreteDynamicsWorld* world, D3DXVECTOR3 startPos, D3DXVECTOR3 targetPos, EProjectileType type)
+    : CBullet(world, startPos, TYPE_ENEMY_BULLET)
 {
-    m_pWorld = world;
-    m_pMesh = mesh;
-    m_type = type;
-    m_toBeDeleted = false;
+    m_projtype = type;
     m_lifeTime = 5.0f;      // Default: destroy after 5 seconds
     m_stateTimer = 0.0f;
 
@@ -17,6 +15,7 @@ CEnemyBullet::CEnemyBullet(btDiscreteDynamicsWorld* world, CXMesh* mesh, D3DXVEC
 
     // Store target for Homing missiles
     m_targetPos = target;
+	m_lastOffset = btVector3(0, 0, 0);
 
     // 2. Calculate Initial Direction
     btVector3 dir = target - start;
@@ -32,41 +31,17 @@ CEnemyBullet::CEnemyBullet(btDiscreteDynamicsWorld* world, CXMesh* mesh, D3DXVEC
     }
 
     m_velocity = dir * m_speed;
-
-    // 4. Setup Physics Body (Kinematic Sphere)
-    btCollisionShape* shape = new btSphereShape(0.2f); // Tiny hitbox
-    btTransform t;
-    t.setIdentity();
-    t.setOrigin(start);
-
-    btDefaultMotionState* ms = new btDefaultMotionState(t);
-    m_pBody = new btRigidBody(0, ms, shape);
-
-    // KINEMATIC: We move it via code, Physics detects collisions
-    m_pBody->setCollisionFlags(m_pBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-    m_pBody->setActivationState(DISABLE_DEACTIVATION);
-    m_pBody->setUserPointer(this); // Important for Collision Callbacks
-
-    m_pWorld->addRigidBody(m_pBody);
 }
 
-CEnemyBullet::~CEnemyBullet()
+void CEnemyBullet::Update(double dt)
 {
-    if (m_pBody) {
-        m_pWorld->removeRigidBody(m_pBody);
-        delete m_pBody->getMotionState();
-        delete m_pBody->getCollisionShape(); // Clean up shape here or in manager depending on design
-        delete m_pBody;
-    }
-}
+    if (m_markForDelete) return;
 
-void CEnemyBullet::Update(float dt, D3DXVECTOR3 currentPlayerPos)
-{
-    m_lifeTime -= dt;
-    m_stateTimer += dt;
+    m_lifeTime -= (FLOAT)dt;
+    m_stateTimer += (FLOAT)dt;
 
     if (m_lifeTime <= 0.0f) {
-        m_toBeDeleted = true;
+        m_markForDelete = true;
         return;
     }
     // -------------------------------------------------------------
@@ -86,7 +61,7 @@ void CEnemyBullet::Update(float dt, D3DXVECTOR3 currentPlayerPos)
     {
         // Increase speed significantly over time
         float acceleration = 25.0f;
-        m_speed += acceleration * dt;
+        m_speed += acceleration * (FLOAT)dt;
 
         // Re-normalize velocity to apply new speed
         btVector3 dir = m_velocity.normalized();
@@ -95,10 +70,18 @@ void CEnemyBullet::Update(float dt, D3DXVECTOR3 currentPlayerPos)
     break;
 
     case PROJ_HOMING:
+    {
+        // Steering logic...
+        //btVector3 target(m_pPlayerTarget->x, m_pPlayerTarget->y, m_pPlayerTarget->z);
+        btVector3 desired = (m_targetPos - currentPos).normalized();
+        m_velocity = m_velocity.normalized().lerp(desired, 3.0f * dt).normalized() * m_speed;
+    
+    }
+    break;
     case PROJ_WOBBLE_HOMING: // Both types use steering
     {
-        btVector3 target(currentPlayerPos.x, currentPlayerPos.y, currentPlayerPos.z);
-        btVector3 desiredDir = target - cleanPos; // Use cleanPos for better accuracy
+        //btVector3 target(currentPlayerPos.x, currentPlayerPos.y, currentPlayerPos.z);
+        btVector3 desiredDir = m_targetPos - cleanPos; // Use cleanPos for better accuracy
         desiredDir.normalize();
 
         // Steer towards target
@@ -174,8 +157,13 @@ void CEnemyBullet::Update(float dt, D3DXVECTOR3 currentPlayerPos)
 
 void CEnemyBullet::Render(IDirect3DDevice9* device)
 {
+	if (m_markForDelete) return;
     btTransform trans = m_pBody->getWorldTransform();
     btVector3 pos = trans.getOrigin();
+
+	D3DXMATRIXA16 matTrans;
+    D3DXMatrixTranslation(&matTrans, (FLOAT)pos.getX(), (FLOAT)pos.getY(), (FLOAT)pos.getZ());
+	device->SetTransform(D3DTS_WORLD, &matTrans);
 
     //m_pMesh->SetPosition(D3DXVECTOR3(pos.x(), pos.y(), pos.z()));
 
@@ -184,14 +172,14 @@ void CEnemyBullet::Render(IDirect3DDevice9* device)
     // Calculate angle from Velocity using atan2
     // Note: atan2(y, x) gives angle in radians.
 
-    float angleZ = (FLOAT)atan2(m_velocity.y(), m_velocity.x());
+    //float angleZ = (FLOAT)atan2(m_velocity.y(), m_velocity.x());
 
     // Depending on your mesh, you might need to add/subtract 90 degrees (1.57 rads)
     // assuming your mesh points "Up" by default.
-    angleZ -= 1.57f;
+    //angleZ -= 1.57f;
 
     // Apply rotation (Roll/Pitch/Yaw)
     //m_pMesh->SetRotation(D3DXVECTOR3(0, 0, angleZ));
-
-    m_pMesh->Render();
+	CRigidBody::s_pRigidBodySphereMesh->DrawSubset(0);
+    //m_pMesh->Render();
 }

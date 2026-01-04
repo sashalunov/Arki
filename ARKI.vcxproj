@@ -196,6 +196,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArkiGame.h" />
+    <ClInclude Include="BulletManager.h" />
     <ClInclude Include="CArkiBall.h" />
     <ClInclude Include="CArkiBomb.h" />
     <ClInclude Include="CArkiBullet.h" />
@@ -204,6 +205,7 @@
     <ClInclude Include="CArkiPlayer.h" />
     <ClInclude Include="CArkiBlock.h" />
     <ClInclude Include="CArkiPowerup.h" />
+    <ClInclude Include="CBullet.h" />
     <ClInclude Include="CBulletDebugDrawer.h" />
     <ClInclude Include="CEnemyBullet.h" />
     <ClInclude Include="CFlyingEnemy.h" />
@@ -244,6 +246,7 @@
     <ClCompile Include="..\tools\imgui-1.92.5\imgui_tables.cpp" />
     <ClCompile Include="..\tools\imgui-1.92.5\imgui_widgets.cpp" />
     <ClCompile Include="ArkiGame.cpp" />
+    <ClCompile Include="BulletManager.cpp" />
     <ClCompile Include="CArkiBall.cpp" />
     <ClCompile Include="CArkiBomb.cpp" />
     <ClCompile Include="CArkiCliff.cpp" />
@@ -265,7 +268,7 @@
     <ClCompile Include="CXAudio.cpp" />
     <ClCompile Include="D3DCamera.cpp" />
     <ClCompile Include="D3DRender.cpp" />
-    <ClCompile Include="EnemyBullet.cpp" />
+    <ClCompile Include="CEnemyBullet.cpp" />
     <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />

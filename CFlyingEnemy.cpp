@@ -6,16 +6,18 @@
 // ========================================================
 // ENEMY CONTEXT IMPLEMENTATION
 // ========================================================
-CFlyingEnemy::CFlyingEnemy(btDiscreteDynamicsWorld* world, D3DXVECTOR3 pos, CXMesh* mesh)//, std::vector<CEnemyProjectile*>& bullets)
+CFlyingEnemy::CFlyingEnemy(btDiscreteDynamicsWorld* world, CBulletManager* manager, D3DXVECTOR3 pos, CXMesh* mesh)
 {
 	m_pWorld = world;
     m_pMesh = mesh;
     m_startPos = pos;
     m_currentPos = pos;
     m_isDead = false;
+    m_pBulletMan = manager;
 
     // Physics Setup (Kinematic)
-    btCollisionShape* shape = new btBoxShape(btVector3(1.0f, 0.5f, 0.5f));
+    //btCollisionShape* shape = new btBoxShape(btVector3(1.0f, 0.5f, 0.5f));
+	btCollisionShape* shape = new btSphereShape(0.56f);
     btTransform t; t.setIdentity(); t.setOrigin(btVector3(pos.x, pos.y, pos.z));
 
     btDefaultMotionState* ms = new btDefaultMotionState(t);
@@ -23,7 +25,7 @@ CFlyingEnemy::CFlyingEnemy(btDiscreteDynamicsWorld* world, D3DXVECTOR3 pos, CXMe
     m_pBody->setCollisionFlags(m_pBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
     m_pBody->setActivationState(DISABLE_DEACTIVATION);
     m_pBody->setUserPointer(this);
-    world->addRigidBody(m_pBody);
+    world->addRigidBody(m_pBody, COL_ENEMY, COL_BALL | COL_POWERUP);
 
     // Initial State
     ChangeState(STATE_ATTACK);
@@ -56,7 +58,6 @@ void CFlyingEnemy::ChangeState(EEnemyState newState)
 void CFlyingEnemy::Update(double dt)
 {
     if (m_isDead) return;
-
     // Delegate movement to the active strategy
     // If Update returns true, the strategy is finished.
     if (m_pActiveStrategy->Update(this, dt))
@@ -92,21 +93,28 @@ void CFlyingEnemy::Shoot()
     spawnPos.y -= 1.5f;
     // Create bullet (assuming CEnemyProjectile constructor exists)
     //m_bulletList.push_back(new CEnemyProjectile(m_pWorld, spawnPos, m_pMesh));
+	if (m_pBulletMan)m_pBulletMan->SpawnEnemyBullet(spawnPos, nullptr, PROJ_LINEAR);
 }
 
 void CFlyingEnemy::Render(IDirect3DDevice9* dev)
 {
     if (m_isDead) return;
-    D3DXMATRIXA16 matWorld = D3DXMATRIXA16(
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        m_currentPos.x, m_currentPos.y, m_currentPos.z, 1);
+    // --- NEAT FEATURE: AUTO-ROTATION ---
+    // Rotate the mesh to face the direction it is traveling.
+    // Calculate angle from Velocity using atan2
+    // Note: atan2(y, x) gives angle in radians.
+    D3DXVECTOR3 v = m_strategyAttack.m_velocity;
+    float angleZ = (FLOAT)atan2(v.y, v.x);
+    // Depending on your mesh, you might need to add/subtract 90 degrees (1.57 rads)
+    // assuming your mesh points "Up" by default.
+    angleZ -= 1.57f;
 
-    dev->SetTransform(D3DTS_WORLD, &matWorld);
-	CRigidBody::s_pRigidBodySphereMesh->DrawSubset(0);
-    //m_pMesh->SetPosition(m_currentPos);
-    //m_pMesh->Render();
+    m_pMesh->SetPos(m_currentPos);
+    // Apply rotation (Roll/Pitch/Yaw)
+    m_pMesh->SetRotation(D3DXVECTOR3(0, 0, angleZ));
+    m_pMesh->Update();
+
+    m_pMesh->Render();
 }
 
 void CFlyingEnemy::OnHit()

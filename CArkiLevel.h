@@ -86,6 +86,12 @@ public:
         }
         m_blocks.clear();
     }
+
+    void ClearLevel()
+    {
+        Clear();
+	}
+
     void GenerateRandomLevel(int rows, int cols, bool symmetric);
     void GenerateIslandLevel(int rows, int cols, int numIslands);
     void GenerateMathLevel(int rows, int cols);

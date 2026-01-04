@@ -1,6 +1,8 @@
 #pragma once
 #include "MovementStrategy.h"
 #include "XMesh.h"
+#include "BulletManager.h"
+
 // --------------------------------------------------------
 // THE CONTEXT CLASS (The Enemy)
 // --------------------------------------------------------
@@ -21,10 +23,13 @@ public:
     bool m_isDead;
     D3DXVECTOR3 m_startPos;     // Home position
     D3DXVECTOR3 m_currentPos;   // Current position
+	D3DXVECTOR3 m_targetPos;    // Target position (for aiming)
 
     // Combat
     float m_shootTimer;
-    //std::vector<CEnemyProjectile*>& m_bulletList;
+    int   m_burstCounter;  // For burst fire
+    float m_burstTimer;   // Time between shots in a burst
+    CBulletManager* m_pBulletMan; // Reference only
 
     // --- STRATEGY & STATE MANAGEMENT ---
     EEnemyState m_currentState;
@@ -35,7 +40,7 @@ public:
     CReturnMove2 m_strategyRetreat;
 
 public:
-    CFlyingEnemy(btDiscreteDynamicsWorld* world, D3DXVECTOR3 pos, CXMesh* mesh);// , std::vector<CEnemyProjectile*>& bullets);
+    CFlyingEnemy(btDiscreteDynamicsWorld* world, CBulletManager* manager, D3DXVECTOR3 pos, CXMesh* mesh);
     ~CFlyingEnemy();
 
     void Update(double dt);

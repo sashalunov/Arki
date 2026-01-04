@@ -1,10 +1,7 @@
 
 #include "StdAfx.h"
 #include "Logger.h"
-#include "D3DRender.h"
-
 #include "btBulletDynamicsCommon.h"
-
 #include "XMesh.h"
 
 
@@ -16,7 +13,7 @@ CXMesh::CXMesh()
 	m_pSysMemMesh = NULL;
 	m_pLocalMesh = NULL;
 
-	m_pDev			 = d3d9->GetDevice();
+	m_pDev			 = NULL;
 	m_pszFileName    = NULL;
 
 	m_vPos	 = D3DXVECTOR3(0, 0, 0);
@@ -27,7 +24,7 @@ CXMesh::CXMesh()
 	D3DXMatrixIdentity(&m_matTranslation);	
 	D3DXMatrixIdentity(&m_matRotation);
 	D3DXMatrixIdentity(&m_matScaling);
-
+	InitMaterialS(m_mat, 1.0f, 0.5f, 0.5f, 0.5f);
 }
 
 // ----------------------------------------------------------------------------
@@ -52,6 +49,8 @@ CXMesh::CXMesh(LPDIRECT3DDEVICE9 dev, TCHAR* pszFileName)
 	D3DXMatrixIdentity(&m_matTranslation);	
 	D3DXMatrixIdentity(&m_matRotation);
 	D3DXMatrixIdentity(&m_matScaling);
+	InitMaterialS(m_mat, 1.0f, 0.5f, 0.5f, 0.5f);
+
 }
 
 
@@ -131,7 +130,6 @@ HRESULT CXMesh::Load(TCHAR *pszFileName)
 	return S_OK;
 }
 
-
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CXMesh::Render(void)
@@ -142,13 +140,16 @@ void CXMesh::Render(void)
 	if(!m_pSysMemMesh)
 		return;
 
-	//m_pDev->SetTransform( D3DTS_WORLD, &m_matWorld );
+	m_pDev->SetTransform( D3DTS_WORLD, &m_matWorld );
 
 	/*if(!bUseMaterials)
 	{
 		m_pDev->SetMaterial(&m_pMat);
 		m_pDev->SetTexture(0, NULL);
 	}*/
+	m_pDev->SetMaterial(&m_mat);
+	m_pDev->SetTexture(0, NULL);
+	m_pDev->SetRenderState(D3DRS_LIGHTING, TRUE);
 
 	for(DWORD i=0; i<m_dwNumMaterials; i++ )
 	{
@@ -190,22 +191,21 @@ void CXMesh::Render(IDirect3DCubeTexture9* pReflectionTexture, float rotationAng
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CXMesh::Update(void)
+void CXMesh::Update()
 {
 	if(!m_bActive)return;
 
 	D3DXMatrixIdentity(&m_matWorld);
-	D3DXMatrixIdentity(&m_matTranslation);
-	D3DXMatrixIdentity(&m_matRotation);
-	D3DXMatrixIdentity(&m_matScaling);
+	//D3DXMatrixIdentity(&m_matTranslation);
+	//D3DXMatrixIdentity(&m_matRotation);
+	//D3DXMatrixIdentity(&m_matScaling);
 
 	D3DXMatrixTranslation(&m_matTranslation, m_vPos.x, m_vPos.y, m_vPos.z);
 	D3DXMatrixRotationYawPitchRoll(&m_matRotation, m_vRot.y, m_vRot.x, m_vRot.z);
 	D3DXMatrixScaling(&m_matScaling, m_vScale.x, m_vScale.y, m_vScale.z);
 
-	D3DXMatrixMultiply(&m_matWorld, &m_matWorld, &m_matTranslation);
-	D3DXMatrixMultiply(&m_matWorld, &m_matWorld, &m_matRotation);
-	D3DXMatrixMultiply(&m_matWorld, &m_matWorld, &m_matScaling);
+	D3DXMatrixMultiply(&m_matWorld, &m_matRotation, &m_matTranslation);
+	//D3DXMatrixMultiply(&m_matWorld, &m_matWorld, &m_matScaling);
 
 }
 

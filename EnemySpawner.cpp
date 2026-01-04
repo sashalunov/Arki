@@ -1,40 +1,38 @@
 #include "stdafx.h" 
 #include "EnemySpawner.h"
 
-EnemySpawner::EnemySpawner(btDiscreteDynamicsWorld* world, CXMesh* enemyMesh, CXMesh* bulletMesh)
-    : m_pWorld(world), 
-    m_pEnemyMesh(enemyMesh), 
-    m_pBulletMesh(bulletMesh)
+CEnemySpawner::CEnemySpawner(btDiscreteDynamicsWorld* world, CBulletManager* manager, CXMesh* enemyMesh)
+    : m_pWorld(world),
+	m_pBulletMan(manager),
+    m_pEnemyMesh(enemyMesh)
 {
     m_currentWaveIndex = -1; // Not started
     m_waveTimer = 0.0f;
     m_isWaveActive = false;
     m_timeBetweenWaves = 3.0f; // 3 Seconds rest between waves
-
     // --- DEFINE YOUR LEVELS HERE ---
     // Wave 1: 5 Enemies in a Grid, simple Sine movement
-    m_waves.push_back({ 5, FORM_GRID, STATE_ATTACK, 1.0f });
-
+    //m_waves.push_back({ 5, FORM_GRID, STATE_ATTACK, 1.0f });
     // Wave 2: 7 Enemies in V-Shape, ZigZag movement
-    m_waves.push_back({ 7, FORM_V_SHAPE, STATE_ATTACK, 1.2f }); // STATE_ATTACK maps to ZigZag if randomized
-
+   // m_waves.push_back({ 7, FORM_V_SHAPE, STATE_ATTACK, 1.2f }); // STATE_ATTACK maps to ZigZag if randomized
     // Wave 3: 8 Enemies in a Circle, Spiral movement
     m_waves.push_back({ 8, FORM_CIRCLE, STATE_RETREAT, 1.5f });
 }
 
-EnemySpawner::~EnemySpawner() {
+CEnemySpawner::~CEnemySpawner() 
+{
     // Cleanup Logic (Delete all pointers)
     for (auto e : m_enemies) delete e;
-    //for (auto b : m_bullets) delete b;
+    for (auto b : m_bullets) delete b;
     m_enemies.clear();
-    //m_bullets.clear();
+    m_bullets.clear();
 }
 
 // -------------------------------------------------------------
 // ALGORITHM: FORMATION CALCULATOR
 // Returns a list of positions based on the pattern type
 // -------------------------------------------------------------
-std::vector<D3DXVECTOR3> EnemySpawner::CalculateFormation(EFormationType type, int count, D3DXVECTOR3 center)
+std::vector<D3DXVECTOR3> CEnemySpawner::CalculateFormation(EFormationType type, int count, D3DXVECTOR3 center)
 {
     std::vector<D3DXVECTOR3> positions;
     float spacing = 3.5f; // Distance between enemies
@@ -85,7 +83,7 @@ std::vector<D3DXVECTOR3> EnemySpawner::CalculateFormation(EFormationType type, i
     return positions;
 }
 
-void EnemySpawner::StartNextWave()
+void CEnemySpawner::StartNextWave()
 {
     m_currentWaveIndex++;
     if (m_currentWaveIndex >= m_waves.size()) {
@@ -102,7 +100,7 @@ void EnemySpawner::StartNextWave()
     for (D3DXVECTOR3 pos : positions)
     {
         // Create the enemy
-        CFlyingEnemy* newEnemy = new CFlyingEnemy(m_pWorld, pos, m_pEnemyMesh);
+        CFlyingEnemy* newEnemy = new CFlyingEnemy(m_pWorld, m_pBulletMan, pos, m_pEnemyMesh);
 
         // Setup their specific behavior for this wave
         // (Assuming you added a SetDifficulty or similar method to CFlyingEnemy)
@@ -114,7 +112,7 @@ void EnemySpawner::StartNextWave()
     m_isWaveActive = true;
 }
 
-void EnemySpawner::Update(float dt, D3DXVECTOR3 playerPos)
+void CEnemySpawner::Update(double dt, D3DXVECTOR3 playerPos)
 {
     // --- 1. WAVE MANAGEMENT ---
     if (m_enemies.empty() && m_isWaveActive) {
@@ -124,7 +122,7 @@ void EnemySpawner::Update(float dt, D3DXVECTOR3 playerPos)
     }
 
     if (!m_isWaveActive) {
-        m_waveTimer -= dt;
+        m_waveTimer -= (FLOAT)dt;
         if (m_waveTimer <= 0.0f) {
             StartNextWave();
         }
@@ -150,21 +148,21 @@ void EnemySpawner::Update(float dt, D3DXVECTOR3 playerPos)
     }
 
     // --- 3. UPDATE BULLETS ---
-   /* for (int i = 0; i < m_bullets.size(); i++)
+    for (int i = 0; i < m_bullets.size(); i++)
     {
-        CEnemyProjectile* b = m_bullets[i];
+        CBullet* b = m_bullets[i];
         b->Update(dt);
-        if (b->m_toBeDeleted) {
-            m_pWorld->removeRigidBody(b->m_pBody);
+        if (b->m_markForDelete) 
+        {
             delete b;
             m_bullets.erase(m_bullets.begin() + i);
             i--;
         }
-    }*/
+    }
 }
 
-void EnemySpawner::Render(IDirect3DDevice9* device)
+void CEnemySpawner::Render(IDirect3DDevice9* device)
 {
     for (auto e : m_enemies) e->Render(device);
-    //for (auto b : m_bullets) b->Render(device);
+    for (auto b : m_bullets) b->Render(device);
 }

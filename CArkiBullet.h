@@ -39,10 +39,10 @@ public:
         int myGroup = COL_BULLET;
         int myMask = COL_BLOCK | COL_WALL;
 
-        dynamicsWorld->addRigidBody(m_pBody, myGroup    , myMask);
+        dynamicsWorld->addRigidBody(m_pBody, myGroup, myMask);
 
         // Assume TYPE_BULLET is added to your enums
-        PhysicsData* pData = new PhysicsData{ TYPE_BULLET, this };
+        PhysicsData* pData = new PhysicsData{ TYPE_PLAYER_BULLET, this };
         m_pBody->setUserPointer(pData);
     }
 

@@ -84,7 +84,7 @@ public:
         // Disable Gravity for the ball (it floats until hit)
         m_pBody->setGravity(btVector3(0, 0, 0));
         // Collides with Paddle, Walls, Blocks (Ignores Powerups, Bullets)
-        dynamicsWorld->addRigidBody(m_pBody, COL_BALL, COL_PADDLE | COL_WALL | COL_BLOCK | COL_POWERUP | COL_BALL);
+        dynamicsWorld->addRigidBody(m_pBody, COL_BALL, COL_PADDLE | COL_WALL | COL_BLOCK | COL_POWERUP | COL_BALL | COL_ENEMY);
         // Prevent the ball from ever falling asleep (stopping simulation)
         m_pBody->setActivationState(WANTS_DEACTIVATION);
         // Save pointer for collisions
@@ -225,7 +225,7 @@ public:
         btVector3 btPosr = transr.getOrigin();
         D3DXVECTOR3 currPosr((FLOAT)btPosr.getX(), (FLOAT)btPosr.getY(), (FLOAT)btPosr.getZ());
 
-        D3DXVECTOR3 d = (m_pathHistory.front() - currPosr);
+        D3DXVECTOR3 d = m_pathHistory.front() - currPosr;
         // Optimization: Only add point if we moved enough
         if (m_pathHistory.empty() || D3DXVec3LengthSq(&d) > m_minPointDistSq)
         {

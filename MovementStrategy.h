@@ -32,9 +32,10 @@ public:
 // --------------------------------------------------------
 class CSineMove2 : public IMovementStrategy
 {
+public:
+
     float m_totalTime;
     D3DXVECTOR3 m_velocity;
-public:
     virtual void OnEnter(CFlyingEnemy* enemy);
     virtual bool Update(CFlyingEnemy* enemy, double dt);
 };
@@ -56,8 +57,9 @@ public:
 // --------------------------------------------------------
 class CReturnMove2 : public IMovementStrategy
 {
-    D3DXVECTOR3 m_velocity; // We track our own physics
 public:
+
+    D3DXVECTOR3 m_velocity; // We track our own physics
     virtual void OnEnter(CFlyingEnemy* enemy);
     virtual bool Update(CFlyingEnemy* enemy, double dt);
 };

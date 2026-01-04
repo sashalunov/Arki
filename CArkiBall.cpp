@@ -33,6 +33,13 @@ void CArkiBall::InitTrail(IDirect3DDevice9* device, const TCHAR* textureFilename
         &m_pTrailVB,
         NULL
     );
+
+    btTransform trans;
+    m_pBody->getMotionState()->getWorldTransform(trans);
+    btVector3 btPosr = trans.getOrigin();
+    D3DXVECTOR3 currPosr((FLOAT)btPosr.getX(), (FLOAT)btPosr.getY(), (FLOAT)btPosr.getZ());
+    m_pathHistory.push_front(currPosr);
+
 }
 
 void CArkiBall::RenderTrail(IDirect3DDevice9* device,const D3DXVECTOR3& cameraPos)

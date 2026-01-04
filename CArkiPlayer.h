@@ -26,7 +26,7 @@ public:
     // Visual feedback for damage
     D3DXCOLOR m_color;
 
-
+public:
     CArkiPlayer(btDiscreteDynamicsWorld* dynamicsWorld, IDirect3DDevice9* device, D3DXVECTOR3 startPos);
     
     ~CArkiPlayer()

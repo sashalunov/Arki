@@ -20,12 +20,11 @@
 #include "CGizmo.h"
 #include "COrbitCamera.h"
 #include "CArkiCliffTreadmill.h"
-#include "CFlyingEnemy.h"
+#include "EnemySpawner.h"
+#include "BulletManager.h"
 #include "CHUD.h"
-
 #include "tweeny.h"
 using tweeny::easing;
-
 
 enum GameState {
     STATE_MENU,
@@ -102,11 +101,13 @@ public:
     float scrollAmount;
 private:
     LevelParams p;
-
+    CEnemySpawner* m_spawner;
+	CBulletManager* m_bulletManager;
     CMainMenu* m_mainMenu;
     CHUD* g_HUD;
     GameState m_gameState;
 	CGrid* m_grid;
+    CGizmo* g_gizmo;
     CTimer m_Timer;
     CSkybox* m_pSkybox; // Pointer allows it to be NULL if level has no sky
     CQuatCamera* m_pCam0;
@@ -118,10 +119,10 @@ private:
     CRigidBody* m_floor;    CRigidBody* m_top;
     CRigidBody* m_wallL;    CRigidBody* m_wallR;
 	ID3DXMesh* m_roundedBoxMesh;
+
     std::vector<CRigidBody*> m_sceneObjects;
     std::vector<CFlyingEnemy*> m_enemies;
     CRigidBody* g_selected;
-    CGizmo* g_gizmo;
     // powerups
     std::vector<CArkiPowerup*> m_powerups;
     std::vector<bool> m_dropDeck;

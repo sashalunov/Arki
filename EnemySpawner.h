@@ -1,34 +1,35 @@
 #pragma once
+#include "CBullet.h"
+#include "CFlyingEnemy.h"
+#include "CEnemyBullet.h"
 #include <btBulletDynamicsCommon.h>
-#include "CFlyingEnemy.h" // Your existing enemy class
-
-enum EFormationType 
+#include "stdafx.h"
+enum EFormationType
 {
     FORM_GRID,      // Standard block
     FORM_V_SHAPE,   // Flying V
     FORM_CIRCLE,    // Ring
     FORM_DUAL_LINE  // Two vertical lines
 };
-
 // Simple struct to define a specific wave
-struct WaveDef 
-{
+struct WaveDef {
     int enemyCount;
     EFormationType formation;
     EEnemyState movementStrategy; // Attack, ZigZag, etc. (From previous step)
     float difficultySpeed;
 };
 
-class EnemySpawner
+class CEnemySpawner
 {
 private:
     btDiscreteDynamicsWorld* m_pWorld;
+    CBulletManager* m_pBulletMan; 
     CXMesh* m_pEnemyMesh; // The visual for the enemy
-    CXMesh* m_pBulletMesh; // The visual for bullets
+    // CXMesh* m_pBulletMesh; // The visual for bullets
 
-    // Lists
+     // Lists
     std::vector<CFlyingEnemy*> m_enemies;
-    //std::vector<CEnemyProjectile*> m_bullets; // Bullets live here now
+    std::vector<CBullet*> m_bullets; // Bullets live here now
 
     // Wave Logic
     int m_currentWaveIndex;
@@ -40,10 +41,10 @@ private:
     std::vector<WaveDef> m_waves;
 
 public:
-    EnemySpawner(btDiscreteDynamicsWorld* world, CXMesh* enemyMesh, CXMesh* bulletMesh);
-    ~EnemySpawner();
+    CEnemySpawner(btDiscreteDynamicsWorld* world, CBulletManager* manager, CXMesh* enemyMesh);
+    ~CEnemySpawner();
 
-    void Update(float dt, D3DXVECTOR3 playerPos);
+    void Update(double deltaTime, D3DXVECTOR3 playerPos);
     void Render(IDirect3DDevice9* device);
 
     // The Core Algorithms
@@ -52,5 +53,5 @@ public:
 
     // Getters for collision detection in main game
     std::vector<CFlyingEnemy*>& GetEnemies() { return m_enemies; }
-    //std::vector<CEnemyProjectile*>& GetBullets() { return m_bullets; }
+    std::vector<CBullet*>& GetBullets() { return m_bullets; }
 };

@@ -9,33 +9,36 @@
 class CSpriteFont;
 
 // Collision Categories (Bitmasks)
-enum CollisionGroup {
+enum ECollisionGroup {
     COL_NOTHING = 0,
     COL_WALL = 1 << 0, // 1
     COL_BALL = 1 << 1, // 2
     COL_PADDLE = 1 << 2, // 4
     COL_BLOCK = 1 << 3, // 8
     COL_POWERUP = 1 << 4, // 16
-    COL_BULLET = 1 << 5  // 32
+    COL_BULLET = 1 << 5,  // 32
+	COL_ENEMY = 1 << 6  // 64
 };
 
-enum EntityType { 
+enum EEntityType { 
     TYPE_BALL, 
     TYPE_BLOCK, 
     TYPE_PLAYER, 
     TYPE_WALL, 
-    TYPE_BULLET,
+    TYPE_PLAYER_BULLET,
+	TYPE_ENEMY_BULLET,
+	TYPE_ENEMY,
     TYPE_POWERUP,
     TYPE_BOMB,
 	TYPE_UNKNOWN
 };
 struct PhysicsData
 {
-    EntityType type;
+    EEntityType type;
     void* pObject; // Pointer to the actual class (Ball*, Block*, etc.)
 };
 
-enum BlockType {
+enum EBlockType {
     BLOCK_STONE,
     BLOCK_METAL,
 	BLOCK_UNDESTRUCTIBLE

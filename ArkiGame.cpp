@@ -44,6 +44,12 @@ ArkiGame::ArkiGame()
 
     g_selected = NULL;
     g_gizmo = NULL;
+
+    m_bulletManager = NULL;
+	m_spawner = NULL;
+
+    mouseDeltaX = 0;
+	mouseDeltaY = 0;
 }
 
 // ------------------------------------------------------------------------------------
@@ -112,7 +118,6 @@ bool ArkiGame::Init()
         dwShaderFlags |= D3DXSHADER_FORCE_PS_SOFTWARE_NOOPT;
     #endif
 
-
 	m_grid->Create(d3d9->GetDevice(), 100.0f, 1.0f);
     g_gizmo = new CGizmo(d3d9->GetDevice());
 
@@ -132,7 +137,6 @@ bool ArkiGame::Init()
 	eb = new BoidEmitter(2048);
 	es = new SphereEmitter(btVector3(0.0f, 15.0f, 0.0f), 5.0f, 330.0f);
 	es->SetSurfaceOnly(true);
-    SetRenderStateDefaults();
 
     // Create 3 segments (A, B, C)
     float segmentHeight = 25.0f;
@@ -163,7 +167,10 @@ bool ArkiGame::Init()
 	g_HUD = new CHUD();
     g_HUD->Init(d3d9->GetDevice(),m_font, 1280, 720);
 
+    m_bulletManager = new CBulletManager(g_dynamicsWorld);
+	m_spawner = new CEnemySpawner(g_dynamicsWorld, m_bulletManager, m_pTeapotMesh);
 
+    SetRenderStateDefaults();
 
     _log(L"Initializing Done\n");
 
@@ -321,13 +328,15 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     if (eb) eb->Update((float)fixedDeltaTime);
     if (es) es->Update((float)fixedDeltaTime);
 
-    //if (m_ball && isBallActive)m_ball->UpdateLogic();
+	if(m_bulletManager)m_bulletManager->Update(fixedDeltaTime);
 	if (m_player) m_player->Update((float)fixedDeltaTime, m_inputLeft, m_inputRight);
 	if (m_currentLevel) m_currentLevel->Update();
     // Update Enemies
     for (auto e : m_enemies) {
         e->Update(fixedDeltaTime);
     }
+
+	if (m_spawner)m_spawner->Update(fixedDeltaTime, m_player->GetPosition());
 
     CheckCollisions(g_dynamicsWorld);
 
@@ -389,6 +398,8 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
 void ArkiGame::Shutdown()
 {
 	SAFE_DELETE(g_HUD);
+    SAFE_DELETE(m_spawner);
+	SAFE_DELETE(m_bulletManager);
 
 	for (auto& ftext : m_ftext)
     {
@@ -676,6 +687,9 @@ void ArkiGame::RenderGUI()
     // Random Seeds are usually big integers, so DragInt is best
     ImGui::DragInt("Seed", &m_currentLevel->m_currentParams.seed);
    
+    if (ImGui::Button("Clean level")) {
+		m_currentLevel->ClearLevel();
+    }
     if (ImGui::Button("Save ...")) {
         //emmiter1->SaveConfig("config.json");
         //eb->Spawn(512, D3DXVECTOR3(0, 0, 0),10, 60.0f);
@@ -929,8 +943,10 @@ void ArkiGame::Render(double dt)
             //m_pBodyMesh->Render(m_pSkybox->GetTexture(), m_pSkybox->GetRotationY());
 
            // m_ball->Render(d3d9->GetDevice(), m_pSkybox->GetTexture(), m_pCam0->GetViewMatrix(), m_pSkybox->GetRotationY());
+            m_bulletManager->Render(d3d9->GetDevice());
             m_currentLevel->Render(d3d9->GetDevice(), m_font, NULL, m_pSkybox->GetRotationX());
             m_player->Render(m_pSkybox, m_pCam0->GetViewMatrix());
+            m_spawner->Render(d3d9->GetDevice());
 
             for (auto e : m_enemies) {
 				e->Render(d3d9->GetDevice());
@@ -1176,7 +1192,7 @@ void ArkiGame::ProcessGameInput(double dt)
         // This will sound like it's coming from the RIGHT speaker
         xau->Play3D("shoot1", firePos );
 
-        m_enemies.push_back(new CFlyingEnemy(g_dynamicsWorld, D3DXVECTOR3(-5, 15, 0), m_pTeapotMesh));
+        //m_enemies.push_back(new CFlyingEnemy(g_dynamicsWorld, D3DXVECTOR3(5, 15, 0), m_pTeapotMesh));
 		//CArkiBomb* newBomb;
        // newBomb = new CArkiBomb(g_dynamicsWorld, D3DXVECTOR3((FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), (FLOAT)trans.getOrigin().getZ()), m_pCam0);
        // m_sceneObjects.push_back(newBomb);
@@ -1242,8 +1258,8 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
         if (dataA->type == TYPE_PLAYER) playerData = dataA;
         if (dataB->type == TYPE_PLAYER) playerData = dataB;
          
-        if (dataA->type == TYPE_BULLET) bulletData = dataA;
-        if (dataB->type == TYPE_BULLET) bulletData = dataB;
+        if (dataA->type == TYPE_PLAYER_BULLET) bulletData = dataA;
+        if (dataB->type == TYPE_PLAYER_BULLET) bulletData = dataB;
 
         if (dataA->type == TYPE_POWERUP) powerupData = dataA;
         if (dataB->type == TYPE_POWERUP) powerupData = dataB;

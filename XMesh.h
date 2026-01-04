@@ -5,18 +5,21 @@
 class CXMesh
 {
 public:
-	CXMesh(void);
+	CXMesh();
 	CXMesh(LPDIRECT3DDEVICE9 dev, TCHAR* pszFileName);
-	~CXMesh(void);
+	~CXMesh();
 
-	void Render(void);
+	void Render();
 	void Render(IDirect3DCubeTexture9* pReflectionTexture, float rotationAngle);
 
-	void Update(void);
+	void Update();
 	HRESULT Load(TCHAR *pszFileName);
 
+	void SetPos(D3DXVECTOR3 v) { m_vPos = v; }
 	void SetPos(float x, float y, float z){m_vPos = D3DXVECTOR3(x, y, z);}
 	void SetPos(const btVector3 &v){m_vPos = D3DXVECTOR3((FLOAT)v[0], (FLOAT)v[1], (FLOAT)v[2]);}
+	void SetRotation(D3DXVECTOR3 rot) { m_vRot = rot; }
+	void SetRotation(float x, float y, float z) { m_vRot = D3DXVECTOR3(x, y, z); }
 	void SetScale(float x, float y, float z){m_vScale = D3DXVECTOR3(x, y, z);}
 	
 	D3DXMATRIX GetWorld(){return m_matWorld;}
@@ -26,7 +29,7 @@ private:
 	LPDIRECT3DDEVICE9	m_pDev;
     LPD3DXMESH			m_pSysMemMesh;
     LPD3DXMESH			m_pLocalMesh;
-
+	D3DMATERIAL9  m_mat;
 	D3DXMATRIX		m_matWorld;
 	D3DXMATRIX		m_matTranslation;
 	D3DXMATRIX		m_matRotation;

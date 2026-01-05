@@ -10,7 +10,11 @@ enum EEnemyState {
     STATE_ATTACK,
     STATE_RETREAT
 };
-
+enum EShootPattern {
+    SHOOT_SINGLE,
+    SHOOT_BURST,
+    SHOOT_SPREAD
+};
 class CFlyingEnemy
 {
 public:
@@ -26,6 +30,7 @@ public:
 	D3DXVECTOR3 m_targetPos;    // Target position (for aiming)
 
     // Combat
+	EShootPattern m_shootPattern;
     float m_shootTimer;
     int   m_burstCounter;  // For burst fire
     float m_burstTimer;   // Time between shots in a burst
@@ -43,7 +48,8 @@ public:
     CFlyingEnemy(btDiscreteDynamicsWorld* world, CBulletManager* manager, D3DXVECTOR3 pos, CXMesh* mesh);
     ~CFlyingEnemy();
 
-    void Update(double dt);
+    void Update(double deltaTime);
+    void UpdateShooting_Simple(double deltaTime, D3DXVECTOR3 playerPos);
     void Render(IDirect3DDevice9* dev);
 
     // Helper to switch states

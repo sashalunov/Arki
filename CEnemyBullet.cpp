@@ -18,16 +18,16 @@ CEnemyBullet::CEnemyBullet(btDiscreteDynamicsWorld* world, D3DXVECTOR3 startPos,
 	m_lastOffset = btVector3(0, 0, 0);
 
     // 2. Calculate Initial Direction
-    btVector3 dir = target - start;
-    if (dir.length() > 0) dir.normalize();
-    else dir = btVector3(0, -1, 0); // Fail-safe: shoot down
+    //btVector3 dir = target - start;
+    //if (dir.length() > 0) dir.normalize();
+    btVector3 dir = btVector3(0, -1, 0); // Fail-safe: shoot down
 
     // 3. Setup Speed based on Type
     switch (m_type) {
     case PROJ_ACCELERATING: m_speed = 5.0f;  break; // Start Slow
-    case PROJ_HOMING:       m_speed = 12.0f; break; // Moderate
+    case PROJ_HOMING:       m_speed = 15.0f; break; // Moderate
     case PROJ_WOBBLE:       m_speed = 10.0f; break;
-    default:                m_speed = 18.0f; break; // Linear is fast
+    default:                m_speed = 20.0f; break; // Linear is fast
     }
 
     m_velocity = dir * m_speed;
@@ -161,8 +161,11 @@ void CEnemyBullet::Render(IDirect3DDevice9* device)
     btTransform trans = m_pBody->getWorldTransform();
     btVector3 pos = trans.getOrigin();
 
-	D3DXMATRIXA16 matTrans;
+	D3DXMATRIXA16 matTrans, matScale;
+	// Scale down the sphere mesh to be bullet sized
+	D3DXMatrixScaling(&matScale, 0.4f, 0.4f, 0.4f);
     D3DXMatrixTranslation(&matTrans, (FLOAT)pos.getX(), (FLOAT)pos.getY(), (FLOAT)pos.getZ());
+	matTrans = matScale * matTrans;
 	device->SetTransform(D3DTS_WORLD, &matTrans);
 
     //m_pMesh->SetPosition(D3DXVECTOR3(pos.x(), pos.y(), pos.z()));
@@ -180,6 +183,13 @@ void CEnemyBullet::Render(IDirect3DDevice9* device)
 
     // Apply rotation (Roll/Pitch/Yaw)
     //m_pMesh->SetRotation(D3DXVECTOR3(0, 0, angleZ));
+    //D3DXA
+	//D3DXComputeNormals(CRigidBody::s_pRigidBodySphereMesh, NULL);
+    D3DMATERIAL9 mat;
+	InitMaterialS(mat, 1.0f, 1.0f, 1.0f, 1.0f, 64.0f); // Red Bullet
+	mat.Emissive = D3DXCOLOR(1.0f, 1.0f, 0.0f, 1.0f); // Slight glow
+	device->SetMaterial(&mat);
+	device->SetTexture(0, NULL);
 	CRigidBody::s_pRigidBodySphereMesh->DrawSubset(0);
     //m_pMesh->Render();
 }

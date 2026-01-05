@@ -196,6 +196,7 @@ void ArkiGame::SetRenderStateDefaults()
     d3d9->GetDevice()->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(32, 32, 64));
     d3d9->GetDevice()->SetRenderState(D3DRS_LIGHTING, TRUE);
     d3d9->GetDevice()->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
+    d3d9->GetDevice()->SetRenderState(D3DRS_NORMALIZENORMALS, TRUE);
 }
 // ------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------
@@ -1245,12 +1246,16 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
         PhysicsData* ballData = nullptr;
         PhysicsData* blockData = nullptr;
         PhysicsData* playerData = nullptr;
-        PhysicsData* bulletData = nullptr;
+        PhysicsData* playerBulletData = nullptr;
+        PhysicsData* enemyBulletData = nullptr;
+        PhysicsData* wallData = nullptr;
         PhysicsData* powerupData = nullptr;
-
 
         if (dataA->type == TYPE_BALL) ballData = dataA;
         if (dataB->type == TYPE_BALL) ballData = dataB;
+
+        if (dataA->type == TYPE_WALL) wallData = dataA;
+        if (dataB->type == TYPE_WALL) wallData = dataB;
 
         if (dataA->type == TYPE_BLOCK) blockData = dataA;
         if (dataB->type == TYPE_BLOCK) blockData = dataB;
@@ -1258,8 +1263,11 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
         if (dataA->type == TYPE_PLAYER) playerData = dataA;
         if (dataB->type == TYPE_PLAYER) playerData = dataB;
          
-        if (dataA->type == TYPE_PLAYER_BULLET) bulletData = dataA;
-        if (dataB->type == TYPE_PLAYER_BULLET) bulletData = dataB;
+        if (dataA->type == TYPE_PLAYER_BULLET) playerBulletData = dataA;
+        if (dataB->type == TYPE_PLAYER_BULLET) playerBulletData = dataB;
+
+        if (dataA->type == TYPE_ENEMY_BULLET) enemyBulletData = dataA;
+        if (dataB->type == TYPE_ENEMY_BULLET) enemyBulletData = dataB;
 
         if (dataA->type == TYPE_POWERUP) powerupData = dataA;
         if (dataB->type == TYPE_POWERUP) powerupData = dataB;
@@ -1321,10 +1329,10 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
 
             }
         }
-        if (bulletData && blockData)
+        if (playerBulletData && blockData)
         {
             CArkiBlock* pBlock = (CArkiBlock*)blockData->pObject;
-            CArkiBullet* pBullet = (CArkiBullet*)bulletData->pObject;
+            CArkiBullet* pBullet = (CArkiBullet*)playerBulletData->pObject;
 
 
             if (!pBlock->m_isDestroyed && !pBlock->m_pendingDestruction)
@@ -1374,6 +1382,62 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
             }
           
         }
+        if (enemyBulletData && wallData)
+        {
+            CEnemyBullet* pBullet = (CEnemyBullet*)enemyBulletData->pObject;
+            if (!pBullet->m_markForDelete)
+            {
+                pBullet->m_markForDelete = true; // Destroy Bullet
+            }
+        }
+        if (enemyBulletData && blockData)
+        {
+            CArkiBlock* pBlock = (CArkiBlock*)blockData->pObject;
+            CEnemyBullet* pBullet = (CEnemyBullet*)enemyBulletData->pObject;
+
+            if (!pBlock->m_isDestroyed && !pBlock->m_pendingDestruction)
+            {
+                pBlock->m_pendingDestruction = true;
+                // Play Sound here...
+                // Add Score here...
+            }
+            if (!pBullet->m_markForDelete)
+            {
+                pBullet->m_markForDelete = true; // Destroy Bullet
+            }
+
+            // 20% Chance to spawn powerup
+            //if (rand() % 100 < 20)
+            if (PullFromDeck())
+            {
+                // Get Block Position
+                btTransform trans = ((CArkiBlock*)dataB->pObject)->m_pBody->getWorldTransform();
+
+                // Random Type
+                //PowerupType type = (PowerupType)(rand() % 5); // Assuming you have 3 types defined
+                PowerupType type = PickWeightedType();
+                CArkiPowerup* newPowerup;
+                //CArkiBomb* newBomb;
+                switch (type)
+                {
+                case PU_HEALTH:
+                case PU_FLOOR:
+                case PU_GUN:
+                case PU_SPEED:
+                case PU_BALL:
+                case PU_MISSILE:
+                case PU_LASER:
+                    newPowerup = new CArkiPowerup(g_dynamicsWorld, trans.getOrigin(), type);
+                    m_powerups.push_back(newPowerup);
+                    break;
+                case PU_BOMB:
+                    //newBomb = new CArkiBomb(g_dynamicsWorld, D3DXVECTOR3((FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), (FLOAT)trans.getOrigin().getZ()), m_pCam0);
+                    //m_sceneObjects.push_back(newBomb);
+                    break;
+                }
+            }
+        }
+
 		if (powerupData && playerData)
         {
             CArkiPowerup* pPowerup = (CArkiPowerup*)powerupData->pObject;
@@ -1396,9 +1460,9 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
                     case PU_BALL:
 						m_player->AddBall();
                         break;
-                    //case POWERUP_SPEED_BOOST:
-                    //    pPlayer->ActivateSpeedBoost(10.0f); // 10 seconds
-                    //    break;
+                    case PU_HEALTH:
+						m_player->Heal(20); // Heal 20 health
+                        break;
                     //case POWERUP_SHIELD:
                     //    pPlayer->ActivateShield(10.0f); // 10 seconds
                     //    break;
@@ -1411,7 +1475,6 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
                 }
             }
         }
-
         // --- SCENARIO 2: Ball hit Player (The "English" Effect) ---
         if (ballData && playerData)
         {

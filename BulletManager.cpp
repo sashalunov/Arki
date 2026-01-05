@@ -53,6 +53,9 @@ void CBulletManager::SpawnEnemyBullet(D3DXVECTOR3 start, D3DXVECTOR3* target, EP
         m_enemyPool.pop_back();
 
         // Reactivate Physics
+        int myGroup = COL_BULLET;
+        int myMask = COL_BLOCK | COL_WALL | COL_ENEMY | COL_PADDLE;
+
         m_pWorld->addRigidBody(bullet->m_pBody);
 
         // Reset State (CRITICAL in pooling)

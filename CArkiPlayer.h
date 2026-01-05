@@ -226,5 +226,6 @@ public:
 	}
 
     void TakeDamage(float damage);
+	void Heal(float amount);
 
 };

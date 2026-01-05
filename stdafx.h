@@ -25,7 +25,7 @@
 #include <commdlg.h> // Required for GetOpenFileName
 #include <map>
 #include <string>
-
+#include <random>    // The modern random library
 // TODO: reference additional headers your program requires here
 // --------------------------------------------------------------------------------
 #include <d3d9.h>
@@ -40,11 +40,12 @@
 #include <fstream> // Required for file I/O
 #include <xaudio2.h>
 #include <x3daudio.h>
+
+#include <btBulletDynamicsCommon.h>
+
 #include "resource.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
-
-
 
 // --------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------
@@ -99,3 +100,28 @@ inline float RandomFloatInRange(float min, float max)
 {
 	return min + (max - min) * ((float)rand() / RAND_MAX);
 }
+
+// Helper: Convert Bullet Physics Transform to DirectX 9 Matrix
+inline D3DXMATRIXA16 ConvertBulletTransform(const btTransform& trans)
+{
+	D3DXMATRIXA16 matWorld;
+	D3DXMatrixIdentity(&matWorld);
+
+	// 1. Extract Rotation Basis and Origin (Position)
+	btMatrix3x3 rot = trans.getBasis();
+	btVector3 pos = trans.getOrigin();
+
+	// 2. Copy Rotation (Row-Major mapping)
+	matWorld._11 = (float)rot[0][0]; matWorld._12 = (float)rot[0][1]; matWorld._13 = (float)rot[0][2];
+	matWorld._21 = (float)rot[1][0]; matWorld._22 = (float)rot[1][1]; matWorld._23 = (float)rot[1][2];
+	matWorld._31 = (float)rot[2][0]; matWorld._32 = (float)rot[2][1]; matWorld._33 = (float)rot[2][2];
+
+	// 3. Copy Translation (Bottom row in DX9)
+	matWorld._41 = (float)pos.getX();
+	matWorld._42 = (float)pos.getY();
+	matWorld._43 = (float)pos.getZ();
+
+	return matWorld;
+}
+
+

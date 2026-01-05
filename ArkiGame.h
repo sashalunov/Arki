@@ -1,6 +1,4 @@
 #pragma once
-#include <btBulletDynamicsCommon.h>
-#include <random>    // The modern random library
 #include "CBulletDebugDrawer.h"
 #include "Logger.h"
 #include "D3DRender.h"

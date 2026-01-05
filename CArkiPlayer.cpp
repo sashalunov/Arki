@@ -71,3 +71,13 @@ void CArkiPlayer::TakeDamage(float damage)
         // Or trigger a "Game Over" event here
     }
 }
+
+void CArkiPlayer::Heal(float amount)
+{
+    if (m_isDead) return; // Can't heal if dead
+    m_health += amount;
+    if (m_health > m_maxHealth)
+        m_health = m_maxHealth;
+    // Optional: Play healing sound or visual effect
+    // PlayAudioFromMemory(GenerateHealingSound());
+}

@@ -14,18 +14,16 @@ CEnemySpawner::CEnemySpawner(btDiscreteDynamicsWorld* world, CBulletManager* man
     // Wave 1: 5 Enemies in a Grid, simple Sine movement
     //m_waves.push_back({ 5, FORM_GRID, STATE_ATTACK, 1.0f });
     // Wave 2: 7 Enemies in V-Shape, ZigZag movement
-   // m_waves.push_back({ 7, FORM_V_SHAPE, STATE_ATTACK, 1.2f }); // STATE_ATTACK maps to ZigZag if randomized
+    m_waves.push_back({ 5, FORM_V_SHAPE, STATE_ATTACK, 1.0f }); // STATE_ATTACK maps to ZigZag if randomized
     // Wave 3: 8 Enemies in a Circle, Spiral movement
-    m_waves.push_back({ 8, FORM_CIRCLE, STATE_RETREAT, 1.5f });
+    //m_waves.push_back({ 8, FORM_CIRCLE, STATE_RETREAT, 1.5f });
 }
 
 CEnemySpawner::~CEnemySpawner() 
 {
     // Cleanup Logic (Delete all pointers)
     for (auto e : m_enemies) delete e;
-    for (auto b : m_bullets) delete b;
     m_enemies.clear();
-    m_bullets.clear();
 }
 
 // -------------------------------------------------------------
@@ -101,27 +99,26 @@ void CEnemySpawner::StartNextWave()
     {
         // Create the enemy
         CFlyingEnemy* newEnemy = new CFlyingEnemy(m_pWorld, m_pBulletMan, pos, m_pEnemyMesh);
-
         // Setup their specific behavior for this wave
         // (Assuming you added a SetDifficulty or similar method to CFlyingEnemy)
         // newEnemy->SetSpeed(wave.difficultySpeed); 
-
         m_enemies.push_back(newEnemy);
     }
-
     m_isWaveActive = true;
 }
 
 void CEnemySpawner::Update(double dt, D3DXVECTOR3 playerPos)
 {
     // --- 1. WAVE MANAGEMENT ---
-    if (m_enemies.empty() && m_isWaveActive) {
+    if (m_enemies.empty() && m_isWaveActive) 
+    {
         // Wave Defeated! Start Cooldown
         m_isWaveActive = false;
         m_waveTimer = m_timeBetweenWaves;
     }
 
-    if (!m_isWaveActive) {
+    if (!m_isWaveActive) 
+    {
         m_waveTimer -= (FLOAT)dt;
         if (m_waveTimer <= 0.0f) {
             StartNextWave();
@@ -133,29 +130,16 @@ void CEnemySpawner::Update(double dt, D3DXVECTOR3 playerPos)
     for (int i = 0; i < m_enemies.size(); i++)
     {
         CFlyingEnemy* e = m_enemies[i];
-
         // Pass player pos for aiming
         // Update logic (Movement, Shooting)
         // Note: You might need to refactor CFlyingEnemy::Update to accept playerPos 
         // if you want them to track the player every frame.
         e->Update(dt);
 
-        if (e->m_isDead) {
+        if (e->m_isDead) 
+        {
             delete e; // Physics cleanup handles itself in destructor
             m_enemies.erase(m_enemies.begin() + i);
-            i--;
-        }
-    }
-
-    // --- 3. UPDATE BULLETS ---
-    for (int i = 0; i < m_bullets.size(); i++)
-    {
-        CBullet* b = m_bullets[i];
-        b->Update(dt);
-        if (b->m_markForDelete) 
-        {
-            delete b;
-            m_bullets.erase(m_bullets.begin() + i);
             i--;
         }
     }
@@ -164,5 +148,4 @@ void CEnemySpawner::Update(double dt, D3DXVECTOR3 playerPos)
 void CEnemySpawner::Render(IDirect3DDevice9* device)
 {
     for (auto e : m_enemies) e->Render(device);
-    for (auto b : m_bullets) b->Render(device);
 }

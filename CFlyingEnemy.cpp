@@ -12,8 +12,14 @@ CFlyingEnemy::CFlyingEnemy(btDiscreteDynamicsWorld* world, CBulletManager* manag
     m_pMesh = mesh;
     m_startPos = pos;
     m_currentPos = pos;
+	m_targetPos = D3DXVECTOR3(0, 0, 0); // Default target
     m_isDead = false;
     m_pBulletMan = manager;
+
+    m_shootTimer = 2.0f + (rand() % 100) / 100.0f;
+	m_burstCounter = 0;
+	m_burstTimer = 5.0f;
+	m_shootPattern = SHOOT_SINGLE;
 
     // Physics Setup (Kinematic)
     //btCollisionShape* shape = new btBoxShape(btVector3(1.0f, 0.5f, 0.5f));
@@ -69,6 +75,35 @@ void CFlyingEnemy::Update(double dt)
         else if (m_currentState == STATE_RETREAT) {
             ChangeState(STATE_ATTACK);
         }
+    }
+
+    switch (m_shootPattern) 
+    {
+    case SHOOT_SINGLE: 
+        UpdateShooting_Simple(dt, m_targetPos);
+       break;
+    case SHOOT_BURST:  
+        //UpdateShooting_Burst(dt, playerPos); 
+       break;
+        // Spread is usually triggered by a timer in Simple, just calling a different Shoot function
+    }
+}
+// In CFlyingEnemy::Update(float dt, D3DXVECTOR3 playerPos)
+void CFlyingEnemy::UpdateShooting_Simple(double dt, D3DXVECTOR3 playerPos)
+{
+    m_shootTimer -= (FLOAT)dt;
+    D3DXVECTOR3 spawnPos = m_currentPos;
+    spawnPos.y -= 1.5f;
+
+    if (m_shootTimer <= 0.0f)
+    {
+        // 1. Fire!
+        // We use the Manager we created earlier
+        m_pBulletMan->SpawnEnemyBullet(spawnPos, &playerPos, PROJ_LINEAR);
+
+        // 2. Reset Timer with Randomness
+        // Base time 2.0s + Random 0.0 to 1.0s
+        m_shootTimer = 2.0f + (rand() % 100) / 100.0f;
     }
 }
 

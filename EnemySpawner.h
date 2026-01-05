@@ -1,5 +1,6 @@
 #pragma once
 #include "CBullet.h"
+#include "CArkiPlayer.h"
 #include "CFlyingEnemy.h"
 #include "CEnemyBullet.h"
 #include <btBulletDynamicsCommon.h>
@@ -29,7 +30,6 @@ private:
 
      // Lists
     std::vector<CFlyingEnemy*> m_enemies;
-    std::vector<CBullet*> m_bullets; // Bullets live here now
 
     // Wave Logic
     int m_currentWaveIndex;
@@ -53,5 +53,4 @@ public:
 
     // Getters for collision detection in main game
     std::vector<CFlyingEnemy*>& GetEnemies() { return m_enemies; }
-    std::vector<CBullet*>& GetBullets() { return m_bullets; }
 };

@@ -55,6 +55,7 @@ public:
 
     // Calculates the View Matrix for D3D9
     D3DXMATRIXA16 GetViewMatrix() const;
+	D3DXMATRIXA16 GetProjectionMatrix() const;
 
     // Helper to apply transforms to device
     void Render(IDirect3DDevice9* device, double deltaTime);

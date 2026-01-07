@@ -81,7 +81,7 @@
     <LibraryPath>.\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\debug\lib\x64;..\tools\bullet3-3.25\bin;$(LibraryPath)</LibraryPath>
     <GenerateManifest>true</GenerateManifest>
     <SourcePath>..\tools\bullet3-3.25\src\;$(VC_SourcePath);$(SourcePath)</SourcePath>
-    <IncludePath>..\tools\bullet3-3.25\src;..\tools\imgui-1.92.5;..\tools\imgui-1.92.5\backends;..\tools\json\include;..\tools\tweeny-3.2.1\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\tools\bullet3-3.25\src;..\tools\imgui-1.92.5;..\tools\imgui-1.92.5\backends;..\tools\json\include;..\tools\tweeny-3.2.1\include;..\tools\tinyobjloader-2.0-rc1;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -205,6 +205,7 @@
     <ClInclude Include="CArkiPlayer.h" />
     <ClInclude Include="CArkiBlock.h" />
     <ClInclude Include="CArkiPowerup.h" />
+    <ClInclude Include="CBSPlevel.h" />
     <ClInclude Include="CBullet.h" />
     <ClInclude Include="CBulletDebugDrawer.h" />
     <ClInclude Include="CEnemyBullet.h" />
@@ -254,6 +255,7 @@
     <ClCompile Include="CArkiLevel.cpp" />
     <ClCompile Include="CArkiPlayer.cpp" />
     <ClCompile Include="CArkiBlock.cpp" />
+    <ClCompile Include="CBSPlevel.cpp" />
     <ClCompile Include="CBulletDebugDrawer.cpp" />
     <ClCompile Include="CFlyingEnemy.cpp" />
     <ClCompile Include="CGrid.cpp" />

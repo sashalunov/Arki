@@ -21,6 +21,7 @@
 #include "EnemySpawner.h"
 #include "BulletManager.h"
 #include "CHUD.h"
+#include "CBSPlevel.h"
 #include "tweeny.h"
 using tweeny::easing;
 
@@ -98,6 +99,7 @@ public:
 	bool m_isEditorMode;
     float scrollAmount;
 private:
+	CBSPlevel* m_bspLevel;
     LevelParams p;
     CEnemySpawner* m_spawner;
 	CBulletManager* m_bulletManager;

@@ -143,6 +143,13 @@ D3DXMATRIXA16 COrbitCamera::GetViewMatrix() const
     return view;
 }
 
+D3DXMATRIXA16 COrbitCamera::GetProjectionMatrix() const
+{
+    D3DXMATRIXA16 proj;
+    D3DXMatrixPerspectiveFovRH(&proj, m_fovY, m_aspectRatio, m_zNear, m_zFar);
+    return proj;
+}
+
 void COrbitCamera::Render(IDirect3DDevice9* device, double dt)
 {
     //m_aspectRatio = aspectRatio;

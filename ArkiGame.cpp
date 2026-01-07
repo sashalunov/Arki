@@ -7,6 +7,7 @@
 #include "CXAudio.h"
 #include "CArkiBomb.h"
 #include "CHUD.h"
+
 #include "ArkiGame.h"
 
 // Create a tween from 0 to 100 over 100 steps (or milliseconds)
@@ -50,6 +51,8 @@ ArkiGame::ArkiGame()
 
     mouseDeltaX = 0;
 	mouseDeltaY = 0;
+
+	m_bspLevel = NULL;
 }
 
 // ------------------------------------------------------------------------------------
@@ -169,6 +172,13 @@ bool ArkiGame::Init()
 
     m_bulletManager = new CBulletManager(g_dynamicsWorld);
 	m_spawner = new CEnemySpawner(g_dynamicsWorld, m_bulletManager, m_pTeapotMesh);
+
+	m_bspLevel = new CBSPlevel();
+    if (!m_bspLevel->LoadOBJ(".\\room1.obj"))
+    {
+        _log(L"Failed to load room1 obj!\n");
+        return false;
+	}
 
     SetRenderStateDefaults();
 
@@ -398,6 +408,7 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
 // ------------------------------------------------------------------------------------
 void ArkiGame::Shutdown()
 {
+	SAFE_DELETE(m_bspLevel);
 	SAFE_DELETE(g_HUD);
     SAFE_DELETE(m_spawner);
 	SAFE_DELETE(m_bulletManager);
@@ -788,6 +799,9 @@ void ArkiGame::RenderGUI()
         }
         case STATE_EDITOR:
         {
+            // 1. Check if the level is busy
+            bool isBusy = (m_bspLevel->GetState() == BS_BUILDING_BSP || m_bspLevel->GetState() == BS_CALC_RAD);
+            float progress = 0;
             ImGui::SetNextWindowSize(ImVec2(-1, -1), ImGuiCond_Always);
             ImGui::Begin("Level Editor (Placeholder)");
             ImGui::Text("Editor controls:");
@@ -797,12 +811,30 @@ void ArkiGame::RenderGUI()
 			ImGui::Text("ALT + RMB Zoom in/out");
 			ImGui::Text("ALT + MMB Pan camera");
 			
+            if (ImGui::Button("Build BSP"))
+            {
+				if (m_bspLevel)m_bspLevel->StartBackgroundBuild();
+            }
+            if (isBusy)
+            {
+                progress = m_bspLevel->GetProgress(); // Your atomic float (0.0 to 1.0)
+            }
+            char overlay[32];
+            sprintf_s(overlay, "%.0f%%", progress * 100.0f);
+
+            ImGui::ProgressBar(progress, ImVec2(300.0f, 0.0f), overlay);
+            //if (ImGui::Button("Build Radiosity"))
+            //{
+                //if (m_bspLevel)m_bspLevel->BuildRAD();
+            //}
+
 			ImGui::Spacing();
             if (ImGui::Button("Back")) m_gameState = STATE_MENU;
             ImGui::End();
 
             RenderObjectProperties();
-            break;
+
+             break;
         }
         case STATE_SETTINGS:
         {
@@ -840,7 +872,8 @@ void ArkiGame::RenderEditorScene()
 		    obj->Render(d3d9->GetDevice());
     }
 
-
+    D3DXVECTOR3 camPos = D3DXVECTOR3( (FLOAT)m_pCamEditor->GetPosition().x(),(FLOAT)m_pCamEditor->GetPosition().y(),(FLOAT)m_pCamEditor->GetPosition().z());
+    if (m_bspLevel)m_bspLevel->Render(d3d9->GetDevice(), camPos);
 
 
 
@@ -878,6 +911,7 @@ void ArkiGame::Render(double dt)
         {
 
             RenderEditorScene();
+
         }
         else
         {

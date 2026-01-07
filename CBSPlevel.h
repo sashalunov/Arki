@@ -2,6 +2,7 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <omp.h>
 
 struct SmoothKey
 {
@@ -114,6 +115,38 @@ inline D3DXCOLOR GetRandomColor(int index)
     return D3DXCOLOR(r, g, b, 1.0f);
 }
 
+// Fast "Shadow Ray" Intersection (Möller–Trumbore)
+// Returns TRUE if we hit something strictly within range [0, maxDist]
+inline bool IntersectTriangleShadow(
+    const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float maxDist,
+    const D3DXVECTOR3& v0, const D3DXVECTOR3& v1, const D3DXVECTOR3& v2)
+{
+    const float EPSILON = 0.000001f;
+    D3DXVECTOR3 edge1 = v1 - v0;
+    D3DXVECTOR3 edge2 = v2 - v0;
+    D3DXVECTOR3 pvec;
+    D3DXVec3Cross(&pvec, &dir, &edge2);
+    float det = D3DXVec3Dot(&edge1, &pvec);
+
+    // Double-sided check: if det is close to 0, ray is parallel
+    if (det > -EPSILON && det < EPSILON) return false;
+    float invDet = 1.0f / det;
+
+    D3DXVECTOR3 tvec = orig - v0;
+    float u = D3DXVec3Dot(&tvec, &pvec) * invDet;
+    if (u < 0.0f || u > 1.0f) return false;
+
+    D3DXVECTOR3 qvec;
+    D3DXVec3Cross(&qvec, &tvec, &edge1);
+    float v = D3DXVec3Dot(&dir, &qvec) * invDet;
+    if (v < 0.0f || u + v > 1.0f) return false;
+
+    float t = D3DXVec3Dot(&edge2, &qvec) * invDet;
+
+    // Check strict distance range
+    return (t > EPSILON && t < maxDist);
+}
+
 enum eBuildState
 {
     BS_IDLE,
@@ -129,7 +162,12 @@ enum eSide
     S_COPLANAR,
     S_SPLIT
 };
-
+struct BSPMaterial
+{
+    D3DXCOLOR diffuse;  // Kd
+    D3DXCOLOR emissive; // Ke
+    float     power;    // Optional intensity multiplier
+};
 struct OBJVertex 
 {
     float x, y, z;
@@ -147,6 +185,7 @@ struct OBJVertex
 struct BSPTriangle 
 {
     OBJVertex v[3]; // The 3 corners of the triangle
+    int matIndex;
     // Helper: Compute the plane defined by this triangle
     D3DXPLANE GetPlane() const 
     {
@@ -204,15 +243,17 @@ private:
 
     std::vector<OBJVertex> mObjVertices;
     std::vector<unsigned long> mObjIndices;
-
+    std::vector<BSPMaterial> m_materials; // Stores all loaded materials
     // Fast & Cache Friendly
     std::vector<BSPNode> nodePool;
     std::vector<BSPTriangle> m_triangles; // Store this for BSP building
     std::vector<BSPTriangle> m_subd_triangles;
     std::vector<RADPATCH> m_patches;
+    // Optimization: Precomputed Random Directions
+    std::vector<D3DXVECTOR3> m_randomDirTable;
 
 	BOOL BuildTree(UINT nodeIndex, std::vector<BSPTriangle>& polys);
-    void ExtractTriangles();
+    //void ExtractTriangles();
     eSide ClassifyTriangle(const BSPTriangle& tri, const D3DXPLANE& plane);
     UINT ChooseSplitter(std::vector<BSPTriangle>& polys);
     void Split(const D3DXPLANE& plane, const BSPTriangle& inTri,

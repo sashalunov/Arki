@@ -14,7 +14,7 @@ COrbitCamera::COrbitCamera()
     m_fovY = D3DX_PI / 4.0f;
     m_aspectRatio = 1.0f;
     m_zNear = 0.1f;
-    m_zFar = 1000.0f;
+    m_zFar = 10000.0f;
 }
 
 // ----------------------------------------------------------------------

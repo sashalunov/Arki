@@ -14,7 +14,7 @@
 CBSPlevel::CBSPlevel()
 {
     nodePool.clear();
-	nodePool.reserve(50000);
+	nodePool.reserve(500000);
 	m_pMeshVB = NULL;
     // Initialize Threading Vars
     m_eState = BS_IDLE;
@@ -77,66 +77,109 @@ BOOL CBSPlevel::LoadOBJ(const std::string filename)
 	_log(L"Vertices: %d \n", (int)(attrib.vertices.size() / 3));
 	_log(L"Shapes: %d \n", (int)shapes.size());
 	_log(L"Materials: %d \n", (int)materials.size());
+    // -------------------------------------------------------
+    // 1. CONVERT MATERIALS
+    // -------------------------------------------------------
+    m_materials.clear();
+    for (const auto& mat : materials)
+    {
+        BSPMaterial bspMat;
+        // Diffuse (Kd)
+        bspMat.diffuse = D3DXCOLOR(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2], 1.0f);
+        // Emissive (Ke) - THE KEY PART
+        // We multiply by a scalar (e.g., 5.0f) because raw 1.0 is often too dim for global illumination
+        float intensity = 1.0f;
+        bspMat.emissive = D3DXCOLOR(mat.ambient[0] * intensity, mat.ambient[1] * intensity, mat.ambient[2] * intensity, 1.0f);
+        m_materials.push_back(bspMat);
+    }
+    // Default material (Index 0) if none exist
+    if (m_materials.empty()) {
+        BSPMaterial def;
+        def.diffuse = D3DXCOLOR(0.5f, 0.5f, 0.5f, 1.0f);
+        def.emissive = D3DXCOLOR(0, 0, 0, 0);
+        m_materials.push_back(def);
+    }
 	mObjVertices.clear();
+    m_triangles.clear();
     // Loop over shapes (the file might contain multiple objects)
-    for (const auto& shape : shapes) {
-        // Loop over faces (polygons)
-        for (const auto& index : shape.mesh.indices) {
-            OBJVertex v;
+    for (const auto& shape : shapes) 
+    {
+        size_t index_offset = 0;
+        // Loop over FACES, not just vertices
+        for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++)
+        {
+            int fv = shape.mesh.num_face_vertices[f]; // Should be 3 (triangulated)
 
-            // 1. Position (x, y, z)
-            v.x = attrib.vertices[3 * index.vertex_index + 0] * importScale;
-            v.y = attrib.vertices[3 * index.vertex_index + 1] * importScale;
-            v.z = attrib.vertices[3 * index.vertex_index + 2] * importScale;
-            // 2. Normal (nx, ny, nz) - Check if they exist first!
-            if (index.normal_index >= 0) {
-                v.nx = attrib.normals[3 * index.normal_index + 0];
-                v.ny = attrib.normals[3 * index.normal_index + 1];
-                v.nz = attrib.normals[3 * index.normal_index + 2];
-            }else {
-                v.nx = 0; v.ny = 1; v.nz = 0;
-            }
-            // 3. COLOR (NEW)
-            // Initialize to pure White (0xFFFFFFFF) so texture/lighting works normally.
-            // If you leave this uninitialized (0), your mesh will be black.
-            v.color = 0xFFFFFFFF;
-            // 3. TexCoord (u, v) - Check existence
-            if (index.texcoord_index >= 0) {
-                v.u = attrib.texcoords[2 * index.texcoord_index + 0];
-                // IMPORTANT: DirectX V-coords start at top-left, OBJ is bottom-left.
-                // Usually you need to flip V:
-                v.v = 1.0f - attrib.texcoords[2 * index.texcoord_index + 1];
+            // Get Material ID for this face
+            int matId = -1;
+            if (f < shape.mesh.material_ids.size())
+                matId = shape.mesh.material_ids[f];
+
+            // Handle negative/missing IDs
+            if (matId < 0 || matId >= m_materials.size()) matId = 0;
+
+            BSPTriangle tri;
+            tri.matIndex = matId; // <--- Store it!
+
+            // Loop over the 3 vertices of this face
+            for (size_t v = 0; v < fv; v++)
+            {
+                tinyobj::index_t idx = shape.mesh.indices[index_offset + v];
+
+                OBJVertex vert;
+                // ... [Copy Position, Normal, UV as before] ...
+                vert.x = attrib.vertices[3 * idx.vertex_index + 0];
+                vert.y = attrib.vertices[3 * idx.vertex_index + 1];
+                vert.z = attrib.vertices[3 * idx.vertex_index + 2];
+
+                if (idx.normal_index >= 0) {
+                    vert.nx = attrib.normals[3 * idx.normal_index + 0];
+                    vert.ny = attrib.normals[3 * idx.normal_index + 1];
+                    vert.nz = attrib.normals[3 * idx.normal_index + 2];
+                }
+                else { vert.nx = 0; vert.ny = 1; vert.nz = 0; }
+
+                if (idx.texcoord_index >= 0) {
+                    vert.u = attrib.texcoords[2 * idx.texcoord_index + 0];
+                    vert.v = 1.0f - attrib.texcoords[2 * idx.texcoord_index + 1];
+                }
+                else { vert.u = 0; vert.v = 0; }
+
+                vert.color = 0xFFFFFFFF; // Base white
+
+                // Store in our temporary triangle
+                tri.v[v] = vert;
+
+                // Keep the flat list for legacy render if needed
+                mObjVertices.push_back(vert);
             }
 
-            mObjVertices.push_back(v);
-            mObjIndices.push_back((unsigned long)mObjIndices.size()); // Simple non-indexed unrolling
+            m_triangles.push_back(tri);
+            index_offset += fv;
         }
     }
-
-
-	
 	return TRUE;
 }
 
-void CBSPlevel::ExtractTriangles()
-{
-    m_triangles.clear();
-    int triCount = (int)mObjVertices.size() / 3;
-    m_triangles.reserve(triCount);
-
-    for (int i = 0; i < triCount; i++)
-    {
-        BSPTriangle tri;
-        // Copy 3 vertices at a time
-        tri.v[0] = mObjVertices[i * 3 + 0];
-        tri.v[1] = mObjVertices[i * 3 + 1];
-        tri.v[2] = mObjVertices[i * 3 + 2];
-
-        m_triangles.push_back(tri);
-    }
-    _log(L"Triangles: %d \n", (int)m_triangles.size());
-
-}
+//void CBSPlevel::ExtractTriangles()
+//{
+//    m_triangles.clear();
+//    int triCount = (int)mObjVertices.size() / 3;
+//    m_triangles.reserve(triCount);
+//
+//    for (int i = 0; i < triCount; i++)
+//    {
+//        BSPTriangle tri;
+//        // Copy 3 vertices at a time
+//        tri.v[0] = mObjVertices[i * 3 + 0];
+//        tri.v[1] = mObjVertices[i * 3 + 1];
+//        tri.v[2] = mObjVertices[i * 3 + 2];
+//
+//        m_triangles.push_back(tri);
+//    }
+//    _log(L"Triangles: %d \n", (int)m_triangles.size());
+//
+//}
 
 void CBSPlevel::SubdivideGeometry()
 {
@@ -167,19 +210,19 @@ void CBSPlevel::SubdivideGeometry()
 
             // Push 4 new triangles (Triangle 1, 2, 3, 4)
             // 1. Top
-            BSPTriangle t1; t1.v[0] = tri.v[0]; t1.v[1] = m01; t1.v[2] = m20;
+            BSPTriangle t1; t1.v[0] = tri.v[0]; t1.v[1] = m01; t1.v[2] = m20; t1.matIndex = tri.matIndex;
             m_subd_triangles.push_back(t1);
 
             // 2. Left
-            BSPTriangle t2; t2.v[0] = m01; t2.v[1] = tri.v[1]; t2.v[2] = m12;
+            BSPTriangle t2; t2.v[0] = m01; t2.v[1] = tri.v[1]; t2.v[2] = m12; t2.matIndex = tri.matIndex;
             m_subd_triangles.push_back(t2);
 
             // 3. Right
-            BSPTriangle t3; t3.v[0] = m20; t3.v[1] = m12; t3.v[2] = tri.v[2];
+            BSPTriangle t3; t3.v[0] = m20; t3.v[1] = m12; t3.v[2] = tri.v[2]; t3.matIndex = tri.matIndex;
             m_subd_triangles.push_back(t3);
 
             // 4. Center
-            BSPTriangle t4; t4.v[0] = m01; t4.v[1] = m12; t4.v[2] = m20;
+            BSPTriangle t4; t4.v[0] = m01; t4.v[1] = m12; t4.v[2] = m20; t4.matIndex = tri.matIndex;
             m_subd_triangles.push_back(t4);
 
             splitCount++;
@@ -370,6 +413,22 @@ void CBSPlevel::RenderBSP(IDirect3DDevice9* device, int nodeIndex, const D3DXVEC
 void CBSPlevel::RenderNodeGeometry(IDirect3DDevice9* device, const BSPNode& node)
 {
     if (node.members.empty()) return;
+
+    // 1. Create a temporary buffer for PURE vertex data
+    // Static vector prevents re-allocating memory every single frame (Optimization)
+    static std::vector<OBJVertex> renderBuffer;
+    renderBuffer.clear();
+    renderBuffer.reserve(node.members.size() * 3);
+
+    // 2. Extract only the vertices, skipping the 'matIndex' integer
+    for (const auto& tri : node.members)
+    {
+        renderBuffer.push_back(tri.v[0]);
+        renderBuffer.push_back(tri.v[1]);
+        renderBuffer.push_back(tri.v[2]);
+    }
+
+
     // Because 'BSPTriangle' is just 3 'OBJVertex' structs back-to-back,
     // the memory layout is identical to a standard Vertex Buffer.
     // We can cast the pointer directly.
@@ -377,7 +436,7 @@ void CBSPlevel::RenderNodeGeometry(IDirect3DDevice9* device, const BSPNode& node
     // DrawPrimitiveUP is slow for final games, but perfect for this stage.
     device->DrawPrimitiveUP(D3DPT_TRIANGLELIST,
         (UINT)node.members.size(),        // Primitive Count (Triangles)
-        node.members.data(),        // Pointer to vertex data
+        renderBuffer.data(),        // Pointer to vertex data
         sizeof(OBJVertex));         // Stride
 }
 
@@ -633,7 +692,7 @@ BOOL CBSPlevel::BuildTree(UINT nodeIndex, std::vector<BSPTriangle>& polys)
 
 void CBSPlevel::BuildBSP()
 {
-    ExtractTriangles();
+    //ExtractTriangles();
     _log(L"Building BSP Tree...\n");
 
 	SubdivideGeometry();
@@ -644,7 +703,7 @@ void CBSPlevel::BuildBSP()
 	// Further BSP construction logic would go here...
 
     nodePool.clear();
-    nodePool.reserve(50000);
+    nodePool.reserve(500000);
 
     // Create Root Node
     int rootIndex = AllocateNode();
@@ -686,7 +745,7 @@ float CBSPlevel::CalculateFormFactor(const RADPATCH& src, const RADPATCH& dest)
     // 1. Vector Setup
     D3DXVECTOR3 vec = dest.center - src.center;
     float distSq = D3DXVec3LengthSq(&vec);
-    //if (distSq > 50000.0f) return 0.0f;
+    //if (distSq > 10000.0f) return 0.0f;
 
     float dist = sqrtf(distSq);
     // Safety: Don't calculate if patches are on top of each other
@@ -712,7 +771,7 @@ float CBSPlevel::CalculateFormFactor(const RADPATCH& src, const RADPATCH& dest)
     // Formula: (cos1 * cos2 * Area) / (PI * r^2)
     float potentialFactor = (cosSrc * cosDest * dest.area) / (D3DX_PI * distSq + dest.area);
     // If the energy transfer is tiny, don't waste time checking walls
-    if (potentialFactor < 0.0001f) return 0.0f;
+    if (potentialFactor < 0.00001f) return 0.0f;
     // A. Start slightly off the Source surface (0.05 units) to avoid hitting itself.
     D3DXVECTOR3 startPos = src.center + (src.normal * 0.05f);
 
@@ -728,16 +787,6 @@ float CBSPlevel::CalculateFormFactor(const RADPATCH& src, const RADPATCH& dest)
             return 0.0f;
         }
     }
-
-    // 4. Calculate Form Factor Value
-    // Formula: (cosTheta1 * cosTheta2 * Area_Receiver) / (PI * r^2)
-    // We add dest.area to the denominator to prevent "explosion" (infinity) when dist is very small.
-    //float factor = (cosSrc * cosDest * dest.area) / (D3DX_PI * distSq + dest.area);
-
-    // Safety clamp
-    //if (factor > 1.0f) factor = 1.0f;
-
-    //return factor;
     // Safety clamp
     if (potentialFactor > 1.0f) potentialFactor = 1.0f;
 
@@ -768,6 +817,26 @@ void CBSPlevel::PrepareRadiosity()
     m_patches.clear();
     // Reserve estimate: Assuming roughly 1 patch per triangle in the pool
     m_patches.reserve(nodePool.size() * 4);
+
+    // 1. PRE-CALCULATE RANDOM VECTORS (Optimization)
+    m_randomDirTable.clear();
+    m_randomDirTable.reserve(4096);
+
+    for (int i = 0; i < 4096; i++)
+    {
+        D3DXVECTOR3 v;
+        // Generate uniform points on sphere correctly
+        do {
+            // Random float -1.0 to 1.0
+            float x = ((rand() % 2000) / 1000.0f) - 1.0f;
+            float y = ((rand() % 2000) / 1000.0f) - 1.0f;
+            float z = ((rand() % 2000) / 1000.0f) - 1.0f;
+            v = D3DXVECTOR3(x, y, z);
+        } while (D3DXVec3LengthSq(&v) > 1.0f || D3DXVec3LengthSq(&v) < 0.001f); // Rejection
+
+        D3DXVec3Normalize(&v, &v);
+        m_randomDirTable.push_back(v);
+    }
 
     // Iterate over the ENTIRE BSP Tree
     for (size_t n = 0; n < nodePool.size(); n++)
@@ -815,8 +884,18 @@ void CBSPlevel::PrepareRadiosity()
                     }
                     else 
                     {
-                        autopatch.emission = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
-                        autopatch.reflectivity = D3DXCOLOR(0.5f, 0.5f, 0.5f, 1.0f); // White wall
+                        // LOOKUP MATERIAL
+                        if (tri.matIndex >= 0 && tri.matIndex < m_materials.size())
+                        {
+                            const BSPMaterial& mat = m_materials[tri.matIndex];
+                            autopatch.emission = mat.emissive;
+                            autopatch.reflectivity = mat.diffuse;
+                        }
+                        else
+                        {
+                            autopatch.emission = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+                            autopatch.reflectivity = D3DXCOLOR(0.5f, 0.5f, 0.5f, 1.0f); // White wall
+                        }
                     }
                     // B. Initialize Energy
                     autopatch.accumulated = D3DXVECTOR3(autopatch.emission.r, autopatch.emission.g, autopatch.emission.b);
@@ -853,7 +932,7 @@ void CBSPlevel::PrepareRadiosity()
     // 2. Inject Skylight
     // Color: Light Blue
     // Intensity: 2.0f (Make it bright so it bounces nicely)
-    AddHemisphereLight(D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 4.0f, 64);
+    AddHemisphereLight(D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 4.0f, 256);
 }
 
 BOOL CBSPlevel::RunRadiosityIteration()
@@ -868,7 +947,12 @@ BOOL CBSPlevel::RunRadiosityIteration()
     // If energy is tiny, stop to save time
     if ((shooter.unshot.x + shooter.unshot.y + shooter.unshot.z) < 0.001f)
         return FALSE;
+    // Cache shooter values to avoid reading shared memory constantly
+    D3DXVECTOR3 shooterUnshot = shooter.unshot;
 
+    // PARALLEL LOOP
+    // We cast .size() to int because OpenMP works best with signed integers
+    #pragma omp parallel for schedule(dynamic)
     // 2. Shoot to everyone else
     for (int i = 0; i < m_patches.size(); i++)
     {
@@ -877,11 +961,9 @@ BOOL CBSPlevel::RunRadiosityIteration()
 
         float ff = CalculateFormFactor(shooter, receiver);
         if (ff <= 0.0f) continue;
-
         // ENERGY TRANSFER FORMULA:
         // DeltaReceived = (ShooterUnshotEnergy * FormFactor) * ReceiverReflectivity
         // Note: FormFactor here accounts for Receiver Area implicitly via Reciprocity logic used above
-
         D3DXVECTOR3 incidentLight = shooter.unshot * ff;
 
         // Apply material color (Reflectivity)
@@ -889,7 +971,6 @@ BOOL CBSPlevel::RunRadiosityIteration()
         reflectedLight.x = incidentLight.x * receiver.reflectivity.r;
         reflectedLight.y = incidentLight.y * receiver.reflectivity.g;
         reflectedLight.z = incidentLight.z * receiver.reflectivity.b;
-
         // 1. Convert Flux to Radiosity for the visual mesh (Divide by Area)
             // Safety check to avoid divide by zero, though unlikely with your setup
         if (receiver.area > 1e-6f)
@@ -1018,20 +1099,19 @@ bool CBSPlevel::RayCastAny(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, flo
     if (nodePool.empty()) return false;
 
     D3DXVECTOR3 end = start + (dir * length);
-
+    D3DXVECTOR3 rayDir = dir;
     // Start recursion at Root (Node 0)
     return CheckNodeVisibility(0, start, end);
 }
 
-bool CBSPlevel::CheckNodeVisibility(int nodeIndex, const D3DXVECTOR3& start, const D3DXVECTOR3& end)
+bool CBSPlevel::CheckNodeVisibility(int nodeIndex,  const D3DXVECTOR3& start, const D3DXVECTOR3& end)
 {
+    const float EPSILON = 0.001f;
+
     // 1. Safety / Empty Check
     if (nodeIndex == -1) return false;
     const BSPNode& node = nodePool[nodeIndex];
-    // ---------------------------------------------------------
-    // CRITICAL FIX: ALWAYS Check triangles in this node!
-    // (Branch nodes contain the "Splitter Walls", if we skip this, rays fly through walls)
-    // ---------------------------------------------------------
+
     if (!node.members.empty())
     {
         D3DXVECTOR3 dir = end - start;
@@ -1044,51 +1124,45 @@ bool CBSPlevel::CheckNodeVisibility(int nodeIndex, const D3DXVECTOR3& start, con
             D3DXVECTOR3 v1(tri.v[1].x, tri.v[1].y, tri.v[1].z);
             D3DXVECTOR3 v2(tri.v[2].x, tri.v[2].y, tri.v[2].z);
 
-            float u, v, dist;
+            //float u, v, dist;
             // Use your DoubleSided intersection if you have it, otherwise D3DXIntersectTri
-            if (IntersectTriDoubleSided(start, dir, v0, v1, v2, dist, u, v))
+            if (IntersectTriangleShadow(start, dir, rayLen + EPSILON, v0, v1, v2))
             {
                 // Check if hit is strictly between Start and End
-                if ( dist < rayLen)
-                {
+                //if ( dist < rayLen)
+               //{
                     return true; // BLOCKED
-                }
+
+                //}
             }
         }
     }
 
     // If it's a leaf, we are done (we checked members above)
     if (node.isLeaf) return false;
-
-    // ---------------------------------------------------------
-    // CASE B: BRANCH NODE (Recursive Traversal)
-    // We check which side of the plane our ray segment lies on.
-    // ---------------------------------------------------------
-
+    
     // Calculate distance of Start and End points from the splitter plane
     float d1 = node.plane.a * start.x + node.plane.b * start.y + node.plane.c * start.z + node.plane.d;
     float d2 = node.plane.a * end.x + node.plane.b * end.y + node.plane.c * end.z + node.plane.d;
-
-    const float EPSILON = 0.001f;
 
     // 1. Fully in Front? -> Check Front Child only
     if (d1 >= -EPSILON && d2 >= -EPSILON)
     {
         return CheckNodeVisibility(node.iFront, start, end);
+
     }
 
     // 2. Fully Behind? -> Check Back Child only
     if (d1 < EPSILON && d2 < EPSILON)
     {
         return CheckNodeVisibility(node.iBack, start, end);
+
     }
 
     // 3. Spanning? (Crosses the plane) -> Check First side, then Second side
     // We need to find the intersection point on the plane to split the ray.
-
     // T = d1 / (d1 - d2)
     float t = d1 / (d1 - d2); // 0.0 to 1.0
-
     // Intersection Point 'Mid'
     D3DXVECTOR3 mid;
     D3DXVec3Lerp(&mid, &start, &end, t);
@@ -1098,14 +1172,20 @@ bool CBSPlevel::CheckNodeVisibility(int nodeIndex, const D3DXVECTOR3& start, con
     if (d1 > 0)
     {
         // Start is in Front: Check Front(Start->Mid) then Back(Mid->End)
+
         if (CheckNodeVisibility(node.iFront, start, mid)) return true;
+
         return CheckNodeVisibility(node.iBack, mid, end);
+
     }
     else
     {
         // Start is in Back: Check Back(Start->Mid) then Front(Mid->End)
+
         if (CheckNodeVisibility(node.iBack, start, mid)) return true;
+
         return CheckNodeVisibility(node.iFront, mid, end);
+
     }
 }
 
@@ -1122,7 +1202,6 @@ void CBSPlevel::AddHemisphereLight(const D3DXCOLOR& skyColor, float intensity, i
         {
             // 1. Get Random Direction
             D3DXVECTOR3 dir = GetRandomHemisphereVector(patch.normal);
-
             // 2. Raycast (Offset start slightly to avoid self-intersection)
             D3DXVECTOR3 start = patch.center + (patch.normal * 0.05f);
 
@@ -1133,12 +1212,17 @@ void CBSPlevel::AddHemisphereLight(const D3DXCOLOR& skyColor, float intensity, i
                 // HIT SKY!
                 // Determine color based on Y direction of the ray
                 // dir.y = 1.0 is straight up, dir.y = -1.0 is straight down
-                if (dir.y > 0.0f) {
+               /* if (dir.y > 0.0f) {
                     sampleColor = skyColor;
                 }
                 else {
                     sampleColor = D3DXCOLOR(0.00f, 0.00f, 0.00f, 0.0f);
-                }
+                }*/
+                D3DXCOLOR groundColor = D3DXCOLOR(0.99f, 0.00f, 0.00f, 0.0f);
+                float t = 0.5f * (dir.y + 1.0f); // Map -1...1 to 0...1
+                sampleColor.r = groundColor.r + t * (skyColor.r - groundColor.r);
+                sampleColor.g = groundColor.g + t * (skyColor.g - groundColor.g);
+                sampleColor.b = groundColor.b + t * (skyColor.b - groundColor.b);
                 // Lambert's Law: Light hitting at an angle is weaker
                 // (Light coming from straight up is stronger than light from the horizon)
                 float NdotL = D3DXVec3Dot(&patch.normal, &dir);
@@ -1180,26 +1264,49 @@ void CBSPlevel::AddHemisphereLight(const D3DXCOLOR& skyColor, float intensity, i
 }
 
 // Helper: Returns a random normalized vector inside the hemisphere of the normal
+//D3DXVECTOR3 CBSPlevel::GetRandomHemisphereVector(const D3DXVECTOR3& normal)
+//{
+//    D3DXVECTOR3 v;
+//    // 1. Generate random point in unit cube [-1, 1]
+//    // (Using rand() is sufficient for baking)
+//    do {
+//        v.x = ((rand() % 2000) / 1000.0f) - 1.0f;
+//        v.y = ((rand() % 2000) / 1000.0f) - 1.0f;
+//        v.z = ((rand() % 2000) / 1000.0f) - 1.0f;
+//
+//        // Normalize
+//        D3DXVec3Normalize(&v, &v);
+//    } while (D3DXVec3LengthSq(&v) < 0.001f); // Retry if we got a zero vector
+//
+//    // 2. If vector points "into" the wall (opposite of normal), flip it
+//    if (D3DXVec3Dot(&v, &normal) < 0.0f)
+//    {
+//        v = -v;
+//    }
+//
+//    return v;
+//}
+
 D3DXVECTOR3 CBSPlevel::GetRandomHemisphereVector(const D3DXVECTOR3& normal)
 {
-    D3DXVECTOR3 v;
-    // 1. Generate random point in unit cube [-1, 1]
-    // (Using rand() is sufficient for baking)
-    do {
-        v.x = ((rand() % 2000) / 1000.0f) - 1.0f;
-        v.y = ((rand() % 2000) / 1000.0f) - 1.0f;
-        v.z = ((rand() % 2000) / 1000.0f) - 1.0f;
-
-        // Normalize
-        D3DXVec3Normalize(&v, &v);
-    } while (D3DXVec3LengthSq(&v) < 0.001f); // Retry if we got a zero vector
-
-    // 2. If vector points "into" the wall (opposite of normal), flip it
+    // Thread-Local Index: Each thread keeps its own counter.
+    // No locks. No waiting.
+    static thread_local int idx = 0;
+    // 1. Pick a pseudo-random index using a prime number stride
+    // (This acts as a fast random generator)
+    idx = (idx + 12345) % 4096; // 4096 must match table size
+    // 2. Fetch pre-calculated vector
+    D3DXVECTOR3 v = m_randomDirTable[idx];
+    // 3. Hemisphere Check
+    // If vector points "into" the wall, flip it to point "out".
+    // This effectively converts a Uniform Sphere distribution -> Uniform Hemisphere.
     if (D3DXVec3Dot(&v, &normal) < 0.0f)
     {
-        v = -v;
+        // Simple negation is faster than arithmetic
+        v.x = -v.x;
+        v.y = -v.y;
+        v.z = -v.z;
     }
-
     return v;
 }
 
@@ -1253,7 +1360,7 @@ void CBSPlevel::ThreadWorker()
 
     // Note: We cannot easily track exact progress of recursion, 
     // so we just pulse it or set it to fixed milestones.
-    ExtractTriangles();
+    //ExtractTriangles();
     if (m_bStopRequested) return;
 
     SubdivideGeometry();
@@ -1275,7 +1382,7 @@ void CBSPlevel::ThreadWorker()
     _log(L"Preparing Radiosity...\n");
     PrepareRadiosity();
 
-    const int maxIterations = 1024;
+    const int maxIterations = 4096;
     for (int i = 0; i < maxIterations; i++)
     {
         if (m_bStopRequested) return;

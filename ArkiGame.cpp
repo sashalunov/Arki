@@ -174,7 +174,7 @@ bool ArkiGame::Init()
 	m_spawner = new CEnemySpawner(g_dynamicsWorld, m_bulletManager, m_pTeapotMesh);
 
 	m_bspLevel = new CBSPlevel();
-    if (!m_bspLevel->LoadOBJ(".\\room1.obj"))
+    if (!m_bspLevel->LoadOBJ(".\\room1a.obj"))
     {
         _log(L"Failed to load room1 obj!\n");
         return false;

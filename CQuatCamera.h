@@ -54,12 +54,11 @@ public:
     // --- Output for DirectX 9 ---
     D3DXMATRIXA16 GetViewMatrix() const;
 
+    void SetPosition(const btVector3& pos) { m_position = pos; }
+
     // --- Getters ---
     btVector3 GetPosition() const { return m_position; }
     btQuaternion GetRotation() const { return m_rotation; }
-
-    void Render(IDirect3DDevice9* device);
-    void Update(double deltaTime);
 
     // Get the vector pointing strictly to the "Right" of the camera (Local +X)
     btVector3 CQuatCamera::GetRightVector() const
@@ -85,5 +84,10 @@ public:
         // We must negate it to get the "Look" direction.
         return rotMat.getColumn(2) * -1.0f;
     }
+
+    void Render(IDirect3DDevice9* device);
+    void Update(double deltaTime);
+
+
 };
 

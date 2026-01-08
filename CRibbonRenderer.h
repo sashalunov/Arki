@@ -8,7 +8,7 @@ struct RibbonVertex {
     static const DWORD FVF = D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1;
 };
 
-class СRibbonRenderer
+class CRibbonRenderer
 {
 private:
     LPDIRECT3DDEVICE9 m_device;
@@ -18,7 +18,7 @@ private:
     int m_offset;
 
 public:
-    СRibbonRenderer(LPDIRECT3DDEVICE9 device, int maxVerts)
+    CRibbonRenderer(LPDIRECT3DDEVICE9 device, int maxVerts)
         : m_device(device), m_bufferSize(maxVerts), m_offset(0)
     {
         device->CreateVertexBuffer(

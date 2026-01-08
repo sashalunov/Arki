@@ -216,7 +216,7 @@ struct RADPATCH
     // Geometry
     D3DXVECTOR3 center;
     D3DXVECTOR3 normal;
-    float       area;
+    float       area = 0;
 
     // Material (0.0 to 1.0)
     D3DXCOLOR   reflectivity; // Color of the wall (Diffuse)
@@ -227,19 +227,19 @@ struct RADPATCH
     D3DXVECTOR3 unshot;       // Light waiting to be shot (dB)
 
     // LINKING: Where does this patch live in the BSP Tree?
-    int nodeIndex; // Index in nodePool
-    int triIndex;  // Index in nodePool[nodeIndex].members vector
+    int nodeIndex = 0; // Index in nodePool
+    int triIndex = 0;  // Index in nodePool[nodeIndex].members vector
 };
 
 
 class CBSPlevel
 {
 private:
-    const float MAX_EDGE_SQ = 100.0f * 100.0f;
+    const float MAX_EDGE_SQ = 50.0f * 50.0f;
     const float MIN_EDGE_LENGTH_SQ = 10.0f * 10.0f;
 
     IDirect3DVertexBuffer9* m_pMeshVB;
-    int m_iNumTriangles;
+    int m_iNumTriangles = 0;
 
     std::vector<OBJVertex> mObjVertices;
     std::vector<unsigned long> mObjIndices;
@@ -247,10 +247,18 @@ private:
     // Fast & Cache Friendly
     std::vector<BSPNode> nodePool;
     std::vector<BSPTriangle> m_triangles; // Store this for BSP building
+    std::vector<BSPTriangle> m_triangles_temp; // Store this for BSP building
+
     std::vector<BSPTriangle> m_subd_triangles;
     std::vector<RADPATCH> m_patches;
     // Optimization: Precomputed Random Directions
     std::vector<D3DXVECTOR3> m_randomDirTable;
+
+    // Bullet Collision Objects
+    btDynamicsWorld* m_pdworld;
+    btTriangleMesh* m_pTriangleMesh;
+    btBvhTriangleMeshShape* m_pCollisionShape;
+    btCollisionObject* m_pLevelObject;
 
 	BOOL BuildTree(UINT nodeIndex, std::vector<BSPTriangle>& polys);
     //void ExtractTriangles();
@@ -273,7 +281,7 @@ private:
     void  PrepareRadiosity(); // Call this AFTER LoadOBJ
     BOOL  RunRadiosityIteration(); // Call this in a loop (e.g., 100 times)
     void  ApplyRadiosityToMesh(); // Bake colors to Vertex Buffer
-    void SubdivideGeometry();
+    void SubdivideGeometry(std::vector<BSPTriangle>& tris);
 
     // New Helper: Recursive BSP Raycast
     bool CheckNodeVisibility(int nodeIndex, const D3DXVECTOR3& start, const D3DXVECTOR3& end);
@@ -298,7 +306,7 @@ public:
     CBSPlevel();
     ~CBSPlevel();
 
-	BOOL LoadOBJ(const std::string);
+	BOOL LoadOBJ(btDynamicsWorld* dynamicsWorld, const std::string);
 	void BuildBSP();
     void BuildRAD();
     void StartBackgroundBuild();
@@ -306,6 +314,10 @@ public:
     // Check this in your Main Loop to draw a progress bar
     float GetProgress() const { return m_fProgress; }
     eBuildState GetState() const { return m_eState; }
+
+    // Call this after the BSP and Radiosity are baked
+    void InitPhysics(btDynamicsWorld* dynamicsWorld);
+    void CleanupPhysics();
 
 	void Render(IDirect3DDevice9* device, const D3DXVECTOR3& cameraPos);
 };

@@ -1,5 +1,4 @@
 #include "stdafx.h"
 #include "CParticleSystem.h"
-#include "СRibbonRenderer.h"
-
+#include "CRibbonRenderer.h"
 

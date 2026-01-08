@@ -211,6 +211,7 @@
     <ClInclude Include="CBulletDebugDrawer.h" />
     <ClInclude Include="CEnemyBullet.h" />
     <ClInclude Include="CFlyingEnemy.h" />
+    <ClInclude Include="CFPSPlayer.h" />
     <ClInclude Include="CGizmo.h" />
     <ClInclude Include="CGrid.h" />
     <ClInclude Include="CHUD.h" />
@@ -237,7 +238,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TextureTools.h" />
     <ClInclude Include="XMesh.h" />
-    <ClInclude Include="СRibbonRenderer.h" />
+    <ClInclude Include="CRibbonRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\tools\imgui-1.92.5\backends\imgui_impl_dx9.cpp" />
@@ -259,6 +260,7 @@
     <ClCompile Include="CBSPlevel.cpp" />
     <ClCompile Include="CBulletDebugDrawer.cpp" />
     <ClCompile Include="CFlyingEnemy.cpp" />
+    <ClCompile Include="CFPSPlayer.cpp" />
     <ClCompile Include="CGrid.cpp" />
     <ClCompile Include="CHUD.cpp" />
     <ClCompile Include="COrbitCamera.cpp" />

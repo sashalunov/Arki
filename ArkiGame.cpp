@@ -33,6 +33,7 @@ ArkiGame::ArkiGame()
     m_val = 0.0f;
 	m_player = NULL;
     m_isPaused = FALSE;
+	m_showGrid = TRUE;
 
     m_mainMenu = new CMainMenu();
     m_gameState = STATE_MENU; // Start in menu
@@ -174,7 +175,7 @@ bool ArkiGame::Init()
 	m_spawner = new CEnemySpawner(g_dynamicsWorld, m_bulletManager, m_pTeapotMesh);
 
 	m_bspLevel = new CBSPlevel();
-    if (!m_bspLevel->LoadOBJ(".\\room1a.obj"))
+    if (!m_bspLevel->LoadOBJ(g_dynamicsWorld, ".\\room1a.obj"))
     {
         _log(L"Failed to load room1 obj!\n");
         return false;
@@ -859,12 +860,15 @@ void ArkiGame::RenderGUI()
 void ArkiGame::RenderEditorScene()
 {
     D3DXMATRIXA16 matWorld;
+    D3DXMatrixIdentity(&matWorld);
+    d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+
     m_pCamEditor->Render(d3d9->GetDevice(), fDeltaTime);
     m_pSkybox->DrawSkybox(d3d9->GetDevice(), m_pCamEditor->GetViewMatrix(), fDeltaTime);
 
 
     // Render grid, gizmos, selection boxes, etc.
-    if(m_grid)m_grid->Render(d3d9->GetDevice());
+    if(m_grid && m_debugdraw)m_grid->Render(d3d9->GetDevice());
 
 
     for (auto obj : m_sceneObjects)
@@ -1029,6 +1033,9 @@ void ArkiGame::Render(double dt)
 
         if (m_debugdraw)
         {
+            D3DXMatrixIdentity(&matWorld);
+            d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+
             g_dynamicsWorld->debugDrawWorld();
             btDebugDrawer->Draw();
 

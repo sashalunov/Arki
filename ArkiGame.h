@@ -166,7 +166,7 @@ private:
     float m_val = 0.0f;
     bool m_inputLeft;
 	bool m_inputRight;
-
+    bool m_showGrid;
     //arkanoid game
     CArkiLevel* m_currentLevel;
     // Initialization

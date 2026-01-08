@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "Logger.h"
 #include "btBulletDynamicsCommon.h"
+#include <mmdeviceapi.h>
 
 // Helper struct to hold audio data
 struct SoundData {
@@ -35,12 +36,25 @@ public:
         hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
         if (FAILED(hr)) return false;
 
+        IMMDeviceEnumerator* pEnum = nullptr;
+        CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+            __uuidof(IMMDeviceEnumerator), (void**)&pEnum);
+
+        IMMDevice* pDevice = nullptr;
+        pEnum->GetDefaultAudioEndpoint(eRender, eConsole, &pDevice); // default output device
+
+        LPWSTR pwszID = nullptr;
+        pDevice->GetId(&pwszID); // device ID string
+
+
+		_log(L"Using Audio Device ID: %s\n", pwszID);
+
         // Create the XAudio2 Engine
         hr = XAudio2Create(&pXAudio2, 0, XAUDIO2_DEFAULT_PROCESSOR);
         if (FAILED(hr)) return false;
 
         // Create the Mastering Voice (The "Speakers")
-        hr = pXAudio2->CreateMasteringVoice(&pMasterVoice);
+        hr = pXAudio2->CreateMasteringVoice(&pMasterVoice,0U,0U,0U, pwszID);
         if (FAILED(hr)) return false;
 
         // - Initialize X3DAudio ---

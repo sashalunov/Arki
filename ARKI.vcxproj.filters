@@ -16,9 +16,6 @@
     <Filter Include="imGui">
       <UniqueIdentifier>{1c5eb856-b96f-428c-b27c-cbea28a8a9ec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Arkanoid">
-      <UniqueIdentifier>{a6f68267-eee2-4576-9aaa-e1288098907e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="small.ico">
@@ -69,7 +66,7 @@
     <ClInclude Include="CBulletDebugDrawer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="СRibbonRenderer.h">
+    <ClInclude Include="CRibbonRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CSkybox.h">
@@ -155,6 +152,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="CBSPlevel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CFPSPlayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -277,6 +277,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CBSPlevel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CFPSPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

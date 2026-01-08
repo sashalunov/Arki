@@ -26,6 +26,7 @@ CBSPlevel::~CBSPlevel()
 {
 	SAFE_RELEASE(m_pMeshVB);
 
+	CleanupPhysics();
     // Signal thread to stop
     m_bStopRequested = true;
     // Wait for thread to finish if it's running
@@ -53,7 +54,7 @@ void CBSPlevel::StartBackgroundBuild()
     // Launch the worker
     m_workerThread = std::thread(&CBSPlevel::ThreadWorker, this);
 }
-BOOL CBSPlevel::LoadOBJ(const std::string filename)
+BOOL CBSPlevel::LoadOBJ(btDynamicsWorld* dynamicsWorld, const std::string filename)
 {
     // Define your scale factor
     float importScale = 1.0f;
@@ -101,6 +102,7 @@ BOOL CBSPlevel::LoadOBJ(const std::string filename)
     }
 	mObjVertices.clear();
     m_triangles.clear();
+	m_triangles_temp.clear();
     // Loop over shapes (the file might contain multiple objects)
     for (const auto& shape : shapes) 
     {
@@ -158,6 +160,9 @@ BOOL CBSPlevel::LoadOBJ(const std::string filename)
             index_offset += fv;
         }
     }
+
+	_log(L"Total Triangles Loaded: %d \n", (int)m_triangles.size());
+	InitPhysics(dynamicsWorld);
 	return TRUE;
 }
 
@@ -181,15 +186,15 @@ BOOL CBSPlevel::LoadOBJ(const std::string filename)
 //
 //}
 
-void CBSPlevel::SubdivideGeometry()
+void CBSPlevel::SubdivideGeometry(std::vector<BSPTriangle>& tris)
 {
     // We will build a new list of triangles
 	m_subd_triangles.clear();
-    m_subd_triangles.reserve(m_triangles.size() * 4);
+    m_subd_triangles.reserve(tris.size() * 4);
 
     int splitCount = 0;
 
-    for (const auto& tri : m_triangles)
+    for (const auto& tri : tris)
     {
         D3DXVECTOR3 p0(tri.v[0].x, tri.v[0].y, tri.v[0].z);
         D3DXVECTOR3 p1(tri.v[1].x, tri.v[1].y, tri.v[1].z);
@@ -235,7 +240,7 @@ void CBSPlevel::SubdivideGeometry()
     }
 
     // Replace old list
-    m_triangles = m_subd_triangles;
+    m_triangles_temp = m_subd_triangles;
 
     // Optimization: If we split anything, we might need to check again 
     // (Recursive approach is better, but this simple pass works for now)
@@ -244,7 +249,7 @@ void CBSPlevel::SubdivideGeometry()
     if (splitCount > 0 && depth < 4)
     {
         depth++;
-        SubdivideGeometry();
+        SubdivideGeometry(m_triangles_temp);
         depth--;
     }
 }
@@ -695,7 +700,7 @@ void CBSPlevel::BuildBSP()
     //ExtractTriangles();
     _log(L"Building BSP Tree...\n");
 
-	SubdivideGeometry();
+	SubdivideGeometry(m_triangles);
     
 	// Example: Choose a splitter for the entire set
 	UINT splitterIndex = ChooseSplitter(m_subd_triangles);
@@ -1192,9 +1197,13 @@ bool CBSPlevel::CheckNodeVisibility(int nodeIndex,  const D3DXVECTOR3& start, co
 void CBSPlevel::AddHemisphereLight(const D3DXCOLOR& skyColor, float intensity, int numSamples)
 {
     float skyDist = 100000.0f; // Far away
+    if (m_bStopRequested) return;
 
-    for (auto& patch : m_patches)
+    #pragma omp parallel for schedule(dynamic)
+
+    for (int j = 0; j < m_patches.size(); j++)
     {
+        RADPATCH& patch = m_patches[j];
         D3DXVECTOR3 incomingLight(0, 0, 0);
         int hitsSky = 0;
 
@@ -1363,7 +1372,7 @@ void CBSPlevel::ThreadWorker()
     //ExtractTriangles();
     if (m_bStopRequested) return;
 
-    SubdivideGeometry();
+    SubdivideGeometry(m_triangles);
     if (m_bStopRequested) return;
     m_fProgress = 0.1f; // Subdiv done
 
@@ -1402,4 +1411,46 @@ void CBSPlevel::ThreadWorker()
     m_fProgress = 1.0f;
     m_eState = BS_READY;
     _log(L"Background Build Complete.\n");
+}
+
+void CBSPlevel::InitPhysics(btDynamicsWorld* dynamicsWorld)
+{
+	m_pdworld = dynamicsWorld;
+    // 1. Create the Triangle Mesh interface
+    m_pTriangleMesh = new btTriangleMesh();
+
+    for (const auto& tri : m_triangles)
+    {
+            m_pTriangleMesh->addTriangle(
+                btVector3(tri.v[0].x, tri.v[0].y, tri.v[0].z),
+                btVector3(tri.v[1].x, tri.v[1].y, tri.v[1].z),
+                btVector3(tri.v[2].x, tri.v[2].y, tri.v[2].z)
+			);
+    }
+
+    // 3. Create the Shape
+    // Use Quantized AABB Compression to save memory
+    m_pCollisionShape = new btBvhTriangleMeshShape(m_pTriangleMesh, true);
+
+    // 4. Create the Collision Object
+    m_pLevelObject = new btCollisionObject();
+    m_pLevelObject->setCollisionShape(m_pCollisionShape);
+
+    // Set friction and restitution for the ground
+    m_pLevelObject->setFriction(0.5f);
+    m_pLevelObject->setRestitution(0.3f);
+
+    // 5. Add to the World
+    // Levels are static, so we don't need a MotionState or Mass
+    dynamicsWorld->addCollisionObject(m_pLevelObject);
+}
+
+void CBSPlevel::CleanupPhysics()
+{
+    if (m_pLevelObject) {
+        m_pdworld->removeCollisionObject(m_pLevelObject);
+        delete m_pLevelObject;
+    }
+    delete m_pCollisionShape;
+    delete m_pTriangleMesh;
 }

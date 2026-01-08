@@ -8,8 +8,8 @@ CFPSPlayer::CFPSPlayer()
     m_pWorld = nullptr;
     m_pCamera = nullptr;
 
-    m_speed = 6.0f;       // Running speed
-    m_jumpForce = 6.0f;   // Upward velocity
+    m_speed = 2.0f;       // Running speed
+    m_jumpForce = 3.0f;   // Upward velocity
     m_eyeHeight = 0.6f;   // Eyes are slightly above center of capsule
 }
 
@@ -31,7 +31,10 @@ void CFPSPlayer::Init(btDynamicsWorld* world, CQuatCamera* camera, const btVecto
 
     // 1. Create Capsule Shape
     // Width (Radius) = 0.5, Total Height = 1.8 (Height 0.8 + 2*Radius)
-    m_pShape = new btCapsuleShape(0.5f, 0.8f);
+	//float m = 100.0f;
+	float r = 0.3f;
+	float h = 1.0f ;
+    m_pShape = new btCapsuleShape(r , h );
 
     // 2. Calculate Inertia
     btScalar mass = 80.0f; // 80kg Human

@@ -91,7 +91,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\tools\bullet3-3.25\src;..\tools\imgui-1.92.5;..\imgui-1.92.5\backends;..\tools\json\include;..\tweeny-3.2.1\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\tools\bullet3-3.25\src;..\tools\imgui-1.92.5;..\tools\imgui-1.92.5\backends;..\tools\json\include;..\tools\tweeny-3.2.1\include;..\tools\tinyobjloader-2.0-rc1;$(IncludePath)</IncludePath>
     <LibraryPath>.\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\release\bin\x64;..\tools\bullet3-3.25\bin;$(LibraryPath)</LibraryPath>
     <GenerateManifest>true</GenerateManifest>
     <SourcePath>..\tools\bullet3-3.25\src\;$(VC_SourcePath);$(SourcePath)</SourcePath>
@@ -168,10 +168,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_WINDOWS;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -180,7 +180,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <AdditionalDependencies>d3d9.lib;d3dx9.lib;dxguid.lib;BulletDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;d3dx9.lib;dxguid.lib;BulletDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;winmm.lib;xaudio2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <ResourceCompile>

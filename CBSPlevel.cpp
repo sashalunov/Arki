@@ -20,6 +20,7 @@ CBSPlevel::CBSPlevel()
     m_eState = BS_IDLE;
     m_fProgress = 0.0f;
     m_bStopRequested = false;
+    m_offset = btVector3(0, 0, 0);
 }
 
 CBSPlevel::~CBSPlevel()
@@ -57,7 +58,7 @@ void CBSPlevel::StartBackgroundBuild()
 BOOL CBSPlevel::LoadOBJ(btDynamicsWorld* dynamicsWorld, const std::string filename)
 {
     // Define your scale factor
-    float importScale = 1.0f;
+    float importScale = 0.01f;
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -130,9 +131,9 @@ BOOL CBSPlevel::LoadOBJ(btDynamicsWorld* dynamicsWorld, const std::string filena
 
                 OBJVertex vert;
                 // ... [Copy Position, Normal, UV as before] ...
-                vert.x = attrib.vertices[3 * idx.vertex_index + 0];
-                vert.y = attrib.vertices[3 * idx.vertex_index + 1];
-                vert.z = attrib.vertices[3 * idx.vertex_index + 2];
+                vert.x = attrib.vertices[3 * idx.vertex_index + 0] * importScale;
+                vert.y = attrib.vertices[3 * idx.vertex_index + 1] * importScale;
+                vert.z = attrib.vertices[3 * idx.vertex_index + 2] * importScale;
 
                 if (idx.normal_index >= 0) {
                     vert.nx = attrib.normals[3 * idx.normal_index + 0];
@@ -206,7 +207,7 @@ void CBSPlevel::SubdivideGeometry(std::vector<BSPTriangle>& tris)
         float d3 = D3DXVec3LengthSq(&(p2 - p0));
 
         // If any edge is too long, we subdivide into 4
-        if ((d1 > MAX_EDGE_SQ || d2 > MAX_EDGE_SQ || d3 > MAX_EDGE_SQ) && (d1 > MIN_EDGE_LENGTH_SQ && d2 > MIN_EDGE_LENGTH_SQ))
+        if ((d1 > MAX_EDGE_SQ || d2 > MAX_EDGE_SQ || d3 > MAX_EDGE_SQ) && (d1 > MIN_EDGE_LENGTH_SQ && d2 > MIN_EDGE_LENGTH_SQ && d3 > MIN_EDGE_LENGTH_SQ))
         {
             // Calculate Midpoints
             OBJVertex m01 = LerpVertex(tri.v[0], tri.v[1], 0.5f);
@@ -246,7 +247,7 @@ void CBSPlevel::SubdivideGeometry(std::vector<BSPTriangle>& tris)
     // (Recursive approach is better, but this simple pass works for now)
    // Safety: Limit recursion depth to prevent crashes
     static int depth = 0;
-    if (splitCount > 0 && depth < 4)
+    if (splitCount > 0 && depth < 64)
     {
         depth++;
         SubdivideGeometry(m_triangles_temp);
@@ -283,7 +284,7 @@ eSide  CBSPlevel::ClassifyTriangle(const BSPTriangle& tri, const D3DXPLANE& plan
 
 void CBSPlevel::Render(IDirect3DDevice9* device, const D3DXVECTOR3& cameraPos)
 {
-    float ptSize = 16.0f;
+   
 
     // 1. Check State
     eBuildState currentState = m_eState; // Atomic load
@@ -428,21 +429,43 @@ void CBSPlevel::RenderNodeGeometry(IDirect3DDevice9* device, const BSPNode& node
     // 2. Extract only the vertices, skipping the 'matIndex' integer
     for (const auto& tri : node.members)
     {
-        renderBuffer.push_back(tri.v[0]);
-        renderBuffer.push_back(tri.v[1]);
-        renderBuffer.push_back(tri.v[2]);
+		OBJVertex v0 = tri.v[0];
+        OBJVertex v1 = tri.v[1];
+        OBJVertex v2 = tri.v[2];
+		// apply offset
+		v0.x += (FLOAT)m_offset.getX();
+        v0.y += (FLOAT)m_offset.getY();
+        v0.z += (FLOAT)m_offset.getZ();
+        v1.x += (FLOAT)m_offset.getX();
+        v1.y += (FLOAT)m_offset.getY();
+        v1.z += (FLOAT)m_offset.getZ();
+        v2.x += (FLOAT)m_offset.getX();
+        v2.y += (FLOAT)m_offset.getY();
+        v2.z += (FLOAT)m_offset.getZ();
+
+        renderBuffer.push_back(v0);
+        renderBuffer.push_back(v1);
+        renderBuffer.push_back(v2);
     }
+    if (bPointsDraw) {
+        device->SetRenderState(D3DRS_POINTSPRITEENABLE, TRUE);
+        device->SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&ptSize));
 
+        device->DrawPrimitiveUP(D3DPT_POINTLIST, (UINT)node.members.size()*3,
+            renderBuffer.data(), sizeof(OBJVertex));
 
-    // Because 'BSPTriangle' is just 3 'OBJVertex' structs back-to-back,
-    // the memory layout is identical to a standard Vertex Buffer.
-    // We can cast the pointer directly.
-    device->SetFVF(FVF_OBJVERTEX);
-    // DrawPrimitiveUP is slow for final games, but perfect for this stage.
-    device->DrawPrimitiveUP(D3DPT_TRIANGLELIST,
-        (UINT)node.members.size(),        // Primitive Count (Triangles)
-        renderBuffer.data(),        // Pointer to vertex data
-        sizeof(OBJVertex));         // Stride
+    }
+    else {
+        // Because 'BSPTriangle' is just 3 'OBJVertex' structs back-to-back,
+        // the memory layout is identical to a standard Vertex Buffer.
+        // We can cast the pointer directly.
+        device->SetFVF(FVF_OBJVERTEX);
+        // DrawPrimitiveUP is slow for final games, but perfect for this stage.
+        device->DrawPrimitiveUP(D3DPT_TRIANGLELIST,
+            (UINT)node.members.size(),        // Primitive Count (Triangles)
+            renderBuffer.data(),        // Pointer to vertex data
+            sizeof(OBJVertex));         // Stride
+    }
 }
 
 UINT CBSPlevel::ChooseSplitter(std::vector<BSPTriangle>& polys)
@@ -501,7 +524,7 @@ UINT CBSPlevel::ChooseSplitter(std::vector<BSPTriangle>& polys)
             if (nScore < 5)break;
 		}
 	}
-	_log(L"Best splitter: Index %d, Score %d\r\n", nBestIndex, nBestScore);
+	//_log(L"Best splitter: Index %d, Score %d\r", nBestIndex, nBestScore);
 
 	return nBestIndex;
 }
@@ -518,6 +541,9 @@ OBJVertex CBSPlevel::LerpVertex(const OBJVertex& v1, const OBJVertex& v2, float 
     out.nx = v1.nx + (v2.nx - v1.nx) * t;
     out.ny = v1.ny + (v2.ny - v1.ny) * t;
     out.nz = v1.nz + (v2.nz - v1.nz) * t;
+    D3DXVECTOR3 n(out.nx, out.ny, out.nz);
+    D3DXVec3Normalize(&n, &n);
+    out.nx = n.x; out.ny = n.y; out.nz = n.z;
 
     D3DXCOLOR cout;
     D3DXColorLerp(&cout,
@@ -750,11 +776,11 @@ float CBSPlevel::CalculateFormFactor(const RADPATCH& src, const RADPATCH& dest)
     // 1. Vector Setup
     D3DXVECTOR3 vec = dest.center - src.center;
     float distSq = D3DXVec3LengthSq(&vec);
-    //if (distSq > 10000.0f) return 0.0f;
+    //if (distSq > 100.0f) return 0.0f;
 
     float dist = sqrtf(distSq);
     // Safety: Don't calculate if patches are on top of each other
-    if (dist < 0.001f) return 0.0f;
+    //if (dist < 0.001f) return 0.0f;
 
     // Normalize direction vector (Source -> Dest)
     D3DXVECTOR3 dir = vec / dist;
@@ -776,7 +802,7 @@ float CBSPlevel::CalculateFormFactor(const RADPATCH& src, const RADPATCH& dest)
     // Formula: (cos1 * cos2 * Area) / (PI * r^2)
     float potentialFactor = (cosSrc * cosDest * dest.area) / (D3DX_PI * distSq + dest.area);
     // If the energy transfer is tiny, don't waste time checking walls
-    if (potentialFactor < 0.00001f) return 0.0f;
+    //if (potentialFactor < 0.00001f) return 0.0f;
     // A. Start slightly off the Source surface (0.05 units) to avoid hitting itself.
     D3DXVECTOR3 startPos = src.center + (src.normal * 0.05f);
 
@@ -793,7 +819,7 @@ float CBSPlevel::CalculateFormFactor(const RADPATCH& src, const RADPATCH& dest)
         }
     }
     // Safety clamp
-    if (potentialFactor > 1.0f) potentialFactor = 1.0f;
+    //if (potentialFactor > 1.0f) potentialFactor = 1.0f;
 
     return potentialFactor;
 }
@@ -937,7 +963,7 @@ void CBSPlevel::PrepareRadiosity()
     // 2. Inject Skylight
     // Color: Light Blue
     // Intensity: 2.0f (Make it bright so it bounces nicely)
-    AddHemisphereLight(D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 4.0f, 256);
+    AddHemisphereLight(D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 4.0f, SKY_SAMPLES);
 }
 
 BOOL CBSPlevel::RunRadiosityIteration()
@@ -1371,7 +1397,7 @@ void CBSPlevel::ThreadWorker()
     // so we just pulse it or set it to fixed milestones.
     //ExtractTriangles();
     if (m_bStopRequested) return;
-
+	bPointsDraw = true;
     SubdivideGeometry(m_triangles);
     if (m_bStopRequested) return;
     m_fProgress = 0.1f; // Subdiv done
@@ -1390,6 +1416,7 @@ void CBSPlevel::ThreadWorker()
     m_eState = BS_CALC_RAD;
     _log(L"Preparing Radiosity...\n");
     PrepareRadiosity();
+    bPointsDraw = false;
 
     const int maxIterations = 4096;
     for (int i = 0; i < maxIterations; i++)

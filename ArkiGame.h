@@ -22,12 +22,14 @@
 #include "BulletManager.h"
 #include "CHUD.h"
 #include "CBSPlevel.h"
+#include "CFPSPlayer.h"
 #include "tweeny.h"
 using tweeny::easing;
 
 enum GameState {
     STATE_MENU,
-    STATE_PLAYING,
+    STATE_PLAYING_ARKI,
+    STATE_PLAYING_FPS,
     STATE_PAUSED,    
     STATE_EDITOR,    
     STATE_SETTINGS,
@@ -97,9 +99,11 @@ class ArkiGame
 public:
     bool m_isPaused;
 	bool m_isEditorMode;
+    bool m_isFPSMode;
     float scrollAmount;
 private:
 	CBSPlevel* m_bspLevel;
+	CFPSPlayer* m_fpsPlayer;
     LevelParams p;
     CEnemySpawner* m_spawner;
 	CBulletManager* m_bulletManager;
@@ -150,6 +154,9 @@ private:
 
     D3DLIGHT9 m_LightDefault;
 	D3DMATERIAL9 m_MaterialDefault;
+    float fFogStart = 48.0f;
+    float fFogEnd = 64.0f;
+    float fFogDensity = 0.006f;
 
     // bullet physics
     btBroadphaseInterface* g_broadphase;
@@ -191,21 +198,25 @@ public:
 	void SetMouseDeltas(long dx, long dy) { mouseDeltaX += dx; mouseDeltaY += dy; }
     void RestartLevel();
 
-    void AddCube(btDiscreteDynamicsWorld* dynamicsWorld, IDirect3DDevice9* device);
-
 private:
     void FixedUpdate(double fixedDeltaTime);
     void Update(double DeltaTime);
     void Render(double DeltaTime);
 	void RenderEditorScene();
+	void RenderFPSGameScene();
+	void RenderArkiGameScene();
+
     void InitPhysics(); // Helper to setup Bullet   
     void ShutdownPhysics();
     void InitGUI(); // Helper to setup Bullet   
     void RenderGUI();
     void OnLostDevice();
 	void OnResetDevice();
-    void ProcessGameInput(double DeltaTime);
+
+    void ProcessArkiInput(double DeltaTime);
+    void ProcessFPSInput(double DeltaTime);
 	void ProcessEditorInput(double DeltaTime);
+
     void CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld);
 	void SetRenderStateDefaults();
     bool RaycastFromMouse(int mouseX, int mouseY, btVector3& outHitPoint, btRigidBody*& outBody);

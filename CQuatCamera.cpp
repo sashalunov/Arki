@@ -13,8 +13,8 @@ CQuatCamera::CQuatCamera()
     // D3DX_PI / 2 is 90 degrees (Quake pro).
     fovY = D3DX_PI / 4.0f;
     aspectRatio = 1;// (float)d3d9->GetWidth() / (float)d3d9->GetHeight();
-    zNear = 0.1f;
-    zFar = 10000.0f;
+    zNear = 0.01f;
+    zFar = 1000.0f;
 
     m_shakeDuration = 0.0f;
     m_shakeStrength = 0.0f;

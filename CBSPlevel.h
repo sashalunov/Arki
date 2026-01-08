@@ -235,9 +235,14 @@ struct RADPATCH
 class CBSPlevel
 {
 private:
-    const float MAX_EDGE_SQ = 50.0f * 50.0f;
-    const float MIN_EDGE_LENGTH_SQ = 10.0f * 10.0f;
+    const float MAX_EDGE_SQ = 1.5f * 1.5f;
+    const float MIN_EDGE_LENGTH_SQ = 0.75f * 0.75f;
+    const int SKY_SAMPLES = 64;
+     
+    bool bPointsDraw = false;
+    float ptSize = 4.0f;
 
+    btVector3 m_offset;
     IDirect3DVertexBuffer9* m_pMeshVB;
     int m_iNumTriangles = 0;
 
@@ -320,5 +325,19 @@ public:
     void CleanupPhysics();
 
 	void Render(IDirect3DDevice9* device, const D3DXVECTOR3& cameraPos);
+    void SetOffset(const btVector3& offset) 
+    { 
+        m_offset = offset; 
+		m_pLevelObject->setWorldTransform(btTransform(btQuaternion(0, 0, 0, 1), m_offset));
+
+         
+
+
+    }
+
+
+
+
+
 };
 

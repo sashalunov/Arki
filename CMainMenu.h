@@ -6,7 +6,8 @@
 enum MenuResult
 {
     MENU_NO_ACTION,
-    MENU_START_GAME,
+    MENU_START_GAME_ARKI,
+	MENU_START_GAME_FPS,
     MENU_OPEN_EDITOR,   
     MENU_OPEN_SETTINGS, 
     MENU_EXIT_GAME
@@ -33,7 +34,7 @@ public:
         {
             // Title
             ImGui::SetWindowFontScale(2.0f);
-            const char* title = "ARKI BREAK";
+            const char* title = "ARKI ENGINE";
             float textW = ImGui::CalcTextSize(title).x;
             ImGui::SetCursorPosX((ImGui::GetWindowSize().x - textW) * 0.5f);
             ImGui::TextColored(ImVec4(1, 1, 0, 1), title);
@@ -42,7 +43,9 @@ public:
             ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing(); ImGui::Spacing();
 
             // --- BUTTONS ---
-            if (ImGui::Button("PLAY", ImVec2(-1, 45)))      result = MENU_START_GAME;
+            if (ImGui::Button("PLAY Arkanoid", ImVec2(-1, 45)))      result = MENU_START_GAME_ARKI;
+            ImGui::Spacing();
+            if (ImGui::Button("PLAY FPS", ImVec2(-1, 45)))      result = MENU_START_GAME_FPS;
             ImGui::Spacing();
 
             if (ImGui::Button("EDITOR", ImVec2(-1, 45))) result = MENU_OPEN_EDITOR;

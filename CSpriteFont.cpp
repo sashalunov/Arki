@@ -149,7 +149,20 @@ void CSpriteFont::DrawString(float startX, float startY, float maxWidth, const s
     // --- STEP 1: MEASURE THE TEXT ---
     float maxLineLength = 0.0f;
     float currentLineLength = 0.0f;
+    for (TCHAR charCode : text) 
+    {
+        if (m_chars.find(charCode) == m_chars.end()) continue;
+        CharDesc& cd = m_chars[charCode];
 
+        // CHECK: Did the page change?
+        if (m_currentPage != -1 && m_currentPage != cd.page) {
+            // We switched from Page 0 to Page 1.
+            // We MUST render what we have so far, then switch textures.
+            RenderBatch(m_pDev);
+        }
+    
+        m_currentPage = cd.page; // Update current page
+}
     for (wchar_t c : text) {
         if (c == '\n') {
             if (currentLineLength > maxLineLength) maxLineLength = currentLineLength;
@@ -293,7 +306,7 @@ void CSpriteFont::RenderBatch(IDirect3DDevice9* pDevice) {
     pDevice->SetTransform(D3DTS_WORLD, &matWorld);
 
     // Enable Alpha Blending for transparent text
-    pDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
+    //pDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
 	//pDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
     pDevice->SetRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
     pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
@@ -310,7 +323,7 @@ void CSpriteFont::RenderBatch(IDirect3DDevice9* pDevice) {
 
     // Draw everything in one call
     pDevice->DrawPrimitiveUP(D3DPT_TRIANGLELIST, (UINT)m_batchVertices.size() / 3, m_batchVertices.data(), sizeof(FontVertex3D));
-    pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
+    //pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
     //pDevice->SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
     //pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
     //pDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);

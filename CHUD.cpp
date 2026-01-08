@@ -57,6 +57,7 @@ void CHUD::Render(IDirect3DDevice9* device, CSpriteBatch* spriteBatch,   float h
     D3DXMATRIX matIdentity;
     D3DXMatrixIdentity(&matIdentity);
     device->SetTransform(D3DTS_VIEW, &matIdentity);
+    device->SetTransform(D3DTS_WORLD, &matIdentity);
 
     // --- STEP 3: Disable Z-Buffer ---
     // HUD must always draw ON TOP of the 3D world
@@ -82,7 +83,6 @@ void CHUD::Render(IDirect3DDevice9* device, CSpriteBatch* spriteBatch,   float h
     // --- DRAW FOREGROUND (Red Health) ---
     DrawProgressBar(spriteBatch, pixelX, pixelY, pixelW, pixelH, healthPercent, D3DCOLOR_ARGB(255, 255, 50, 50), true);
 
-
     spriteBatch->End();
 
     std::wstring scoreText = L"Score: " + std::to_wstring(score);
@@ -94,17 +94,19 @@ void CHUD::Render(IDirect3DDevice9* device, CSpriteBatch* spriteBatch,   float h
 
     m_font->DrawString(m_screenWidth*0.80f, m_screenHeight*0.05f, m_screenWidth*0.1f, scoreText, D3DCOLOR_ARGB(255, 155, 255, 255));
 
-    m_font->RenderBatch(device);
-
-
+	m_font->RenderBatch(device);
     // --- STEP 5: Draw Text ---
     // D3DXFont handles its own Sprite batching internally
    // DrawTextStr(scoreText, m_screenWidth - 150, 50, D3DCOLOR_XRGB(255, 255, 0));
 
     // --- STEP 6: Restore 3D State ---
+    device->SetTexture(0, NULL);
+
     device->SetRenderState(D3DRS_ZENABLE, TRUE);
-    device->SetTransform(D3DTS_PROJECTION, &matProjOld);
     device->SetTransform(D3DTS_VIEW, &matViewOld);
+    device->SetTransform(D3DTS_PROJECTION, &matProjOld);
+    device->SetTransform(D3DTS_WORLD, &matIdentity);
+
 }
 
 void CHUD::DrawProgressBar(CSpriteBatch* batch, float x, float y,  float w, float h, float percentage, D3DCOLOR color, bool isVertical)

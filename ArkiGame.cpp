@@ -54,6 +54,7 @@ ArkiGame::ArkiGame()
 	mouseDeltaY = 0;
 
 	m_bspLevel = NULL;
+	m_fpsPlayer = NULL;
 }
 
 // ------------------------------------------------------------------------------------
@@ -106,6 +107,8 @@ bool ArkiGame::Init()
     m_currentLevel->GenerateMathLevel(21, 21);
 	p = m_currentLevel->m_currentParams;
     m_player = new CArkiPlayer(g_dynamicsWorld, d3d9->GetDevice(), D3DXVECTOR3(0, -16, 0));
+    g_HUD = new CHUD();
+    g_HUD->Init(d3d9->GetDevice(), m_font, 1280, 720);
 
     DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
     #if defined( DEBUG ) || defined( _DEBUG )
@@ -168,8 +171,6 @@ bool ArkiGame::Init()
     xau->LoadSoundFromMemory("jump", GenerateJumpSound());
     xau->LoadSoundFromMemory("ding", GenerateMetallicDing());
 
-	g_HUD = new CHUD();
-    g_HUD->Init(d3d9->GetDevice(),m_font, 1280, 720);
 
     m_bulletManager = new CBulletManager(g_dynamicsWorld);
 	m_spawner = new CEnemySpawner(g_dynamicsWorld, m_bulletManager, m_pTeapotMesh);
@@ -180,6 +181,8 @@ bool ArkiGame::Init()
         _log(L"Failed to load room1 obj!\n");
         return false;
 	}
+	m_fpsPlayer = new CFPSPlayer();
+	m_fpsPlayer->Init(g_dynamicsWorld, m_pCam0, btVector3(5, 1, 20));
 
     SetRenderStateDefaults();
 
@@ -217,13 +220,6 @@ void ArkiGame::Run()
     fDeltaTime = (double)fFrameTime / 1000.0f;
 
 	Update(fDeltaTime);
-
-	if (m_isEditorMode)
-		ProcessEditorInput(fDeltaTime);
-	else
-        ProcessGameInput(fDeltaTime);
-
-
 	Render(fDeltaTime);
 
     // Reset accumulators
@@ -237,9 +233,33 @@ void ArkiGame::Run()
 void ArkiGame::Update(double dt)
 {
     if (m_isPaused) return;
-    // Clamp huge spikes (e.g. if you dragged the window or hit a breakpoint)
-    if (fDeltaTime > MAX_FRAME_TIME) fDeltaTime = MAX_FRAME_TIME;
+    
+    switch (m_gameState)
+    {
+    case STATE_MENU:
+        break;
+    case STATE_PLAYING_ARKI:
+        ProcessArkiInput(dt);
+        break;
+    case STATE_PLAYING_FPS:
+        ProcessFPSInput(dt);
+        break;
+    case STATE_PAUSED:
+        break;
+    case STATE_EDITOR:
+        ProcessEditorInput(dt);
+        break;
+    case STATE_SETTINGS:
+        break;
+    case STATE_LEVEL_COMPLETE:
+        break;
+    default:
+        break;
+    }
 
+    // Clamp huge spikes (e.g. if you dragged the window or hit a breakpoint)
+    if (fDeltaTime > MAX_FRAME_TIME) 
+        fDeltaTime = MAX_FRAME_TIME;
     // Add to accumulator
     g_accumulator += fDeltaTime;
     // Consume accumulator in fixed chunks
@@ -249,7 +269,6 @@ void ArkiGame::Update(double dt)
         FixedUpdate(FIXED_DT);
         g_accumulator -= FIXED_DT;
     }
-
 }
 
 void ArkiGame::UpdateWalls(double dt)
@@ -305,15 +324,8 @@ void ArkiGame::UpdateWalls(double dt)
 // ------------------------------------------------------------------------------------
 void ArkiGame::FixedUpdate(double fixedDeltaTime)
 {
-    // Bullet Physics
-    // We pass '1' as maxSubSteps because we are manually controlling the loop 
-    // using our accumulator. We force Bullet to take exactly one step of fixedDeltaTime.
     UpdateWalls(fixedDeltaTime);
-
-    if (g_dynamicsWorld) {
-        g_dynamicsWorld->stepSimulation((btScalar)fixedDeltaTime, 1, (btScalar)fixedDeltaTime);
-    }
-
+    if (g_dynamicsWorld) g_dynamicsWorld->stepSimulation((btScalar)fixedDeltaTime, 1, (btScalar)fixedDeltaTime);
     // 1. UPDATE LOOP
     for (int i = 0; i < (int)m_sceneObjects.size(); i++)
     {
@@ -334,21 +346,18 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
         }
     }
 
-
     // Update Logic / Particles
     if (emmiter1) emmiter1->Update((float)fixedDeltaTime);
     if (eb) eb->Update((float)fixedDeltaTime);
     if (es) es->Update((float)fixedDeltaTime);
-
-	if(m_bulletManager)m_bulletManager->Update(fixedDeltaTime);
+	if (m_spawner)m_spawner->Update(fixedDeltaTime, m_player->GetPosition());
+	if (m_bulletManager)m_bulletManager->Update(fixedDeltaTime);
 	if (m_player) m_player->Update((float)fixedDeltaTime, m_inputLeft, m_inputRight);
 	if (m_currentLevel) m_currentLevel->Update();
     // Update Enemies
     for (auto e : m_enemies) {
         e->Update(fixedDeltaTime);
     }
-
-	if (m_spawner)m_spawner->Update(fixedDeltaTime, m_player->GetPosition());
 
     CheckCollisions(g_dynamicsWorld);
 
@@ -384,9 +393,8 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
         }
     }
 
-
 	m_pCam0->Update(fixedDeltaTime);
-    //m_leftWall->Animate(dt, 10.0f);
+   
     // Update Time Accumulators for Tweens
     tweenElapsedTime += fixedDeltaTime;
     // Calculate progress based on the fixed accumulation
@@ -409,6 +417,7 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
 // ------------------------------------------------------------------------------------
 void ArkiGame::Shutdown()
 {
+    SAFE_DELETE(m_fpsPlayer);
 	SAFE_DELETE(m_bspLevel);
 	SAFE_DELETE(g_HUD);
     SAFE_DELETE(m_spawner);
@@ -627,6 +636,8 @@ BOOL ArkiGame::ResetDevice()
 // ------------------------------------------------------------------------------------
 void ArkiGame::RenderGUI()
 {
+
+    char m_debugString[64];
     const char* formulaItems[] = {
     "Rings",                // 0
     "Waves",                // 1
@@ -643,6 +654,8 @@ void ArkiGame::RenderGUI()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
     //ImGui::ShowDemoWindow(); // Show demo window! :)
+
+	sprintf(m_debugString, "FPS: %.2f", ImGui::GetIO().Framerate);
     ImGui::Begin("Debug Tools");
     //ImGui::SetWindowFontScale(2.0f);
     ImGui::SetNextWindowSize(ImVec2(-1, -1), ImGuiCond_Always);
@@ -740,23 +753,35 @@ void ArkiGame::RenderGUI()
             m_isPaused = true;
 
             MenuResult res = m_mainMenu->Render();
-            if (res == MENU_START_GAME)    
+            if (res == MENU_START_GAME_ARKI)    
             {
-                m_gameState = STATE_PLAYING;
+                m_gameState = STATE_PLAYING_ARKI;
                 m_isPaused = false;
 				m_isEditorMode = false;
+                m_isFPSMode = false;
+
 			}
+            if (res == MENU_START_GAME_FPS)
+            {
+                m_gameState = STATE_PLAYING_FPS;
+                m_isPaused = false;
+                m_isEditorMode = false;
+				m_isFPSMode = true;
+            }
+
             if (res == MENU_OPEN_EDITOR)
             {
                 m_gameState = STATE_EDITOR;
 				m_isEditorMode = true;
                 m_isPaused = false;
+                m_isFPSMode = false;
+
             }
             if (res == MENU_OPEN_SETTINGS) m_gameState = STATE_SETTINGS;
             if (res == MENU_EXIT_GAME)     PostQuitMessage(0);
             break;
         }
-        case STATE_PLAYING:
+        case STATE_PLAYING_ARKI || STATE_PLAYING_FPS:
         {
             if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) m_gameState = STATE_PAUSED;
             
@@ -785,7 +810,7 @@ void ArkiGame::RenderGUI()
                     ImGui::Separator();
 
                     if (ImGui::Button("RESUME", ImVec2(-1, 45))) { 
-                        m_gameState = STATE_PLAYING; 
+                        //m_gameState = STATE_PLAYING; 
                         ImGui::CloseCurrentPopup();
                         m_isPaused = false;
                     }
@@ -884,11 +909,91 @@ void ArkiGame::RenderEditorScene()
     if(g_gizmo)g_gizmo->Render(d3d9->GetDevice());
 
 }
+
+void ArkiGame::RenderFPSGameScene()
+{
+    D3DXMATRIXA16 matWorld, matRot, matScale, matTrans;
+
+    D3DMATERIAL9 sphereMaterial;
+    InitMaterialS(sphereMaterial, 1.0f, 1.0f, 0.5f, 0.5f);
+    d3d9->GetDevice()->SetMaterial(&sphereMaterial);
+
+    m_val = (float)tween.peek();
+    D3DXMatrixIdentity(&matWorld);
+    D3DXMatrixIdentity(&matRot);
+    D3DXMatrixRotationY(&matRot, m_val);
+    d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+
+    D3DXMatrixTranslation(&matWorld, 22, 10, 0);
+    D3DXMatrixMultiply(&matWorld, &matRot, &matWorld);
+    //d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+    //m_pTeapotMesh->Render(m_pSkybox->GetTexture(), m_pSkybox->GetRotationY());
+
+    D3DXMatrixTranslation(&matWorld, 22, 8, 0);
+    D3DXMatrixMultiply(&matWorld, &matRot, &matWorld);
+    //d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+    //m_pSkullMesh->Render(m_pSkybox->GetTexture(), m_pSkybox->GetRotationY());
+
+    D3DXMatrixTranslation(&matWorld, 0, 1, 0);
+    D3DXMatrixMultiply(&matWorld, &matRot, &matWorld);
+    //d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+    //m_pBodyMesh->Render(m_pSkybox->GetTexture(), m_pSkybox->GetRotationY());
+
+    D3DXVECTOR3 camPos = D3DXVECTOR3((FLOAT)m_pCamEditor->GetPosition().x(), (FLOAT)m_pCamEditor->GetPosition().y(), (FLOAT)m_pCamEditor->GetPosition().z());
+    if (m_bspLevel)m_bspLevel->Render(d3d9->GetDevice(), camPos);
+
+}
+
+void ArkiGame::RenderArkiGameScene()
+{
+    d3d9->GetDevice()->SetRenderState(D3DRS_FOGENABLE, TRUE);
+    d3d9->GetDevice()->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_EXP2);
+    d3d9->GetDevice()->SetRenderState(D3DRS_FOGCOLOR, D3DCOLOR_XRGB(15, 55, 255));
+    d3d9->GetDevice()->SetRenderState(D3DRS_FOGSTART, *(DWORD*)(&fFogStart));
+    d3d9->GetDevice()->SetRenderState(D3DRS_FOGEND, *(DWORD*)(&fFogEnd));
+    d3d9->GetDevice()->SetRenderState(D3DRS_FOGDENSITY, *(DWORD*)(&fFogDensity));
+
+    for (auto obj : m_sceneObjects)
+    {
+        obj->Render(d3d9->GetDevice());
+    }
+
+    for (auto& cliff : m_rightWalls)
+    {
+        cliff->Render(d3d9->GetDevice());
+    }
+    for (auto& cliff : m_leftWalls)
+    {
+        cliff->Render(d3d9->GetDevice());
+    }
+    d3d9->GetDevice()->SetRenderState(D3DRS_FOGENABLE, FALSE);
+    // m_ball->Render(d3d9->GetDevice(), m_pSkybox->GetTexture(), m_pCam0->GetViewMatrix(), m_pSkybox->GetRotationY());
+    m_bulletManager->Render(d3d9->GetDevice());
+    m_currentLevel->Render(d3d9->GetDevice(), m_font, NULL, m_pSkybox->GetRotationX());
+    m_font->RenderBatch(d3d9->GetDevice());
+
+    m_player->Render(m_pSkybox, m_pCam0->GetViewMatrix());
+    m_spawner->Render(d3d9->GetDevice());
+
+    for (auto& powerup : m_powerups)
+    {
+        powerup->Render(d3d9->GetDevice(), m_font, m_pSkybox->GetTexture(), m_pSkybox->GetRotationX());
+    }
+    for (auto& ftext : m_ftext)
+    {
+        if (ftext)ftext->Render(m_font);
+    }
+    d3d9->GetDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
+    m_font->RenderBatch(d3d9->GetDevice());
+    d3d9->GetDevice()->SetRenderState(D3DRS_ZENABLE, TRUE);
+
+}
+
 // ------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------
 void ArkiGame::Render(double dt)
 { 
-    D3DXMATRIXA16 matWorld, matRot, matScale, matTrans;
+    D3DXMATRIXA16 matWorld;
     HRESULT hr = d3d9->GetDevice()->TestCooperativeLevel();
     if (hr == D3DERR_DEVICELOST)
     {
@@ -910,126 +1015,54 @@ void ArkiGame::Render(double dt)
     d3d9->GetDevice()->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_ARGB(255, 0, 90, 90), 1.0f, 0L);
     if (SUCCEEDED(d3d9->GetDevice()->BeginScene()))
     {
+        m_pCam0->Render(d3d9->GetDevice());
+        m_pSkybox->DrawSkybox(d3d9->GetDevice(), m_pCam0->GetViewMatrix(), fDeltaTime);
+        xau->SetListenerPos(m_pCam0->GetPosition());
+        d3d9->GetDevice()->LightEnable(0, TRUE);
+        d3d9->GetDevice()->SetRenderState(D3DRS_LIGHTING, TRUE);
 
-        if (m_isEditorMode) 
+        switch(m_gameState)
         {
-
-            RenderEditorScene();
-
-        }
-        else
-        {
-            m_pCam0->Render(d3d9->GetDevice());
-            m_pSkybox->DrawSkybox(d3d9->GetDevice(), m_pCam0->GetViewMatrix(), fDeltaTime);
-            xau->SetListenerPos(m_pCam0->GetPosition());
-
-            D3DXMatrixIdentity(&matWorld);
-            d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
-
-            d3d9->GetDevice()->SetTexture(0, NULL);
-            d3d9->GetDevice()->LightEnable(0, TRUE);
-            d3d9->GetDevice()->SetRenderState(D3DRS_LIGHTING, TRUE);
-
-            float fFogStart = 48.0f;
-            float fFogEnd = 64.0f;
-            float fFogDensity = 0.006f;
-
-            d3d9->GetDevice()->SetRenderState(D3DRS_FOGENABLE, TRUE);
-            d3d9->GetDevice()->SetRenderState(D3DRS_FOGTABLEMODE, D3DFOG_EXP2);
-            d3d9->GetDevice()->SetRenderState(D3DRS_FOGCOLOR, D3DCOLOR_XRGB( 15, 55, 255));
-            d3d9->GetDevice()->SetRenderState(D3DRS_FOGSTART, *(DWORD*)(&fFogStart));
-            d3d9->GetDevice()->SetRenderState(D3DRS_FOGEND, *(DWORD*)(&fFogEnd));
-            d3d9->GetDevice()->SetRenderState(D3DRS_FOGDENSITY, *(DWORD*)(&fFogDensity));
-
-
-            for (auto obj : m_sceneObjects)
-            {
-                obj->Render(d3d9->GetDevice());
-            }
-
-            for (auto& cliff : m_rightWalls)
-            {
-                cliff->Render(d3d9->GetDevice());
-            }
-            for (auto& cliff : m_leftWalls)
-            {
-                cliff->Render(d3d9->GetDevice());
-            }
-            d3d9->GetDevice()->SetRenderState(D3DRS_FOGENABLE, FALSE);
-
-            D3DMATERIAL9 sphereMaterial;
-            InitMaterialS(sphereMaterial, 1.0f, 1.0f, 0.5f, 0.5f);
-            d3d9->GetDevice()->SetMaterial(&sphereMaterial);
-
-            m_val = (float)tween.peek();
-            D3DXMatrixIdentity(&matWorld);
-            D3DXMatrixIdentity(&matRot);
-            D3DXMatrixRotationY(&matRot, m_val);
-
-            D3DXMatrixTranslation(&matWorld, 22, 10, 0);
-            D3DXMatrixMultiply(&matWorld, &matRot, &matWorld);
-            d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
-            //m_pTeapotMesh->Render(m_pSkybox->GetTexture(), m_pSkybox->GetRotationY());
-
-            D3DXMatrixTranslation(&matWorld, 22, 8, 0);
-            D3DXMatrixMultiply(&matWorld, &matRot, &matWorld);
-            d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
-            //m_pSkullMesh->Render(m_pSkybox->GetTexture(), m_pSkybox->GetRotationY());
-
-            D3DXMatrixTranslation(&matWorld, 0, 1, 0);
-            D3DXMatrixMultiply(&matWorld, &matRot, &matWorld);
-            d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
-            //m_pBodyMesh->Render(m_pSkybox->GetTexture(), m_pSkybox->GetRotationY());
-
-           // m_ball->Render(d3d9->GetDevice(), m_pSkybox->GetTexture(), m_pCam0->GetViewMatrix(), m_pSkybox->GetRotationY());
-            m_bulletManager->Render(d3d9->GetDevice());
-            m_currentLevel->Render(d3d9->GetDevice(), m_font, NULL, m_pSkybox->GetRotationX());
-            m_player->Render(m_pSkybox, m_pCam0->GetViewMatrix());
-            m_spawner->Render(d3d9->GetDevice());
-
-            for (auto e : m_enemies) {
+            case STATE_PLAYING_ARKI:
+                m_pCam0->fovY = D3DX_PI / 4.0f;
+                RenderArkiGameScene();
+                break;
+            case STATE_PLAYING_FPS:
+				m_pCam0->fovY = 90.0f;
+                RenderArkiGameScene();
+                RenderFPSGameScene();
+                break;
+			case STATE_EDITOR:
+                RenderEditorScene();
+				break;
+            default:
+                break;
+		}
+       
+            /*for (auto e : m_enemies) {
 				e->Render(d3d9->GetDevice());
-            }
+            }*/
 
             D3DXMatrixIdentity(&matWorld);
             d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
-
-
-            for (auto& powerup : m_powerups)
-            {
-                powerup->Render(d3d9->GetDevice(), m_font, m_pSkybox->GetTexture(), m_pSkybox->GetRotationX());
-            }
-            m_font->RenderBatch(d3d9->GetDevice());
-
             float healthPercent = (1.0f / m_player->m_maxHealth) * m_player->m_health;
-
             if (g_HUD)g_HUD->Render(d3d9->GetDevice(), m_sbatch, healthPercent, 14343);
 
-            if (m_sbatch && m_pfxdraw)
-            {
-                m_sbatch->Begin(m_pCam0->GetViewMatrix(), SORT_BACK_TO_FRONT);
-                {
-                    // Draw something with sprite batch
-                    m_sbatch->Draw(m_radialTex, btVector3(0, 1, 0));
+            //if (m_sbatch )
+            //{
+            //    m_sbatch->Begin(m_pCam0->GetViewMatrix(), SORT_BACK_TO_FRONT);
+            //    {
+            //        // Draw something with sprite batch
+            //        m_sbatch->Draw(m_radialTex, btVector3(0, 1, 0));
 
-                    emmiter1->Render(m_sbatch, m_radialTex);
-                    eb->Render(m_sbatch, m_radialTex);
-                    es->Render(m_sbatch, m_radialTex);
-                }
-                m_sbatch->End();
-            }
-
-            for (auto& ftext : m_ftext)
-            {
-                if(ftext)ftext->Render(m_font);
-            }
-
-
-        }
-        //// 1. Get the raw vertex data from the emitter
-        //eb->GetRenderData(renderBuffer);
-        //// 2. Pass that data to your renderer
-        //pr->Draw(eb->GetRenderData());
+            //        //emmiter1->Render(m_sbatch, m_radialTex);
+            //        //eb->Render(m_sbatch, m_radialTex);
+            //        //es->Render(m_sbatch, m_radialTex);
+            //    }
+            //    m_sbatch->End();
+            //}
+   
+        
 
         if (m_debugdraw)
         {
@@ -1043,17 +1076,19 @@ void ArkiGame::Render(double dt)
             btVector3 from(vNear.x, vNear.y, vNear.z);
             btVector3 to(vFar.x, vFar.y, vFar.z);
             g_dynamicsWorld->getDebugDrawer()->drawLine(from, to, btVector3(1, 0, 0)); // Red Line
-        
+            D3DXMatrixIdentity(&matWorld);
+            d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
+
         }
 
         d3d9->GetDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
         RenderGUI();
         d3d9->GetDevice()->SetRenderState(D3DRS_ZENABLE, TRUE);
 
+
         d3d9->GetDevice()->EndScene(); 
     }
     hr = d3d9->GetDevice()->Present(0, 0, 0, 0);
-
 }
 
 void ArkiGame::ProcessEditorInput(double dt)
@@ -1088,8 +1123,6 @@ void ArkiGame::ProcessEditorInput(double dt)
             //m_pCamEditor->Zoom(mouseDeltaX * 1.002f, mouseDeltaY * 1.002f);
 			scrollAmount += mouseDeltaY * 0.1002f;
         }
-
-
     }
     else
     {
@@ -1195,30 +1228,17 @@ void ArkiGame::ProcessEditorInput(double dt)
     }
     // Zoom in/out
     m_pCamEditor->Zoom(scrollAmount * 2.0f); // Multiplier for speed
-
+    
 }
 
-void ArkiGame::ProcessGameInput(double dt)
+void ArkiGame::ProcessArkiInput(double dt)
 {
 	static bool spaceWasPressed = false;
     float moveSpeed = 15.0f * (float)dt;
 
-    if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
-        m_pCam0->RotateFPS(-mouseDeltaY * 0.002f, -mouseDeltaX * 0.002f);
-
-    }
-
-    //cam0->RotateLocal(-mouseDeltaY * 0.002f, -mouseDeltaX * 0.002f, 0);
-    // Keyboard Movement
-    if (GetAsyncKeyState('W') & 0x8000) m_pCam0->MoveLocal(moveSpeed, 0, 0);
-    if (GetAsyncKeyState('S') & 0x8000) m_pCam0->MoveLocal(-moveSpeed, 0, 0);
-    if (GetAsyncKeyState('A') & 0x8000) m_pCam0->MoveLocal(0, -moveSpeed, 0);
-    if (GetAsyncKeyState('D') & 0x8000) m_pCam0->MoveLocal(0, moveSpeed, 0);
-    if ( GetAsyncKeyState(VK_LEFT) & 0x8000) m_inputLeft = true;
-	else m_inputLeft = false;
-    if (GetAsyncKeyState(VK_RIGHT) & 0x8000) m_inputRight = true;
-    else m_inputRight = false;
-
+     m_inputLeft = ( GetAsyncKeyState(VK_LEFT) & 0x8000) || (GetAsyncKeyState('A') & 0x8000);
+     m_inputRight = ( GetAsyncKeyState(VK_RIGHT) & 0x8000) || (GetAsyncKeyState('D') & 0x8000);
+    
     bool spacePressed = (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
 
     if (spacePressed && !spaceWasPressed)
@@ -1246,17 +1266,28 @@ void ArkiGame::ProcessGameInput(double dt)
     }
 	spaceWasPressed = spacePressed;
     //if(isBallActive && GetAsyncKeyState(VK_SPACE))
-    {
+    //{
 	//	m_player->Shoot();
-
-
-    }
-    // Fly Up/Down
-    //if (GetAsyncKeyState(VK_SPACE) & 0x8000)   m_pCam0->MoveLocal(0, 0, moveSpeed);
-    //if (GetAsyncKeyState(VK_CONTROL) & 0x8000) m_pCam0->MoveLocal(0, 0, -moveSpeed);
-
+    //}
 }
+void ArkiGame::ProcessFPSInput(double dt)
+{
+    static bool spaceWasPressed = false;
+    float moveSpeed = 15.0f * (float)dt;
 
+    //if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
+        m_pCam0->RotateFPS(-mouseDeltaY * 0.002f, -mouseDeltaX * 0.002f);
+
+    //}
+
+        if (m_fpsPlayer)m_fpsPlayer->Update(dt);
+    // Keyboard Movement
+    //if (GetAsyncKeyState('W') & 0x8000) m_pCam0->MoveLocal(moveSpeed, 0, 0);
+    //if (GetAsyncKeyState('S') & 0x8000) m_pCam0->MoveLocal(-moveSpeed, 0, 0);
+    //if (GetAsyncKeyState('A') & 0x8000) m_pCam0->MoveLocal(0, -moveSpeed, 0);
+    //if (GetAsyncKeyState('D') & 0x8000) m_pCam0->MoveLocal(0, moveSpeed, 0);
+  
+}
 // ------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------
 void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
@@ -1628,27 +1659,6 @@ bool ArkiGame::RaycastFromMouse(int mouseX, int mouseY, btVector3& outHitPoint, 
     }
 
     return false;
-}
-
-void ArkiGame::AddCube(btDiscreteDynamicsWorld* dynamicsWorld, IDirect3DDevice9* device)
-{
-    // 1. Create Graphics Mesh
-    //ID3DXMesh* mesh;
-    //D3DXCreateBox(device, 2, 2, 2, &mesh, NULL);
-
-    //// 2. Create Physics Body
-    //btCollisionShape* shape = new btBoxShape(btVector3(1, 1, 1));
-    //btDefaultMotionState* motionState = new btDefaultMotionState(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 5, 0)));
-    //btScalar mass = 1.0f;
-    //btVector3 inertia(0, 0, 0);
-    //shape->calculateLocalInertia(mass, inertia);
-    //btRigidBody* body = new btRigidBody(mass, motionState, shape, inertia);
-
-    //dynamicsWorld->addRigidBody(body);
-
-    // 3. Create Wrapper
-    //CRigidBody* obj = new CRigidBody(body, mesh);
-   // m_sceneObjects.push_back(obj);
 }
 
 void ArkiGame::RenderObjectProperties()

@@ -13,12 +13,24 @@ Ni 1.00
 newmtl lambert3SG
 illum 4
 Kd 1.00 1.00 1.00
-Ka 2.91 15.00 0.00
+Ka 4.08 21.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl lambert4SG
+illum 4
+Kd 0.50 0.50 0.16
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl lambert5SG
+illum 4
+Kd 0.00 0.17 0.95
+Ka 0.00 0.00 0.00
 Tf 1.00 1.00 1.00
 Ni 1.00
 newmtl light_pink1
 illum 4
 Kd 0.50 0.50 0.50
-Ka 15.00 1.00 11.90
+Ka 25.00 0.00 19.52
 Tf 1.00 1.00 1.00
 Ni 1.00

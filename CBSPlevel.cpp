@@ -315,36 +315,7 @@ void CBSPlevel::Render(IDirect3DDevice9* device, const D3DXVECTOR3& cameraPos)
     device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
     device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
     device->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE); // 'DIFFUSE' here means Vertex Color
-    //device->SetFVF(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1);
-    //// Create a temporary vertex buffer
-    //IDirect3DVertexBuffer9* pVB = NULL;
-    //if (FAILED(device->CreateVertexBuffer((int)mObjVertices.size() * sizeof(OBJVertex),D3DUSAGE_WRITEONLY,
-    //    D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX0,D3DPOOL_MANAGED,&pVB,NULL))) 
-    //{
-    //    _log(L"Failed to create vertex buffer for OBJ rendering.\n");
-    //    return;
-    //}
-    //// Fill the vertex buffer
-    //void* pVertices = NULL;
-    //if (SUCCEEDED(pVB->Lock(0, (int)mObjVertices.size() * sizeof(OBJVertex), &pVertices, 0))) 
-    //{
-    //    memcpy(pVertices, mObjVertices.data(), (int)mObjVertices.size() * sizeof(OBJVertex));
-    //    pVB->Unlock();
-    //} 
-    //else 
-    //{
-    //    _log(L"Failed to lock vertex buffer for rendering.\n");
-    //    pVB->Release();
-    //    return;
-    //}
-    //// Set the vertex buffer
-    //device->SetStreamSource(0, pVB, 0, sizeof(OBJVertex));
-    //// Draw the points
-    //device->DrawPrimitive(D3DPT_TRIANGLELIST, 0, (int)mObjVertices.size());
-    //// Cleanup
-    //pVB->Release();
-    // 
-    // Start recursion from Root (Node 0)
+   
     if (!nodePool.empty()) 
     {
         RenderBSP(device, 0, cameraPos, 0, 2);
@@ -538,14 +509,28 @@ OBJVertex CBSPlevel::LerpVertex(const OBJVertex& v1, const OBJVertex& v2, float 
     out.z = v1.z + (v2.z - v1.z) * t;
 
     // 2. Normal (Normalize after lerp is technically better, but lerp is fine for BSP)
-    out.nx = v1.nx + (v2.nx - v1.nx) * t;
-    out.ny = v1.ny + (v2.ny - v1.ny) * t;
-    out.nz = v1.nz + (v2.nz - v1.nz) * t;
-    D3DXVECTOR3 n(out.nx, out.ny, out.nz);
-    D3DXVec3Normalize(&n, &n);
-    out.nx = n.x; out.ny = n.y; out.nz = n.z;
+    //out.nx = v1.nx + (v2.nx - v1.nx) * t;
+    //out.ny = v1.ny + (v2.ny - v1.ny) * t;
+    //out.nz = v1.nz + (v2.nz - v1.nz) * t;
+    D3DXVECTOR3 n;
+    n.x = v1.nx + v2.nx;
+    n.y = v1.ny + v2.ny;
+    n.z = v1.nz + v2.nz;
+    float lenSq = D3DXVec3LengthSq(&n);
+    //// 2. Only normalize if length is valid (not close to zero)
+    if (lenSq > 0.1f)
+    {
+        D3DXVec3Normalize(&n, &n);
+    }
+    else
+    {
+        n = D3DXVECTOR3(v1.nx, v1.ny, v1.nz);
+    }
+    out.nx = n.x; 
+    out.ny = n.y; 
+    out.nz = n.z;
 
-    D3DXCOLOR cout;
+    D3DXCOLOR cout(1,1,1,1);
     D3DXColorLerp(&cout,
         (D3DXCOLOR*)&v1.color,
         (D3DXCOLOR*)&v2.color,
@@ -627,6 +612,7 @@ void CBSPlevel::Split(const D3DXPLANE& plane, const BSPTriangle& inTri, std::vec
         // Fan Triangulation: Connect vertex 0 to i and i+1
         for (size_t i = 1; i < frontPoly.size() - 1; i++) {
             BSPTriangle newTri;
+			newTri.matIndex = inTri.matIndex;
             newTri.v[0] = frontPoly[0];
             newTri.v[1] = frontPoly[i];
             newTri.v[2] = frontPoly[i + 1];
@@ -638,6 +624,7 @@ void CBSPlevel::Split(const D3DXPLANE& plane, const BSPTriangle& inTri, std::vec
     if (backPoly.size() >= 3) {
         for (size_t i = 1; i < backPoly.size() - 1; i++) {
             BSPTriangle newTri;
+            newTri.matIndex = inTri.matIndex;
             newTri.v[0] = backPoly[0];
             newTri.v[1] = backPoly[i];
             newTri.v[2] = backPoly[i + 1];
@@ -807,7 +794,7 @@ float CBSPlevel::CalculateFormFactor(const RADPATCH& src, const RADPATCH& dest)
     D3DXVECTOR3 startPos = src.center + (src.normal * 0.05f);
 
     // B. End slightly before the Dest surface (0.1 units total) to avoid hitting the destination.
-    float checkLength = dist - 0.1f;
+    float checkLength = dist - 0.001f;
 
     // C. Perform the BSP Raycast
     if (checkLength > 0.0f)
@@ -863,7 +850,7 @@ void CBSPlevel::PrepareRadiosity()
             float y = ((rand() % 2000) / 1000.0f) - 1.0f;
             float z = ((rand() % 2000) / 1000.0f) - 1.0f;
             v = D3DXVECTOR3(x, y, z);
-        } while (D3DXVec3LengthSq(&v) > 1.0f || D3DXVec3LengthSq(&v) < 0.001f); // Rejection
+        } while (D3DXVec3LengthSq(&v) > 1.0f || D3DXVec3LengthSq(&v) < 0.01f); // Rejection
 
         D3DXVec3Normalize(&v, &v);
         m_randomDirTable.push_back(v);
@@ -888,7 +875,7 @@ void CBSPlevel::PrepareRadiosity()
             D3DXVECTOR3 p2(tri.v[2].x, tri.v[2].y, tri.v[2].z);
 
             patch.area = CalculateArea(p0, p1, p2);
-            if (patch.area <= 0.001f) continue; // Skip degenerate/tiny slivers
+            //if (patch.area <= 0.0001f) continue; // Skip degenerate/tiny slivers
 
             patch.center = (p0 + p1 + p2) / 3.0f;
 
@@ -897,6 +884,7 @@ void CBSPlevel::PrepareRadiosity()
             D3DXVECTOR3 e2 = p2 - p0;
             D3DXVec3Cross(&patch.normal, &e1, &e2);
             D3DXVec3Normalize(&patch.normal, &patch.normal);
+			//patch.normal = D3DXVECTOR3(tri.v[1].nx, tri.v[1].ny, tri.v[1].nz);
 
             // Helper Lambda to setup a patch
             auto CreatePatch = [&](D3DXVECTOR3 no, D3DXVECTOR3 co, bool isBackFace)
@@ -925,7 +913,7 @@ void CBSPlevel::PrepareRadiosity()
                         else
                         {
                             autopatch.emission = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
-                            autopatch.reflectivity = D3DXCOLOR(0.5f, 0.5f, 0.5f, 1.0f); // White wall
+                            autopatch.reflectivity = D3DXCOLOR(0.0f, 1.0f, 0.0f, 1.0f); // White wall
                         }
                     }
                     // B. Initialize Energy
@@ -1016,50 +1004,7 @@ BOOL CBSPlevel::RunRadiosityIteration()
 
     return TRUE; // Continue iterating
 }
-//
-//BOOL CBSPlevel::RadIteration()
-//{
-//    int PatchIndex = FindBrightestPatch();
-//    if (PatchIndex == -1)
-//        return FALSE;
-//
-//    RADPATCH* src = &m_patches[PatchIndex];
-//
-//    if (src->intensity < 0.001f)
-//        return FALSE;
-//
-//    float FormFactor;
-//    D3DXVECTOR3 vDeltaRad;
-//
-//    for (UINT i = 0; i < m_patches.size(); i++)
-//    {
-//        RADPOLY* dest = &m_vRPolys[i];
-//
-//        if (PatchIndex == i)continue;
-//
-//        FormFactor = CalcFactor(dest, src);
-//
-//        if (FormFactor <= 1e-6f) continue; // Use epsilon, not hard 0.0f
-//       
-//        // Compute the energy being sent from src to dest
-//        vDeltaRad = src->deltaRad * dest->reflect * FormFactor;
-//
-//        dest->radiosity += vDeltaRad;// *6;
-//        dest->deltaRad += vDeltaRad;
-//
-//        dest->intensity = dest->area * (dest->deltaRad.x + dest->deltaRad.y + dest->deltaRad.z);
-//
-//    }
-//
-//    // this patch has shot out all of its engergy.
-//    src->deltaRad = D3DXVECTOR3(0, 0, 0);
-//    src->intensity = 0;
-//    //src->reflect = 0;
-//    //if (src->radiosity.x > 1.0f)src->radiosity.x = 1.0f;
-//    //if (src->radiosity.y > 1.0f)src->radiosity.y = 1.0f;
-//    //if (src->radiosity.z > 1.0f)src->radiosity.z = 1.0f;
-//	return TRUE;
-//}
+
 void CBSPlevel::ApplyRadiosityToMesh()
 {
     // Map to store sum of colors for every unique vertex
@@ -1120,6 +1065,33 @@ void CBSPlevel::ApplyRadiosityToMesh()
             }
         }
     }
+	// sharp shading for debugging
+    //for (const auto& patch : m_patches)
+    //{
+    //    // 1. SKIP VIRTUAL BACK PATCHES
+    //    // Since they don't exist in the real mesh, we can't color them.
+    //    if (patch.triIndex == -1) continue;
+
+    //    // 2. Retrieve the actual triangle from the BSP Tree
+    //    if (patch.nodeIndex >= nodePool.size()) continue;
+    //    BSPNode& node = nodePool[patch.nodeIndex];
+
+    //    if (patch.triIndex >= node.members.size()) continue;
+    //    BSPTriangle& tri = node.members[patch.triIndex];
+
+    //    // 2. Tone Mapping (Reinhard: c / (1 + c)) to handle high dynamic range
+    //    D3DXVECTOR3 finalColor = patch.accumulated;
+    //    finalColor.x = finalColor.x / (1.0f + finalColor.x);
+    //    finalColor.y = finalColor.y / (1.0f + finalColor.y);
+    //    finalColor.z = finalColor.z / (1.0f + finalColor.z);
+
+    //    // 3. Convert to DWORD ARGB
+    //    D3DCOLOR c = D3DCOLOR_COLORVALUE(finalColor.x, finalColor.y, finalColor.z, 1.0f);
+    //    // ...
+    //    tri.v[0].color = c;
+    //    tri.v[1].color = c;
+    //    tri.v[2].color = c;
+    //}
 }
 
 // --------------------------------------------------------------------------
@@ -1137,7 +1109,7 @@ bool CBSPlevel::RayCastAny(const D3DXVECTOR3& start, const D3DXVECTOR3& dir, flo
 
 bool CBSPlevel::CheckNodeVisibility(int nodeIndex,  const D3DXVECTOR3& start, const D3DXVECTOR3& end)
 {
-    const float EPSILON = 0.001f;
+    const float EPSILON = 0.00001f;
 
     // 1. Safety / Empty Check
     if (nodeIndex == -1) return false;
@@ -1155,8 +1127,9 @@ bool CBSPlevel::CheckNodeVisibility(int nodeIndex,  const D3DXVECTOR3& start, co
             D3DXVECTOR3 v1(tri.v[1].x, tri.v[1].y, tri.v[1].z);
             D3DXVECTOR3 v2(tri.v[2].x, tri.v[2].y, tri.v[2].z);
 
-            //float u, v, dist;
+            float u, v, dist;
             // Use your DoubleSided intersection if you have it, otherwise D3DXIntersectTri
+            //if (IntersectTriDoubleSided(start, dir,  v0, v1, v2, dist, u,v))
             if (IntersectTriangleShadow(start, dir, rayLen + EPSILON, v0, v1, v2))
             {
                 // Check if hit is strictly between Start and End
@@ -1238,22 +1211,22 @@ void CBSPlevel::AddHemisphereLight(const D3DXCOLOR& skyColor, float intensity, i
             // 1. Get Random Direction
             D3DXVECTOR3 dir = GetRandomHemisphereVector(patch.normal);
             // 2. Raycast (Offset start slightly to avoid self-intersection)
-            D3DXVECTOR3 start = patch.center + (patch.normal * 0.05f);
+            D3DXVECTOR3 start = patch.center + (patch.normal * 0.005f);
 
             // Use your BSP Optimized RayCast
             if (!RayCastAny(start, dir, skyDist))
             {
-                D3DXCOLOR sampleColor;
+                D3DXCOLOR sampleColor = D3DXCOLOR(0,0,0,1);
                 // HIT SKY!
                 // Determine color based on Y direction of the ray
                 // dir.y = 1.0 is straight up, dir.y = -1.0 is straight down
-               /* if (dir.y > 0.0f) {
+                /*if (dir.y > 0.0f) {
                     sampleColor = skyColor;
                 }
                 else {
                     sampleColor = D3DXCOLOR(0.00f, 0.00f, 0.00f, 0.0f);
                 }*/
-                D3DXCOLOR groundColor = D3DXCOLOR(0.99f, 0.00f, 0.00f, 0.0f);
+                D3DXCOLOR groundColor = D3DXCOLOR(0.99f, 0.00f, 0.00f, 1.0f);
                 float t = 0.5f * (dir.y + 1.0f); // Map -1...1 to 0...1
                 sampleColor.r = groundColor.r + t * (skyColor.r - groundColor.r);
                 sampleColor.g = groundColor.g + t * (skyColor.g - groundColor.g);

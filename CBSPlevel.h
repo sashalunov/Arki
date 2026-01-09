@@ -24,6 +24,11 @@ struct SmoothKey
         if (fabs(ny - o.ny) > 0.1f) return ny < o.ny;
         return nz < o.nz;
     }
+    SmoothKey()
+        {
+        x = y = z = 0.0f;
+        nx = ny = nz = 0.0f;
+	}
 };
 
 struct ColorAccumulator
@@ -43,7 +48,9 @@ struct ColorAccumulator
 };
 
 // 1. Define a simple struct to avoid D3DX overhead in the loop
-struct Point { float x, y, z; };
+struct Point { 
+    float x=0, y=0, z=0; 
+};
 
 // 2. Inline this helper to calculate distance from plane
 // Plane equation: Ax + By + Cz + D = 0
@@ -121,7 +128,7 @@ inline bool IntersectTriangleShadow(
     const D3DXVECTOR3& orig, const D3DXVECTOR3& dir, float maxDist,
     const D3DXVECTOR3& v0, const D3DXVECTOR3& v1, const D3DXVECTOR3& v2)
 {
-    const float EPSILON = 0.000001f;
+    const float EPSILON = 0.00001f;
     D3DXVECTOR3 edge1 = v1 - v0;
     D3DXVECTOR3 edge2 = v2 - v0;
     D3DXVECTOR3 pvec;
@@ -164,9 +171,14 @@ enum eSide
 };
 struct BSPMaterial
 {
-    D3DXCOLOR diffuse;  // Kd
-    D3DXCOLOR emissive; // Ke
-    float     power;    // Optional intensity multiplier
+    D3DXCOLOR diffuse = D3DXCOLOR(0.5f,0.5f,0.5f,1.0f);  // Kd
+    D3DXCOLOR emissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f); // Ke
+    float     power = 0;    // Optional intensity multiplier
+    BSPMaterial() {
+        diffuse = D3DXCOLOR(0.5f, 0.5f, 0.5f, 1.0f);
+        emissive = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+        power = 0.0f;
+    }
 };
 struct OBJVertex 
 {
@@ -174,6 +186,13 @@ struct OBJVertex
     float nx, ny, nz;
     DWORD color;
     float u, v;
+    OBJVertex()
+        {
+        x = y = z = 0.0f;
+        nx = ny = nz = 0.0f;
+        color = 0xFFFFFFFF; // Default white
+        u = v = 0.0f;
+	    }
 };
 #define FVF_OBJVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX0)
 
@@ -215,7 +234,7 @@ struct RADPATCH
 {
     // Geometry
     D3DXVECTOR3 center;
-    D3DXVECTOR3 normal;
+    D3DXVECTOR3 normal = D3DXVECTOR3(0, 1, 0);
     float       area = 0;
 
     // Material (0.0 to 1.0)
@@ -229,6 +248,18 @@ struct RADPATCH
     // LINKING: Where does this patch live in the BSP Tree?
     int nodeIndex = 0; // Index in nodePool
     int triIndex = 0;  // Index in nodePool[nodeIndex].members vector
+    RADPATCH() 
+    {
+        center = D3DXVECTOR3(0,0,0);
+        normal = D3DXVECTOR3(0,1,0);
+        area = 0.0f;
+        reflectivity = D3DXCOLOR(0.5f,0.5f,0.5f,1.0f);
+        emission = D3DXCOLOR(0,0,0,0);
+        accumulated = D3DXVECTOR3(0,0,0);
+        unshot = D3DXVECTOR3(0,0,0);
+        nodeIndex = -1;
+        triIndex = -1;
+    }
 };
 
 

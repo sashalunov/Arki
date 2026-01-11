@@ -12,11 +12,11 @@ CEnemySpawner::CEnemySpawner(btDiscreteDynamicsWorld* world, CBulletManager* man
     m_timeBetweenWaves = 3.0f; // 3 Seconds rest between waves
     // --- DEFINE YOUR LEVELS HERE ---
     // Wave 1: 5 Enemies in a Grid, simple Sine movement
-    //m_waves.push_back({ 5, FORM_GRID, STATE_ATTACK, 1.0f });
+    m_waves.push_back({ 5, FORM_GRID, STATE_ATTACK, 1.0f });
     // Wave 2: 7 Enemies in V-Shape, ZigZag movement
-    m_waves.push_back({ 5, FORM_V_SHAPE, STATE_ATTACK, 1.0f }); // STATE_ATTACK maps to ZigZag if randomized
+    m_waves.push_back({ 5, FORM_V_SHAPE, STATE_ATTACK, 1.3f }); // STATE_ATTACK maps to ZigZag if randomized
     // Wave 3: 8 Enemies in a Circle, Spiral movement
-    //m_waves.push_back({ 8, FORM_CIRCLE, STATE_RETREAT, 1.5f });
+    m_waves.push_back({ 8, FORM_CIRCLE, STATE_RETREAT, 2.5f });
 }
 
 CEnemySpawner::~CEnemySpawner() 

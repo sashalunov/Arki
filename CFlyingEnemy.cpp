@@ -30,7 +30,8 @@ CFlyingEnemy::CFlyingEnemy(btDiscreteDynamicsWorld* world, CBulletManager* manag
     m_pBody = new btRigidBody(0, ms, shape);
     m_pBody->setCollisionFlags(m_pBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
     m_pBody->setActivationState(DISABLE_DEACTIVATION);
-    m_pBody->setUserPointer(this);
+    PhysicsData* pData = new PhysicsData{ TYPE_ENEMY, this };
+    m_pBody->setUserPointer(pData);
     world->addRigidBody(m_pBody, COL_ENEMY, COL_BALL | COL_POWERUP);
 
     // Initial State
@@ -38,7 +39,10 @@ CFlyingEnemy::CFlyingEnemy(btDiscreteDynamicsWorld* world, CBulletManager* manag
 }
 
 CFlyingEnemy::~CFlyingEnemy() {
+
     if (m_pBody) {
+        if (m_pBody->getUserPointer()) delete (PhysicsData*)m_pBody->getUserPointer();
+
         m_pWorld->removeRigidBody(m_pBody);
         delete m_pBody->getMotionState();
         delete m_pBody;

@@ -350,7 +350,6 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     if (emmiter1) emmiter1->Update((float)fixedDeltaTime);
     if (eb) eb->Update((float)fixedDeltaTime);
     if (es) es->Update((float)fixedDeltaTime);
-	if (m_spawner)m_spawner->Update(fixedDeltaTime, m_player->GetPosition());
 	if (m_bulletManager)m_bulletManager->Update(fixedDeltaTime);
 	if (m_player) m_player->Update((float)fixedDeltaTime, m_inputLeft, m_inputRight);
 	if (m_currentLevel) m_currentLevel->Update();
@@ -364,6 +363,7 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
     // 4. Cleanup (Actually delete the bullets now that physics is done using them)
     if (m_player) m_player->CleanupBullets(); 
     if (m_currentLevel) m_currentLevel->CleanupBlocks();
+    if (m_spawner)m_spawner->Update(fixedDeltaTime, m_player->GetPosition());
 
     CArkiPowerup* ap = NULL;
     // Update Powerups (Check bounds)
@@ -1318,6 +1318,8 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
         PhysicsData* ballData = nullptr;
         PhysicsData* blockData = nullptr;
         PhysicsData* playerData = nullptr;
+        PhysicsData* enemyData = nullptr;
+
         PhysicsData* playerBulletData = nullptr;
         PhysicsData* enemyBulletData = nullptr;
         PhysicsData* wallData = nullptr;
@@ -1334,7 +1336,10 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
 
         if (dataA->type == TYPE_PLAYER) playerData = dataA;
         if (dataB->type == TYPE_PLAYER) playerData = dataB;
-         
+
+        if (dataA->type == TYPE_ENEMY) enemyData = dataA;
+        if (dataB->type == TYPE_ENEMY) enemyData = dataB;
+
         if (dataA->type == TYPE_PLAYER_BULLET) playerBulletData = dataA;
         if (dataB->type == TYPE_PLAYER_BULLET) playerBulletData = dataB;
 
@@ -1344,8 +1349,19 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
         if (dataA->type == TYPE_POWERUP) powerupData = dataA;
         if (dataB->type == TYPE_POWERUP) powerupData = dataB;
 
+        // --- SCENARIO : Ball hit enemy ---
+        if (ballData && enemyData)
+        {
+            CFlyingEnemy* pEne = (CFlyingEnemy*)enemyData->pObject;
+            CArkiBall* pBall = (CArkiBall*)ballData->pObject;
 
-        // --- SCENARIO 1: Ball hit Block ---
+            if (!pEne->m_isDead)
+            {
+                pEne->m_isDead = true;
+            }
+        }
+
+        // --- SCENARIO : Ball hit Block ---
         if (ballData && blockData)
         {
             CArkiBlock* pBlock = (CArkiBlock*)blockData->pObject;

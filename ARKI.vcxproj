@@ -197,6 +197,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ArkiGame.h" />
+    <ClInclude Include="BezierTessellator.h" />
     <ClInclude Include="BulletManager.h" />
     <ClInclude Include="CArkiBall.h" />
     <ClInclude Include="CArkiBomb.h" />
@@ -214,10 +215,12 @@
     <ClInclude Include="CFPSPlayer.h" />
     <ClInclude Include="CGizmo.h" />
     <ClInclude Include="CGrid.h" />
+    <ClInclude Include="CHL1BSP.h" />
     <ClInclude Include="CHUD.h" />
     <ClInclude Include="CMainMenu.h" />
     <ClInclude Include="COrbitCamera.h" />
     <ClInclude Include="CParticleSystem.h" />
+    <ClInclude Include="CQ3BSP.h" />
     <ClInclude Include="CQuatCamera.h" />
     <ClInclude Include="CRigidBody.h" />
     <ClInclude Include="CSkybox.h" />
@@ -228,14 +231,18 @@
     <ClInclude Include="D3DRender.h" />
     <ClInclude Include="EmbeddedAssets.h" />
     <ClInclude Include="EnemySpawner.h" />
+    <ClInclude Include="HL1BSPStructures.h" />
+    <ClInclude Include="HL1WADStructures.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="midi.h" />
     <ClInclude Include="MovementStrategy.h" />
+    <ClInclude Include="Q3BSPStructures.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Sounds.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="TextureTools.h" />
     <ClInclude Include="XMesh.h" />
     <ClInclude Include="CRibbonRenderer.h" />
@@ -249,6 +256,7 @@
     <ClCompile Include="..\tools\imgui-1.92.5\imgui_tables.cpp" />
     <ClCompile Include="..\tools\imgui-1.92.5\imgui_widgets.cpp" />
     <ClCompile Include="ArkiGame.cpp" />
+    <ClCompile Include="BezierTessellator.cpp" />
     <ClCompile Include="BulletManager.cpp" />
     <ClCompile Include="CArkiBall.cpp" />
     <ClCompile Include="CArkiBomb.cpp" />
@@ -262,9 +270,11 @@
     <ClCompile Include="CFlyingEnemy.cpp" />
     <ClCompile Include="CFPSPlayer.cpp" />
     <ClCompile Include="CGrid.cpp" />
+    <ClCompile Include="CHL1BSP.cpp" />
     <ClCompile Include="CHUD.cpp" />
     <ClCompile Include="COrbitCamera.cpp" />
     <ClCompile Include="CParticleSystem.cpp" />
+    <ClCompile Include="CQ3BSP.cpp" />
     <ClCompile Include="CQuatCamera.cpp" />
     <ClCompile Include="CRigidBody.cpp" />
     <ClCompile Include="CSkybox.cpp" />
@@ -285,6 +295,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TextureManager.cpp" />
     <ClCompile Include="XMesh.cpp" />
     <ClCompile Include="СRibbonRenderer.cpp" />
   </ItemGroup>

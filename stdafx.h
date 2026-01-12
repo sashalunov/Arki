@@ -54,9 +54,9 @@ inline bool IsZero(float val, float epsilon = 0.001f) {
 	return std::abs(val) <= epsilon;
 }
 // Helper: Opens a Windows file picker (Wide String Version)
-std::wstring OpenFileDialog(HWND owner);
+std::wstring OpenFileDialog(HWND owner, LPCWSTR filter = L"Arki Level\0*.txt;*.lvl\0All\0*.*\0");
 // Helper: Opens a Windows "Save As" file picker (Wide String Version)
-std::wstring SaveFileDialog(HWND owner);
+std::wstring SaveFileDialog(HWND owner, LPCWSTR filter = L"Arki Level\0*.txt;*.lvl\0All\0*.*\0");
 
 // Helper: Converts Wide String to UTF-8 (ImGui format)
 // We use a static buffer so the pointer remains valid long enough for ImGui to draw it.

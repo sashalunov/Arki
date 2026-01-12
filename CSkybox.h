@@ -93,11 +93,14 @@ public:
 
 	CSkybox::CSkybox()
         : m_fCurrentRotationX(0.0f)
-        , m_fRotationSpeed(-0.01f) // Example: 0.01 radians per second (approx 0.57 degrees/sec)
-    {}
+        , m_fRotationSpeed(-0.01f)
+        , g_pSkyboxTexture(NULL)// Example: 0.01 radians per second (approx 0.57 degrees/sec)
+    {
+    }
     CSkybox::CSkybox(IDirect3DDevice9* pd3dDevice, TCHAR* skyboxTexturePath)
         : m_fCurrentRotationX(0.0f)
         , m_fRotationSpeed(-0.01f) // Example: 0.01 radians per second (approx 0.57 degrees/sec)
+        , g_pSkyboxTexture(NULL)
     {
         // Initialize Skybox Texture from file
         HRESULT hr = InitSkyboxTexture(pd3dDevice, skyboxTexturePath);
@@ -110,9 +113,10 @@ public:
         hr = InitSkyboxGeometry(pd3dDevice);
 	}   
 
-    CSkybox::~CSkybox() {
-        if (g_pSkyboxTexture) g_pSkyboxTexture->Release(); // DX9 Cleanup
-        if (g_pSkyboxVB) g_pSkyboxVB->Release();
+    CSkybox::~CSkybox() 
+    {
+        SAFE_RELEASE(g_pSkyboxTexture); // DX9 Cleanup
+        SAFE_RELEASE(g_pSkyboxVB);
     }
     void DrawSkybox(IDirect3DDevice9* pd3dDevice, D3DXMATRIX matView, double deltaTime);
 

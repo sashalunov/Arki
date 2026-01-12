@@ -8,7 +8,7 @@ CFPSPlayer::CFPSPlayer()
     m_pWorld = nullptr;
     m_pCamera = nullptr;
 
-    m_speed = 2.0f;       // Running speed
+    m_speed = 5.0f;       // Running speed
     m_jumpForce = 3.0f;   // Upward velocity
     m_eyeHeight = 0.6f;   // Eyes are slightly above center of capsule
 }

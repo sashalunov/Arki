@@ -181,6 +181,14 @@ public:
         m_pBody->getMotionState()->getWorldTransform(trans);
         return D3DXVECTOR3((FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), (FLOAT)trans.getOrigin().getZ());
     }
+    void SetPosition(D3DXVECTOR3 v)
+    {
+        btTransform transform;
+        transform.setIdentity();
+        transform.setOrigin(btVector3(v.x, v.y, v.z));
+        btDefaultMotionState* motionState = new btDefaultMotionState(transform);
+		m_pBody->setMotionState(motionState);
+    }
 
     void Render(CSkybox* sky, D3DXMATRIXA16 view)
     {
@@ -209,7 +217,7 @@ public:
         }
     }
 
-    void OnDeviceLost()
+    void OnLostDevice()
     {
         for (auto* ball : m_balls)
         {
@@ -217,7 +225,7 @@ public:
         }
 	}
 
-    void OnDeviceReset()
+    void OnResetDevice()
     {
         for (auto* ball : m_balls)
         {

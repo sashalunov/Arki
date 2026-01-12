@@ -77,7 +77,7 @@ float NebulaNoise(D3DXVECTOR3 p)
 
 
 // Helper: Opens a Windows file picker (Wide String Version)
-std::wstring OpenFileDialog(HWND owner = NULL)
+std::wstring OpenFileDialog(HWND owner = NULL, LPCWSTR filter)
 {
     OPENFILENAMEW ofn;       // Wide structure
     wchar_t szFile[260];     // Wide buffer
@@ -92,7 +92,7 @@ std::wstring OpenFileDialog(HWND owner = NULL)
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = L'\0';
     ofn.nMaxFile = sizeof(szFile) / sizeof(wchar_t); // Size in WCHARs
-    ofn.lpstrFilter = L"Arki Level\0*.txt;*.lvl\0All\0*.*\0"; // Wide string literals
+    ofn.lpstrFilter = filter; // Wide string literals
     ofn.nFilterIndex = 1;
     ofn.lpstrFileTitle = NULL;
     ofn.nMaxFileTitle = 0;
@@ -107,7 +107,7 @@ std::wstring OpenFileDialog(HWND owner = NULL)
 }
 
 // Helper: Opens a Windows "Save As" file picker (Wide String Version)
-std::wstring SaveFileDialog(HWND owner = NULL)
+std::wstring SaveFileDialog(HWND owner = NULL, LPCWSTR filter)
 {
     OPENFILENAMEW ofn;
     wchar_t szFile[260];
@@ -120,7 +120,7 @@ std::wstring SaveFileDialog(HWND owner = NULL)
     ofn.lpstrFile = szFile;
     ofn.lpstrFile[0] = L'\0';
     ofn.nMaxFile = sizeof(szFile) / sizeof(wchar_t);
-    ofn.lpstrFilter = L"Arki Level\0*.txt;*.lvl\0All\0*.*\0";
+    ofn.lpstrFilter = filter;
     ofn.nFilterIndex = 1;
     ofn.lpstrDefExt = L"txt";
 

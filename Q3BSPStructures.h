@@ -1,0 +1,228 @@
+#pragma once
+#pragma pack(push, 1)
+//==============================================================================
+//  .BSP file format
+//==============================================================================
+#define BSP_IDENT	(('P'<<24)+('S'<<16)+('B'<<8)+'I')
+#define BSP_VERSION			46
+
+#define	MAX_MAP_MODELS				0x400
+#define	MAX_MAP_BRUSHES			0x8000
+#define	MAX_MAP_ENTITIES			0x800
+#define	MAX_MAP_ENTSTRING		0x40000
+#define	MAX_MAP_SHADERS			0x400
+
+#define	MAX_MAP_AREAS				0x100
+#define	MAX_MAP_FOGS					0x100
+#define	MAX_MAP_PLANES				0x20000
+#define	MAX_MAP_NODES				0x20000
+#define	MAX_MAP_BRUSHSIDES		0x20000
+#define	MAX_MAP_LEAFS				0x20000
+#define	MAX_MAP_LEAFFACES		0x20000
+#define	MAX_MAP_LEAFBRUSHES	0x40000
+#define	MAX_MAP_PORTALS			0x20000
+#define	MAX_MAP_LIGHTING			0x800000
+#define	MAX_MAP_LIGHTGRID		0x800000
+#define	MAX_MAP_VISIBILITY			0x200000
+
+#define	MAX_MAP_DRAW_SURFS	0x20000
+#define	MAX_MAP_DRAW_VERTS	0x80000
+#define	MAX_MAP_DRAW_INDEXES	0x80000
+
+#define	MAX_KEY				32
+#define	MAX_VALUE			1024
+#define MAX_QPATH			64
+
+#define	ANGLE_UP			-1
+#define	ANGLE_DOWN			-2
+
+#define	LIGHTMAP_WIDTH		128
+#define	LIGHTMAP_HEIGHT		128
+
+#define MIN_WORLD_COORD ( -65536 )
+#define	MAX_WORLD_COORD	( 65536 )
+#define WORLD_SIZE		( MAX_WORLD_COORD - MIN_WORLD_COORD )
+
+//==============================================================================
+struct lump_t
+{
+	int		fileofs, filelen;
+};
+
+#define	LUMP_ENTITIES		0
+#define	LUMP_SHADERS		1
+#define	LUMP_PLANES			2
+#define	LUMP_NODES			3
+#define	LUMP_LEAFS			4
+#define	LUMP_LEAFSURFACES	5
+#define	LUMP_LEAFBRUSHES	6
+#define	LUMP_MODELS			7
+#define	LUMP_BRUSHES		8
+#define	LUMP_BRUSHSIDES		9
+#define	LUMP_DRAWVERTS		10
+#define	LUMP_DRAWINDEXES	11
+#define	LUMP_FOGS			12
+#define	LUMP_SURFACES		13
+#define	LUMP_LIGHTMAPS		14
+#define	LUMP_LIGHTGRID		15
+#define	LUMP_VISIBILITY		16
+#define	HEADER_LUMPS		17
+
+struct dheader_t
+{
+	int			ident;
+	int			version;
+
+	lump_t		lumps[HEADER_LUMPS];
+};
+
+struct dmodel_t
+{
+	float		mins[3], maxs[3];
+	int			firstSurface, numSurfaces;
+	int			firstBrush, numBrushes;
+};
+
+struct dshader_t
+{
+	char		shader[MAX_QPATH];
+	int			surfaceFlags;
+	int			contentFlags;
+};
+
+
+struct dplane_t
+{
+	float		normal[3];
+	float		dist;
+};
+
+struct dnode_t
+{
+	int			planeNum;
+	int			children[2];	// negative numbers are -(leafs+1), not nodes
+	int			mins[3];		// for frustom culling
+	int			maxs[3];
+};
+
+struct dleaf_t
+{
+	int			cluster;			// -1 = opaque cluster (do I still store these?)
+	int			area;
+	int			mins[3];			// for frustum culling
+	int			maxs[3];
+	int			firstLeafSurface;
+	int			numLeafSurfaces;
+	int			firstLeafBrush;
+	int			numLeafBrushes;
+};
+
+struct dbrushside_t
+{
+	int			planeNum;			// positive plane side faces out of the leaf
+	int			shaderNum;
+};
+
+struct dbrush_t
+{
+	int			firstSide;
+	int			numSides;
+	int			shaderNum;		// the shader that determines the contents flags
+};
+
+struct dfog_t
+{
+	char		shader[MAX_QPATH];
+	int			brushNum;
+	int			visibleSide;	// the brush side that ray tests need to clip against (-1 == none)
+};
+
+struct drawVert_t
+{
+	D3DXVECTOR3	xyz;
+	float		st[2];
+	float		lightmap[2];
+	D3DXVECTOR3	normal;
+	//DWORD		color;
+	BYTE		color[4];
+};
+
+enum mapSurfaceType_t
+{
+	MST_BAD,
+	MST_PLANAR,
+	MST_PATCH,
+	MST_TRIANGLE_SOUP,
+	MST_FLARE
+};
+
+struct dsurface_t
+{
+	int			shaderNum;
+	int			fogNum;
+	int			surfaceType;
+	int			firstVert;
+	int			numVerts;
+	int			firstIndex;
+	int			numIndexes;
+	int			lightmapNum;
+	int			lightmapX, lightmapY;
+	int			lightmapWidth, lightmapHeight;
+	D3DXVECTOR3 lightmapOrigin;
+	D3DXVECTOR3 lightmapVecs[3];
+	int			patchWidth;
+	int			patchHeight;
+};
+
+
+struct Q3BSPVertex
+{
+	D3DXVECTOR3 pos;
+	D3DXVECTOR3 normal;
+	DWORD       color;
+	float       uv0[2]; // Texture
+	float       uv1[2]; // Lightmap
+};
+// Flexible Vertex Format (FVF) description
+#define D3DFVF_Q3BSPVERTEX (D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX2)
+
+// Helper to track generated patch geometry
+struct PatchRenderInfo
+{
+	int originalSurfaceIndex; // Index into m_surfaces
+	int startIndex;           // Start index in m_pIB_Patch
+	int primitiveCount;       // Triangles count
+	int minVertIndex;         // Min vertex index (for optimization)
+	int numVerts;             // Num vertices used
+};
+
+// Represents a single entity (e.g., a spawn point or light)
+struct BSPEntity
+{
+	// Stores "classname"->"info_player_start", "origin"->"100 0 100", etc.
+	std::map<std::string, std::string> properties;
+
+	// Helper: Get value safely (returns empty string if missing)
+	std::string GetProp(const std::string& key) const
+	{
+		auto it = properties.find(key);
+		if (it != properties.end()) return it->second;
+		return "";
+	}
+
+	// Helper: Parse "origin" string "X Y Z" into D3DXVECTOR3
+	// Applies the same Scale and Swizzle as the world geometry so they match!
+	D3DXVECTOR3 GetOrigin(float scaleFactor = 0.01f) const
+	{
+		std::string val = GetProp("origin");
+		if (val.empty()) return D3DXVECTOR3(0, 0, 0);
+
+		float x, y, z;
+		sscanf_s(val.c_str(), "%f %f %f", &x, &y, &z);
+
+		// Apply Swizzle (Z-Up to Y-Up) and Scale
+		return D3DXVECTOR3(x * -scaleFactor, z * scaleFactor, y * scaleFactor);
+	}
+};
+
+#pragma pack(pop)

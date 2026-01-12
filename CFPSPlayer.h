@@ -29,4 +29,21 @@ public:
     void Render();
     // Get the raw body if needed
     btRigidBody* GetRigidBody() { return m_pBody; }
+
+    D3DXVECTOR3 GetPosition()
+    {
+        btTransform trans;
+        m_pBody->getMotionState()->getWorldTransform(trans);
+        return D3DXVECTOR3((FLOAT)trans.getOrigin().getX(), (FLOAT)trans.getOrigin().getY(), (FLOAT)trans.getOrigin().getZ());
+    }
+    void SetPosition(D3DXVECTOR3 v)
+    {
+        btTransform transform;
+        transform.setIdentity();
+        transform.setOrigin(btVector3(v.x, v.y, v.z));
+        btDefaultMotionState* motionState = new btDefaultMotionState(transform);
+        m_pBody->setMotionState(motionState);
+    }
+
+
 };

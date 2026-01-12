@@ -22,7 +22,11 @@
 #include "BulletManager.h"
 #include "CHUD.h"
 #include "CBSPlevel.h"
+#include "CQ3BSP.h"
+#include "CHL1BSP.h"
 #include "CFPSPlayer.h"
+#include "TextureManager.h"
+
 #include "tweeny.h"
 using tweeny::easing;
 
@@ -102,6 +106,9 @@ public:
     bool m_isFPSMode;
     float scrollAmount;
 private:
+	TextureManager* m_pTextureMgr;
+	CHL1BSP* m_phl1bsp;
+    CQ3BSP* m_pq3bsp;
 	CBSPlevel* m_bspLevel;
 	CFPSPlayer* m_fpsPlayer;
     LevelParams p;

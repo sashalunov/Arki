@@ -21,6 +21,11 @@ CBSPlevel::CBSPlevel()
     m_fProgress = 0.0f;
     m_bStopRequested = false;
     m_offset = btVector3(0, 0, 0);
+	m_pLevelObject = nullptr;
+	m_pdworld = nullptr;
+	m_pTriangleMesh = nullptr;
+	m_pCollisionShape = nullptr;
+
 }
 
 CBSPlevel::~CBSPlevel()
@@ -1447,10 +1452,10 @@ void CBSPlevel::InitPhysics(btDynamicsWorld* dynamicsWorld)
 
 void CBSPlevel::CleanupPhysics()
 {
-    if (m_pLevelObject) {
+    if (m_pdworld && m_pLevelObject) {
         m_pdworld->removeCollisionObject(m_pLevelObject);
         delete m_pLevelObject;
     }
-    delete m_pCollisionShape;
-    delete m_pTriangleMesh;
+    SAFE_DELETE( m_pCollisionShape);
+    SAFE_DELETE( m_pTriangleMesh);
 }

@@ -52,9 +52,11 @@ ArkiGame::ArkiGame()
 
     mouseDeltaX = 0;
 	mouseDeltaY = 0;
-
+    m_pq3bsp = NULL;
+	m_phl1bsp = NULL;
 	m_bspLevel = NULL;
 	m_fpsPlayer = NULL;
+	m_pTextureMgr = NULL;
 }
 
 // ------------------------------------------------------------------------------------
@@ -81,6 +83,8 @@ bool ArkiGame::Init()
 
     InitGUI();
     InitPhysics();
+
+	m_pTextureMgr = new TextureManager(d3d9->GetDevice());
 
     m_pCam0 = new CQuatCamera();
     m_pCam0->MoveLocal(-50, 0, 0);
@@ -176,11 +180,15 @@ bool ArkiGame::Init()
 	m_spawner = new CEnemySpawner(g_dynamicsWorld, m_bulletManager, m_pTeapotMesh);
 
 	m_bspLevel = new CBSPlevel();
-    if (!m_bspLevel->LoadOBJ(g_dynamicsWorld, ".\\room1a.obj"))
+    m_pq3bsp = new CQ3BSP();
+	m_phl1bsp = new CHL1BSP();
+	m_phl1bsp->SetTextureManager(m_pTextureMgr);
+
+   /* if (!m_bspLevel->LoadOBJ(g_dynamicsWorld, ".\\room1a.obj"))
     {
         _log(L"Failed to load room1 obj!\n");
         return false;
-	}
+	}*/
 	m_fpsPlayer = new CFPSPlayer();
 	m_fpsPlayer->Init(g_dynamicsWorld, m_pCam0, btVector3(5, 1, 20));
 
@@ -418,6 +426,8 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
 void ArkiGame::Shutdown()
 {
     SAFE_DELETE(m_fpsPlayer);
+	SAFE_DELETE(m_phl1bsp);
+    SAFE_DELETE(m_pq3bsp);
 	SAFE_DELETE(m_bspLevel);
 	SAFE_DELETE(g_HUD);
     SAFE_DELETE(m_spawner);
@@ -478,6 +488,7 @@ void ArkiGame::Shutdown()
         SAFE_DELETE(powerup);
     }
 
+    SAFE_DELETE(m_pTextureMgr);
 
     m_font->Shutdown();
     SAFE_DELETE( m_font);
@@ -589,9 +600,11 @@ void ArkiGame::ShutdownPhysics()
 void ArkiGame::OnLostDevice()
 {
 	g_HUD->OnLostDevice();
+	if (m_phl1bsp) m_phl1bsp->OnLostDevice();
+	if (m_pq3bsp)m_pq3bsp->OnLostDevice();
 	if (m_grid)m_grid->OnLostDevice();
 	if (m_sbatch)m_sbatch->OnLostDevice();
-	if (m_player) m_player->OnDeviceLost();
+	if (m_player) m_player->OnLostDevice();
     //if (pFont)pFont->OnLostDevice();
     //if (g_pEffect)g_pEffect->OnLostDevice();
     //SAFE_RELEASE(g_pDSShadow);
@@ -607,7 +620,9 @@ void ArkiGame::OnResetDevice()
     //HRESULT hr;
 	if(m_grid)m_grid->OnResetDevice();
 	if (m_sbatch)m_sbatch->OnResetDevice();
-    if (m_player) m_player->OnDeviceReset();
+    if (m_player) m_player->OnResetDevice();
+	if (m_pq3bsp) m_pq3bsp->OnResetDevice();
+	if (m_phl1bsp) m_phl1bsp->OnResetDevice();
 
     SetRenderStateDefaults();
 
@@ -637,7 +652,7 @@ BOOL ArkiGame::ResetDevice()
 void ArkiGame::RenderGUI()
 {
 
-    char m_debugString[64];
+    //char m_debugString[64];
     const char* formulaItems[] = {
     "Rings",                // 0
     "Waves",                // 1
@@ -655,66 +670,70 @@ void ArkiGame::RenderGUI()
     ImGui::NewFrame();
     //ImGui::ShowDemoWindow(); // Show demo window! :)
 
-	sprintf(m_debugString, "FPS: %.2f", ImGui::GetIO().Framerate);
+	//sprintf(m_debugString, "FPS: %.2f", ImGui::GetIO().Framerate);
     ImGui::Begin("Debug Tools");
     //ImGui::SetWindowFontScale(2.0f);
     ImGui::SetNextWindowSize(ImVec2(-1, -1), ImGuiCond_Always);
     ImGui::Text("FPS: %.3f fps", ImGui::GetIO().Framerate);
 	ImGui::Text("Player pos: %.3f %.3f %.3f", m_player->GetPosition().x, m_player->GetPosition().y, m_player->GetPosition().z);
-    // "Formula"      = Label displayed next to box
-    // formulaItems   = The array of strings defined above
-    // IM_ARRAYSIZE   = Helper macro to get array count automatically
-    if (ImGui::Combo("Formula Type", &currentSelection, formulaItems, IM_ARRAYSIZE(formulaItems)))
+
+    if (ImGui::CollapsingHeader("ARKANOID"))
     {
-        // 3. Update the struct ONLY if the user changed the value
-        p.formulaType = currentSelection;
-        m_currentLevel->UpdateParameters(p);
-        // Optional: Auto-set recommended scales if formula changes
-        if (p.formulaType == FORMULA_MANDELBROT) { // Mandelbrot
-            p.scaleX = 3.0f / p.cols;
-            p.scaleY = 2.5f / p.rows;
-        }
-        else if (p.formulaType == FORMULA_SIERPINSKI_CARPET) 
+        // "Formula"      = Label displayed next to box
+        // formulaItems   = The array of strings defined above
+        // IM_ARRAYSIZE   = Helper macro to get array count automatically
+        if (ImGui::Combo("Formula Type", &currentSelection, formulaItems, IM_ARRAYSIZE(formulaItems)))
         {
-            p.scaleX = 1.0f;
-            p.scaleY = 1.0f;
+            // 3. Update the struct ONLY if the user changed the value
+            p.formulaType = currentSelection;
+            m_currentLevel->UpdateParameters(p);
+            // Optional: Auto-set recommended scales if formula changes
+            if (p.formulaType == FORMULA_MANDELBROT) { // Mandelbrot
+                p.scaleX = 3.0f / p.cols;
+                p.scaleY = 2.5f / p.rows;
+            }
+            else if (p.formulaType == FORMULA_SIERPINSKI_CARPET)
+            {
+                p.scaleX = 1.0f;
+                p.scaleY = 1.0f;
+            }
+            else
+            {
+                p.scaleX = (rand() % 5 + 3) / 10.0f;
+                p.scaleY = (rand() % 5 + 3) / 10.0f;
+            }
         }
-		else
-        {
-            p.scaleX = (rand() % 5 + 3) / 10.0f;
-            p.scaleY = (rand() % 5 + 3) / 10.0f;
+        if (ImGui::Button("Level Generate")) {
+            //ResetDevice(); 
+           // p = LevelParams::Random(20, 20, p.formulaType);
+            // Create a random recipe
+            m_currentLevel->GenerateMathLevel(p);
         }
-    }
-    if (ImGui::Button("Level Generate")) {
-        //ResetDevice(); 
-       // p = LevelParams::Random(20, 20, p.formulaType);
-        // Create a random recipe
-		m_currentLevel->GenerateMathLevel(p);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Randomize Seed")) {
-        p.seed = rand();
-		m_currentLevel->UpdateParameters(p);
-        m_currentLevel->GenerateMathLevel(p);
-    }
-    // --------------------------------------------------------
-    // OTHER CONTROLS
-    // --------------------------------------------------------
-    ImGui::DragInt("Rows", &m_currentLevel->m_currentParams.rows, 1, 5, 100);
-    ImGui::DragInt("Cols", &m_currentLevel->m_currentParams.cols, 1, 5, 100);
+        ImGui::SameLine();
+        if (ImGui::Button("Randomize Seed")) {
+            p.seed = rand();
+            m_currentLevel->UpdateParameters(p);
+            m_currentLevel->GenerateMathLevel(p);
+        }
+        // --------------------------------------------------------
+        // OTHER CONTROLS
+        // --------------------------------------------------------
+        ImGui::DragInt("Rows", &m_currentLevel->m_currentParams.rows, 1, 5, 100);
+        ImGui::DragInt("Cols", &m_currentLevel->m_currentParams.cols, 1, 5, 100);
 
-    ImGui::DragInt("Offset X", &m_currentLevel->m_currentParams.offsetX, 1, -15, 15);
-    ImGui::DragInt("Offset Y", &m_currentLevel->m_currentParams.offsetY, 1, -15, 15);
+        ImGui::DragInt("Offset X", &m_currentLevel->m_currentParams.offsetX, 1, -15, 15);
+        ImGui::DragInt("Offset Y", &m_currentLevel->m_currentParams.offsetY, 1, -15, 15);
 
-    // Sliders allow fine control for your Zoom/Scale
-    ImGui::SliderFloat("Scale X", &m_currentLevel->m_currentParams.scaleX, 0.01f, 2.0f);
-    ImGui::SliderFloat("Scale Y", &m_currentLevel->m_currentParams.scaleY, 0.01f, 2.0f);
+        // Sliders allow fine control for your Zoom/Scale
+        ImGui::SliderFloat("Scale X", &m_currentLevel->m_currentParams.scaleX, 0.01f, 2.0f);
+        ImGui::SliderFloat("Scale Y", &m_currentLevel->m_currentParams.scaleY, 0.01f, 2.0f);
 
-    // Random Seeds are usually big integers, so DragInt is best
-    ImGui::DragInt("Seed", &m_currentLevel->m_currentParams.seed);
-   
-    if (ImGui::Button("Clean level")) {
-		m_currentLevel->ClearLevel();
+        // Random Seeds are usually big integers, so DragInt is best
+        ImGui::DragInt("Seed", &m_currentLevel->m_currentParams.seed);
+
+        if (ImGui::Button("Clean level")) {
+            m_currentLevel->ClearLevel();
+        }
     }
     if (ImGui::Button("Save ...")) {
         //emmiter1->SaveConfig("config.json");
@@ -726,10 +745,45 @@ void ArkiGame::RenderGUI()
     //    //eb->Spawn(512, D3DXVECTOR3(0, 0, 0), 10, 60.0f);
     //    //mymesh->SaveAsOBJ("bodyl_save.obj");
     //}
-    if (ImGui::Button("Load ...")) {
-        //emmiter1->SaveConfig("config.json");
-        //eb->Spawn(512, D3DXVECTOR3(0, 0, 0),10, 60.0f);
-        //mymesh->SaveAsOBJ("bodyl_save.obj");
+    if (ImGui::Button("Load Quake3 BSP")) {
+		std::wstring filepath = OpenFileDialog(d3d9->GetHWND(), L".bsp\0*.bsp\0");
+		m_pq3bsp->Load( g_dynamicsWorld ,filepath);
+        // 1. Iterate entities
+        for (const auto& ent : m_pq3bsp->GetEntities())
+        {
+            // 2. Check classname
+            if (ent.GetProp("classname") == "info_player_deathmatch")
+            {
+                // 3. Get Origin (Automatically scaled and swizzled to match your world)
+                D3DXVECTOR3 spawnPos = ent.GetOrigin(m_pq3bsp->SCALE_FACTOR); // Use same scale as InitGraphics
+
+                // Set Camera
+                m_fpsPlayer->SetPosition(spawnPos);
+                break;
+            }
+        }
+    }
+    if (ImGui::Button("Load HL1 BSP")) {
+        std::wstring filepath = OpenFileDialog(d3d9->GetHWND(), L".bsp\0*.bsp\0");
+        m_phl1bsp->Load(g_dynamicsWorld, filepath);
+        // 1. Iterate entities
+        for (const auto& ent : m_phl1bsp->GetEntities())
+        {
+            if (ent.Get("classname") == "info_player_start")
+            {
+                // 1. Get Raw Coords (X, Y, Z)
+                D3DXVECTOR3 raw = ent.GetVector("origin");
+
+                // 2. Apply Scale and Swizzle (Z-Up -> Y-Up)
+                float x = raw.x * m_phl1bsp->SCALE_FACTOR;
+                float y = raw.z * m_phl1bsp->SCALE_FACTOR; // Z becomes Y
+                float z = raw.y * m_phl1bsp->SCALE_FACTOR; // Y becomes Z
+
+                // 3. Set Camera
+                m_fpsPlayer->SetPosition(D3DXVECTOR3(x,y,z));
+                break;
+            }
+        }
     }
 	if (ImGui::Button("Back to Menu"))
     {
@@ -839,7 +893,7 @@ void ArkiGame::RenderGUI()
 			
             if (ImGui::Button("Build BSP"))
             {
-				if (m_bspLevel)m_bspLevel->StartBackgroundBuild();
+				//if (m_bspLevel)m_bspLevel->StartBackgroundBuild();
             }
             if (isBusy)
             {
@@ -902,8 +956,9 @@ void ArkiGame::RenderEditorScene()
     }
 
     D3DXVECTOR3 camPos = D3DXVECTOR3( (FLOAT)m_pCamEditor->GetPosition().x(),(FLOAT)m_pCamEditor->GetPosition().y(),(FLOAT)m_pCamEditor->GetPosition().z());
-    if (m_bspLevel)m_bspLevel->Render(d3d9->GetDevice(), camPos);
-
+    //if (m_bspLevel)m_bspLevel->Render(d3d9->GetDevice(), camPos);
+    if (m_pq3bsp)m_pq3bsp->Render();
+    if (m_phl1bsp)m_phl1bsp->Render();
 
 
     if(g_gizmo)g_gizmo->Render(d3d9->GetDevice());
@@ -940,7 +995,9 @@ void ArkiGame::RenderFPSGameScene()
     //m_pBodyMesh->Render(m_pSkybox->GetTexture(), m_pSkybox->GetRotationY());
 
     D3DXVECTOR3 camPos = D3DXVECTOR3((FLOAT)m_pCamEditor->GetPosition().x(), (FLOAT)m_pCamEditor->GetPosition().y(), (FLOAT)m_pCamEditor->GetPosition().z());
-    if (m_bspLevel)m_bspLevel->Render(d3d9->GetDevice(), camPos);
+    //if (m_bspLevel)m_bspLevel->Render(d3d9->GetDevice(), camPos);
+    if (m_pq3bsp)m_pq3bsp->Render();
+	if (m_phl1bsp)m_phl1bsp->Render();
 
 }
 
@@ -986,6 +1043,9 @@ void ArkiGame::RenderArkiGameScene()
     d3d9->GetDevice()->SetRenderState(D3DRS_ZENABLE, FALSE);
     m_font->RenderBatch(d3d9->GetDevice());
     d3d9->GetDevice()->SetRenderState(D3DRS_ZENABLE, TRUE);
+    float healthPercent = (1.0f / m_player->m_maxHealth) * m_player->m_health;
+    if (g_HUD)g_HUD->Render(d3d9->GetDevice(), m_sbatch, healthPercent, 12343);
+
 
 }
 
@@ -1045,8 +1105,6 @@ void ArkiGame::Render(double dt)
 
             D3DXMatrixIdentity(&matWorld);
             d3d9->GetDevice()->SetTransform(D3DTS_WORLD, &matWorld);
-            float healthPercent = (1.0f / m_player->m_maxHealth) * m_player->m_health;
-            if (g_HUD)g_HUD->Render(d3d9->GetDevice(), m_sbatch, healthPercent, 14343);
 
             //if (m_sbatch )
             //{
@@ -1272,21 +1330,17 @@ void ArkiGame::ProcessArkiInput(double dt)
 }
 void ArkiGame::ProcessFPSInput(double dt)
 {
-    static bool spaceWasPressed = false;
-    float moveSpeed = 15.0f * (float)dt;
-
+    //static bool spaceWasPressed = false;
+    //float moveSpeed = 15.0f * (float)dt;
     //if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
         m_pCam0->RotateFPS(-mouseDeltaY * 0.002f, -mouseDeltaX * 0.002f);
-
     //}
-
         if (m_fpsPlayer)m_fpsPlayer->Update(dt);
     // Keyboard Movement
     //if (GetAsyncKeyState('W') & 0x8000) m_pCam0->MoveLocal(moveSpeed, 0, 0);
     //if (GetAsyncKeyState('S') & 0x8000) m_pCam0->MoveLocal(-moveSpeed, 0, 0);
     //if (GetAsyncKeyState('A') & 0x8000) m_pCam0->MoveLocal(0, -moveSpeed, 0);
     //if (GetAsyncKeyState('D') & 0x8000) m_pCam0->MoveLocal(0, moveSpeed, 0);
-  
 }
 // ------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------
@@ -1353,7 +1407,7 @@ void ArkiGame::CheckCollisions(btDiscreteDynamicsWorld* dynamicsWorld)
         if (ballData && enemyData)
         {
             CFlyingEnemy* pEne = (CFlyingEnemy*)enemyData->pObject;
-            CArkiBall* pBall = (CArkiBall*)ballData->pObject;
+           // CArkiBall* pBall = (CArkiBall*)ballData->pObject;
 
             if (!pEne->m_isDead)
             {

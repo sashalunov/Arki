@@ -9,6 +9,24 @@ TextureManager::TextureManager(LPDIRECT3DDEVICE9 pDevice) : m_pDevice(pDevice)
 TextureManager::~TextureManager() 
 { Clear(); }
 
+void TextureManager::AddTexture(const std::wstring& name, LPDIRECT3DTEXTURE9 pTex)
+{
+    std::wstring key = name;
+    //std::transform(key.begin(), key.end(), key.begin(), std::tolower);
+    // Convert to lower case manually
+    for (auto& c : key) {
+        c = (TCHAR)tolower((unsigned char)c);
+    }
+    // If it exists, release the old one
+    if (m_textures.find(key) != m_textures.end()) {
+        m_textures[key]->Release();
+    }
+
+    // Add new one (AddRef if you want to share ownership, 
+    // but usually we transfer ownership here so no AddRef needed if created fresh)
+    m_textures[key] = pTex;
+}
+
 void TextureManager::Clear() 
 {
     for (auto& pair : m_textures) 

@@ -29,6 +29,7 @@ struct bspmiptex_t {
 struct HL1RenderFace
 {
     int textureID;      // Index into m_textures (to find name)
+    LPDIRECT3DTEXTURE9 pTexture;
     int startIndex;     // Start index in m_pIB
     int primCount;      // Number of triangles
     bool isTransparent; // Does it start with '{'?

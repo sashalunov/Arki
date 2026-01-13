@@ -17,6 +17,8 @@ public:
     void Render();
     void OnLostDevice();
     void OnResetDevice();
+    void PreloadTextures();
+    void LoadEmbeddedTextures(FILE* f, const hl1_dheader_t& h);
     void SetTextureManager(TextureManager* mgr) { m_pTextureMgr = mgr; }
     const std::vector<HL1Entity>& GetEntities() const { return m_entities; }
 

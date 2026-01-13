@@ -14,7 +14,8 @@ public:
     LPDIRECT3DTEXTURE9 GetTexture(const std::wstring& name);
 
     void Clear();
-
+    // New method to add manual textures (e.g., from BSP)
+    void AddTexture(const std::wstring& name, LPDIRECT3DTEXTURE9 pTex);
 private:
     struct WADEntry {
         std::wstring path;

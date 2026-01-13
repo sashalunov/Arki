@@ -163,7 +163,6 @@ bool CHL1BSP::Load(btDynamicsWorld* dynamicsWorld, const std::wstring& filename)
         }
     }
 
-
     // Load Geometry Lumps
     LoadLump(file, header, HL1_LUMP_VERTEXES, m_rawVerts);
     LoadLump(file, header, HL1_LUMP_EDGES, m_rawEdges);
@@ -200,6 +199,7 @@ bool CHL1BSP::Load(btDynamicsWorld* dynamicsWorld, const std::wstring& filename)
             m_textures.push_back(ti);
         }
     }
+    LoadEmbeddedTextures(file, header);
 
     fclose(file);
 
@@ -207,17 +207,36 @@ bool CHL1BSP::Load(btDynamicsWorld* dynamicsWorld, const std::wstring& filename)
     GenerateGeometry();
     InitPhysics(dynamicsWorld);
 
-
     return InitGraphics(d3d9->GetDevice());
-
-    return true;
 }
 
+void CHL1BSP::PreloadTextures()
+{
+    if (!m_pTextureMgr) return;
+
+    for (auto& face : m_renderFaces)
+    {
+        // 1. Get the texture name from the BSP data
+        // m_textures was populated during Load() from the MIP lump
+        if (face.textureID >= 0 && face.textureID < (int)m_textures.size())
+        {
+            std::wstring texName = std::wstring(m_textures[face.textureID].name.begin(), m_textures[face.textureID].name.end());
+
+            // 2. Force load (or retrieve from cache)
+            face.pTexture = m_pTextureMgr->GetTexture(texName);
+        }
+        else
+        {
+            face.pTexture = NULL;
+        }
+    }
+}
 void CHL1BSP::GenerateGeometry()
 {
     m_renderVerts.clear();
     m_renderIndices.clear();
     m_renderFaces.clear();
+
     // 1. Initialize Lightmap Atlas (CPU side)
     m_atlasPixels.assign(ATLAS_SIZE * ATLAS_SIZE, 0xFF000000); // Fill with black
     m_packX = 0; m_packY = 0; m_packRowHeight = 0;
@@ -456,6 +475,7 @@ bool CHL1BSP::InitGraphics(LPDIRECT3DDEVICE9 pDevice)
 
     // Clear CPU RAM (Optional)
     // m_atlasPixels.clear();
+    PreloadTextures();
 
     return true;
 }
@@ -512,33 +532,25 @@ void CHL1BSP::Render()
     m_pDevice->SetIndices(m_pIB);
 
 
-    // Optimization: Cache the last texture ID to avoid redundant state changes
-    int lastTexID = -1;
+    // Track last pointer to avoid redundant API calls
+    LPDIRECT3DTEXTURE9 pLastTex = (LPDIRECT3DTEXTURE9)0xFFFFFFFF;
 
     for (const auto& face : m_renderFaces)
     {
-        // 1. Bind Texture (Only if changed)
-        if (face.textureID != lastTexID)
+        // ZERO OVERHEAD TEXTURE BINDING
+        if (face.pTexture != pLastTex)
         {
-            if (face.textureID >= 0 && face.textureID < (int)m_textures.size())
-            {
-               
-                std::wstring name = std::wstring(m_textures[face.textureID].name.begin(), m_textures[face.textureID].name.end());
-                LPDIRECT3DTEXTURE9 pTex = m_pTextureMgr->GetTexture(name);
-                m_pDevice->SetTexture(0, pTex);
-            }
-            lastTexID = face.textureID;
+            m_pDevice->SetTexture(0, face.pTexture);
+            pLastTex = face.pTexture;
         }
 
-        // 2. Draw
         m_pDevice->DrawIndexedPrimitive(
             D3DPT_TRIANGLELIST,
-            0, 0, m_renderVerts.size(), // Range
-            face.startIndex,            // Start in IB
-            face.primCount              // Triangles
+            0, 0, m_renderVerts.size(),
+            face.startIndex,
+            face.primCount
         );
     }
-
 
     // -----------------------------------------------------------------------
     // 5. CLEANUP
@@ -714,4 +726,95 @@ void CHL1BSP::CleanupPhysics()
     }
     SAFE_DELETE(m_pCollisionShape);
     SAFE_DELETE(m_pTriangleMesh);
+}
+
+void CHL1BSP::LoadEmbeddedTextures(FILE* f, const hl1_dheader_t& h)
+{
+    if (!m_pTextureMgr || !m_pDevice) return;
+
+    int fileLen = h.lumps[HL1_LUMP_TEXTURES].filelen;
+    int fileOfs = h.lumps[HL1_LUMP_TEXTURES].fileofs;
+
+    if (fileLen == 0) return;
+    // 1. Read Number of Textures
+    fseek(f, fileOfs, SEEK_SET);
+    int numMipTex;
+    fread(&numMipTex, sizeof(int), 1, f);
+    // 2. Read Offsets Array
+    std::vector<int> offsets(numMipTex);
+    fread(offsets.data(), sizeof(int), numMipTex, f);
+
+    for (int i = 0; i < numMipTex; i++)
+    {
+        if (offsets[i] == -1) continue; // Skip, this one is in a WAD file
+        // Calculate absolute file offset to this Miptex
+        int miptexStart = fileOfs + offsets[i];
+        fseek(f, miptexStart, SEEK_SET);
+
+        // 3. Read Header
+        bspmiptex_t mt;
+        fread(&mt, sizeof(bspmiptex_t), 1, f);
+
+        // CHECK: Is it actually embedded?
+        // If offsets[0] is 0 or -1, it's external.
+        if (mt.offsets[0] <= 0) continue;
+
+        // 4. Read Indices (Mip Level 0 only)
+        // Offset is relative to the start of the bspmiptex_t struct
+        int w = mt.width;
+        int h = mt.height;
+        std::vector<BYTE> indices(w * h);
+
+        fseek(f, miptexStart + mt.offsets[0], SEEK_SET);
+        fread(indices.data(), 1, w * h, f);
+
+        // 5. Read Palette
+        // The palette is located after the 4th mip level.
+        // Size of 4 mips = w*h + (w*h)/4 + (w*h)/16 + (w*h)/64
+        // Or simpler: offsets[3] + size_of_mip_3 + 2 bytes for count
+        int offsetToPalette = mt.offsets[3] + (w * h / 64) + 2;
+
+        fseek(f, miptexStart + offsetToPalette, SEEK_SET);
+        BYTE palette[768];
+        fread(palette, 1, 768, f);
+
+        // 6. Create D3D Texture
+        LPDIRECT3DTEXTURE9 pTex = NULL;
+        if (FAILED(m_pDevice->CreateTexture(w, h, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &pTex, NULL)))
+            continue;
+
+        // 7. Convert 8-bit to 32-bit ARGB
+        D3DLOCKED_RECT rect;
+        if (SUCCEEDED(pTex->LockRect(0, &rect, NULL, 0)))
+        {
+            BYTE* dest = (BYTE*)rect.pBits;
+            bool isTransparent = (mt.name[0] == '{');
+
+            for (int p = 0; p < w * h; p++)
+            {
+                int idx = indices[p];
+                BYTE r = palette[idx * 3 + 0];
+                BYTE g = palette[idx * 3 + 1];
+                BYTE b = palette[idx * 3 + 2];
+                BYTE a = 255;
+
+                if (isTransparent && r == 0 && g == 0 && b == 255) a = 0;
+
+                DWORD* pPixel = (DWORD*)dest;
+                *pPixel = (a << 24) | (r << 16) | (g << 8) | b;
+                dest += 4;
+            }
+            pTex->UnlockRect(0);
+
+            // 8. Inject into Manager
+            // So GetTexture("my_embedded_tex") will find this immediately
+            std::wstring wname;
+            {
+                // Ensure null-termination and handle possible non-null-terminated names
+                size_t len = strnlen(mt.name, 16);
+                wname.assign(mt.name, mt.name + len);
+            }
+            m_pTextureMgr->AddTexture(wname, pTex);
+        }
+    }
 }

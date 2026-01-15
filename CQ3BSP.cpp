@@ -373,6 +373,8 @@ BOOL CQ3BSP::InitGraphics(LPDIRECT3DDEVICE9 pDevice)
 		m_pIB_Patch->Unlock();
 	}
 
+	CreateLightmaps();
+
 	return true;
 }
 
@@ -382,6 +384,14 @@ void CQ3BSP::OnLostDevice()
 	if (m_pIB_World) { m_pIB_World->Release(); m_pIB_World = NULL; }
 	if (m_pVB_Patch) { m_pVB_Patch->Release(); m_pVB_Patch = NULL; }
 	if (m_pIB_Patch) { m_pIB_Patch->Release(); m_pIB_Patch = NULL; }
+	for (auto tex : m_pLightmaps) 
+	{
+		if (tex) {
+			tex->Release(); tex = NULL;
+		}
+	}
+	m_pLightmaps.clear();
+
 }
 
 void CQ3BSP::OnResetDevice()
@@ -404,13 +414,26 @@ void CQ3BSP::Render()
 	m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW); // Check winding order
 	m_pDevice->SetRenderState(D3DRS_ZENABLE, TRUE);
 
+	//  SETUP TEXTURE BLENDING(Stage 0)
+		// Argument 1: The Texture (The Lightmap)
+		// Argument 2: The Diffuse (The Vertex Color)
+		// Operation:  Modulate (Multiply them)
+		// Result:     Colored lighting on white geometry
+	// If you want to use uv1 for Stage 0 (uncommon, usually uv0 is for tex, uv1 for light)
+	// We must tell D3D to use the UV set index 1 for Stage 0
+	//m_pDevice->SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, 1);
 
+	m_pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
+	m_pDevice->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
+	m_pDevice->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
+
+	m_pDevice->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_MULTIPLYADD);
+	m_pDevice->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
+	m_pDevice->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT);
 
 	// --------------------------------------------------------
 	// PASS 1: Static World (Walls, Floors)
 	// --------------------------------------------------------
-	if (m_pVB_World)
-	{
 		m_pDevice->SetStreamSource(0, m_pVB_World, 0, sizeof(Q3BSPVertex));
 		m_pDevice->SetIndices(m_pIB_World);
 
@@ -418,7 +441,15 @@ void CQ3BSP::Render()
 		{
 			if (surf.surfaceType == MST_PLANAR || surf.surfaceType == MST_TRIANGLE_SOUP)
 			{
-				// Apply Textures/Shaders based on surf.shaderNum here...
+				// BIND LIGHTMAP
+				if (surf.lightmapNum >= 0 && surf.lightmapNum < (int)m_pLightmaps.size())
+				{
+					m_pDevice->SetTexture(1, m_pLightmaps[surf.lightmapNum]);
+				}
+				else
+				{
+					m_pDevice->SetTexture(1, NULL); // No lightmap
+				}
 
 				m_pDevice->DrawIndexedPrimitive(
 					D3DPT_TRIANGLELIST,
@@ -430,7 +461,7 @@ void CQ3BSP::Render()
 				);
 			}
 		}
-	}
+	
 
 	// --------------------------------------------------------
 	// PASS 2: Bezier Patches
@@ -442,9 +473,14 @@ void CQ3BSP::Render()
 
 		for (const auto& info : m_patchRenderInfos)
 		{
-			// Get original surface to bind correct texture
-			// const dsurface_t& originalSurf = m_surfaces[info.originalSurfaceIndex];
-			// BindTexture(originalSurf.shaderNum);
+			// Get original surface to find lightmap index
+			int originalIndex = info.originalSurfaceIndex;
+			int lmNum = m_surfaces[originalIndex].lightmapNum;
+
+			if (lmNum >= 0 && lmNum < (int)m_pLightmaps.size())
+				m_pDevice->SetTexture(1, m_pLightmaps[lmNum]);
+			else
+				m_pDevice->SetTexture(1, NULL);
 
 			m_pDevice->DrawIndexedPrimitive(
 				D3DPT_TRIANGLELIST,

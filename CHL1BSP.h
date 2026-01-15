@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "CGizmo.h"
 #include "TextureManager.h"
 #include "Q3BSPStructures.h"
 #include "HL1BSPStructures.h"
@@ -15,6 +16,7 @@ public:
     // Convert generic HL1 structures to D3D buffers
     bool InitGraphics(LPDIRECT3DDEVICE9 pDevice);
     void Render();
+    void RenderEntities(CGizmo* pGizmo);
     void OnLostDevice();
     void OnResetDevice();
     void PreloadTextures();
@@ -28,7 +30,8 @@ private:
     void Clear();
     void InitPhysics(btDynamicsWorld* dynamicsWorld);
     void CleanupPhysics();
-
+    // Helper to parse "angle" or "angles" key
+    float GetEntityAngle(const HL1Entity& ent);
     // Internal generic loader
     template <typename T>
     bool LoadLump(FILE* f, const hl1_dheader_t& h, int lumpIndex, std::vector<T>& dest);

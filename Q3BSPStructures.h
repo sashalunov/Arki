@@ -221,7 +221,7 @@ struct BSPEntity
 		sscanf_s(val.c_str(), "%f %f %f", &x, &y, &z);
 
 		// Apply Swizzle (Z-Up to Y-Up) and Scale
-		return D3DXVECTOR3(x * -scaleFactor, z * scaleFactor, y * scaleFactor);
+		return D3DXVECTOR3(x * scaleFactor, z * scaleFactor, y * -scaleFactor);
 	}
 };
 

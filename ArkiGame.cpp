@@ -7,7 +7,6 @@
 #include "CXAudio.h"
 #include "CArkiBomb.h"
 #include "CHUD.h"
-
 #include "ArkiGame.h"
 
 // Create a tween from 0 to 100 over 100 steps (or milliseconds)
@@ -57,6 +56,8 @@ ArkiGame::ArkiGame()
 	m_bspLevel = NULL;
 	m_fpsPlayer = NULL;
 	m_pTextureMgr = NULL;
+	m_wadViewer = NULL;
+	m_viewerOpen = FALSE;
 }
 
 // ------------------------------------------------------------------------------------
@@ -191,7 +192,7 @@ bool ArkiGame::Init()
 	}*/
 	m_fpsPlayer = new CFPSPlayer();
 	m_fpsPlayer->Init(g_dynamicsWorld, m_pCam0, btVector3(5, 1, 20));
-
+	m_wadViewer = new CWADViewer(m_pTextureMgr);
     SetRenderStateDefaults();
 
     _log(L"Initializing Done\n");
@@ -425,6 +426,7 @@ void ArkiGame::FixedUpdate(double fixedDeltaTime)
 // ------------------------------------------------------------------------------------
 void ArkiGame::Shutdown()
 {
+    SAFE_DELETE(m_wadViewer);
     SAFE_DELETE(m_fpsPlayer);
 	SAFE_DELETE(m_phl1bsp);
     SAFE_DELETE(m_pq3bsp);
@@ -673,7 +675,7 @@ void ArkiGame::RenderGUI()
 	//sprintf(m_debugString, "FPS: %.2f", ImGui::GetIO().Framerate);
     ImGui::Begin("Debug Tools");
     //ImGui::SetWindowFontScale(2.0f);
-    ImGui::SetNextWindowSize(ImVec2(-1, -1), ImGuiCond_Always);
+    //ImGui::SetNextWindowSize(ImVec2(-1, -1), ImGuiCond_Always);
     ImGui::Text("FPS: %.3f fps", ImGui::GetIO().Framerate);
 	ImGui::Text("Player pos: %.3f %.3f %.3f", m_player->GetPosition().x, m_player->GetPosition().y, m_player->GetPosition().z);
 
@@ -777,13 +779,18 @@ void ArkiGame::RenderGUI()
                 // 2. Apply Scale and Swizzle (Z-Up -> Y-Up)
                 float x = raw.x * m_phl1bsp->SCALE_FACTOR;
                 float y = raw.z * m_phl1bsp->SCALE_FACTOR; // Z becomes Y
-                float z = raw.y * m_phl1bsp->SCALE_FACTOR; // Y becomes Z
+                float z = raw.y * -m_phl1bsp->SCALE_FACTOR; // Y becomes Z
 
                 // 3. Set Camera
                 m_fpsPlayer->SetPosition(D3DXVECTOR3(x,y,z));
                 break;
             }
         }
+    }
+    if (ImGui::Button("Load WAD")) {
+        std::wstring filepath = OpenFileDialog(d3d9->GetHWND(), L".wad\0*.wad\0");
+		m_wadViewer->OpenWAD(filepath);
+		m_viewerOpen = TRUE;
     }
 	if (ImGui::Button("Back to Menu"))
     {
@@ -794,11 +801,17 @@ void ArkiGame::RenderGUI()
     if (ImGui::Checkbox("Debug Draw", &m_debugdraw))
     {
     }
+    if (ImGui::Checkbox("Entities", &m_pEntitiesDraw))
+    {
+    }
+
     if (ImGui::Checkbox("Particles", &m_pfxdraw))
     {
     }
 
     ImGui::End();
+
+    m_wadViewer->Draw(&m_viewerOpen);
 
     switch (m_gameState)
     {
@@ -959,10 +972,13 @@ void ArkiGame::RenderEditorScene()
     //if (m_bspLevel)m_bspLevel->Render(d3d9->GetDevice(), camPos);
     if (m_pq3bsp)m_pq3bsp->Render();
     if (m_phl1bsp)m_phl1bsp->Render();
+    if (m_pEntitiesDraw)
+    {
+        if (m_phl1bsp)m_phl1bsp->RenderEntities(g_gizmo);
+    }
 
 
     if(g_gizmo)g_gizmo->Render(d3d9->GetDevice());
-
 }
 
 void ArkiGame::RenderFPSGameScene()
@@ -1098,7 +1114,6 @@ void ArkiGame::Render(double dt)
             default:
                 break;
 		}
-       
             /*for (auto e : m_enemies) {
 				e->Render(d3d9->GetDevice());
             }*/

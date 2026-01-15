@@ -26,6 +26,7 @@
 #include "CHL1BSP.h"
 #include "CFPSPlayer.h"
 #include "TextureManager.h"
+#include "WADViewer.h"
 
 #include "tweeny.h"
 using tweeny::easing;
@@ -106,6 +107,8 @@ public:
     bool m_isFPSMode;
     float scrollAmount;
 private:
+	CWADViewer* m_wadViewer;
+    BOOL m_viewerOpen;
 	TextureManager* m_pTextureMgr;
 	CHL1BSP* m_phl1bsp;
     CQ3BSP* m_pq3bsp;
@@ -175,6 +178,8 @@ private:
     CBulletDebugDrawer* btDebugDrawer;
     bool m_debugdraw = FALSE;
     bool m_pfxdraw = FALSE;
+    bool m_pEntitiesDraw = FALSE;
+
     bool m_usemouse = FALSE;
     bool m_usesnap = FALSE;
     float m_val = 0.0f;

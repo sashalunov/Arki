@@ -312,9 +312,9 @@ BOOL CQ3BSP::InitGraphics(LPDIRECT3DDEVICE9 pDevice)
 		for (size_t i = 0; i < m_vertices.size(); i++) {
 			// Convert drawVert_t to BSPVertex here (swizzle coords)
 			//pVerts[i].pos = m_vertices[i].xyz;
-			pVerts[i].pos.x = m_vertices[i].xyz.x * -SCALE_FACTOR;;
+			pVerts[i].pos.x = m_vertices[i].xyz.x * SCALE_FACTOR;;
 			pVerts[i].pos.y = m_vertices[i].xyz.z * SCALE_FACTOR;;
-			pVerts[i].pos.z = m_vertices[i].xyz.y * SCALE_FACTOR;;
+			pVerts[i].pos.z = m_vertices[i].xyz.y * -SCALE_FACTOR;;
 
 			pVerts[i].normal = m_vertices[i].normal;
 			pVerts[i].color = D3DCOLOR_RGBA(m_vertices[i].color[0], m_vertices[i].color[1], m_vertices[i].color[2], m_vertices[i].color[3]);
@@ -351,9 +351,9 @@ BOOL CQ3BSP::InitGraphics(LPDIRECT3DDEVICE9 pDevice)
 
 				pPatchVerts[i] = src; // Init
 				// Apply Scale & Swizzle
-				pPatchVerts[i].pos.x = src.pos.x * -SCALE_FACTOR;
+				pPatchVerts[i].pos.x = src.pos.x * SCALE_FACTOR;
 				pPatchVerts[i].pos.y = src.pos.z * SCALE_FACTOR; // Swap Y/Z
-				pPatchVerts[i].pos.z = src.pos.y * SCALE_FACTOR;
+				pPatchVerts[i].pos.z = src.pos.y * -SCALE_FACTOR;
 
 				pPatchVerts[i].normal.x = src.normal.x;
 				pPatchVerts[i].normal.y = src.normal.z; // Swap Y/Z
@@ -488,19 +488,19 @@ void CQ3BSP::InitPhysics(btDynamicsWorld* dynamicsWorld)
 				// Get Vertices & Apply Swizzle/Scale
 				// Q3 Z-up -> Bullet Y-up (x, z, y)
 				btVector3 v0(
-					m_vertices[idx0].xyz.x * -SCALE_FACTOR,
+					m_vertices[idx0].xyz.x * SCALE_FACTOR,
 					m_vertices[idx0].xyz.z * SCALE_FACTOR,
-					m_vertices[idx0].xyz.y * SCALE_FACTOR
+					m_vertices[idx0].xyz.y * -SCALE_FACTOR
 				);
 				btVector3 v1(
-					m_vertices[idx1].xyz.x * -SCALE_FACTOR,
+					m_vertices[idx1].xyz.x * SCALE_FACTOR,
 					m_vertices[idx1].xyz.z * SCALE_FACTOR,
-					m_vertices[idx1].xyz.y * SCALE_FACTOR
+					m_vertices[idx1].xyz.y * -SCALE_FACTOR
 				);
 				btVector3 v2(
-					m_vertices[idx2].xyz.x * -SCALE_FACTOR,
+					m_vertices[idx2].xyz.x * SCALE_FACTOR,
 					m_vertices[idx2].xyz.z * SCALE_FACTOR,
-					m_vertices[idx2].xyz.y * SCALE_FACTOR
+					m_vertices[idx2].xyz.y * -SCALE_FACTOR
 				);
 
 				m_pTriangleMesh->addTriangle(v0, v1, v2);
@@ -526,9 +526,9 @@ void CQ3BSP::InitPhysics(btDynamicsWorld* dynamicsWorld)
 		const Q3BSPVertex& p1 = m_patchVertices[idx1];
 		const Q3BSPVertex& p2 = m_patchVertices[idx2];
 
-		btVector3 v0(p0.pos.x * -SCALE_FACTOR, p0.pos.z * SCALE_FACTOR, p0.pos.y * SCALE_FACTOR);
-		btVector3 v1(p1.pos.x * -SCALE_FACTOR, p1.pos.z * SCALE_FACTOR, p1.pos.y * SCALE_FACTOR);
-		btVector3 v2(p2.pos.x * -SCALE_FACTOR, p2.pos.z * SCALE_FACTOR, p2.pos.y * SCALE_FACTOR);
+		btVector3 v0(p0.pos.x * SCALE_FACTOR, p0.pos.z * SCALE_FACTOR, p0.pos.y * -SCALE_FACTOR);
+		btVector3 v1(p1.pos.x * SCALE_FACTOR, p1.pos.z * SCALE_FACTOR, p1.pos.y * -SCALE_FACTOR);
+		btVector3 v2(p2.pos.x * SCALE_FACTOR, p2.pos.z * SCALE_FACTOR, p2.pos.y * -SCALE_FACTOR);
 
 		m_pTriangleMesh->addTriangle(v0, v1, v2);
 	}

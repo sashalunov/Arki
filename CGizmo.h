@@ -4,6 +4,11 @@
 #include "stdafx.h"
 
 enum EGizmoAxis { AXIS_NONE, AXIS_X, AXIS_Y, AXIS_Z };
+struct GizmoVertex
+{
+    float x, y, z;
+    D3DCOLOR color;
+};
 
 class CGizmo
 {
@@ -233,6 +238,92 @@ public:
 
     }
 
+    void DrawGizmo(IDirect3DDevice9* device, D3DXVECTOR3 pos, float size = 1.0f)
+    {
+        // 3 Lines * 2 Vertices = 6 Vertices
+        GizmoVertex verts[6];
+
+        // X-Axis (Red)
+        verts[0] = { pos.x, pos.y, pos.z,          D3DCOLOR_XRGB(255, 0, 0) }; // Center
+        verts[1] = { pos.x + size, pos.y, pos.z,   D3DCOLOR_XRGB(255, 0, 0) }; // End X
+
+        // Y-Axis (Green)
+        verts[2] = { pos.x, pos.y, pos.z,          D3DCOLOR_XRGB(0, 255, 0) }; // Center
+        verts[3] = { pos.x, pos.y + size, pos.z,   D3DCOLOR_XRGB(0, 255, 0) }; // End Y
+
+        // Z-Axis (Blue)
+        verts[4] = { pos.x, pos.y, pos.z,          D3DCOLOR_XRGB(0, 0, 255) }; // Center
+        verts[5] = { pos.x, pos.y, pos.z + size,   D3DCOLOR_XRGB(0, 0, 255) }; // End Z
+
+        // Render State Setup
+        device->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
+        device->SetTexture(0, NULL);
+        device->SetRenderState(D3DRS_LIGHTING, FALSE); // Pure colors, no shading
+        device->SetRenderState(D3DRS_ZENABLE, FALSE);  // Optional: Draw ON TOP of everything (X-Ray)
+
+        // Draw
+        device->DrawPrimitiveUP(D3DPT_LINELIST, 3, verts, sizeof(GizmoVertex));
+
+        // Restore States
+        device->SetRenderState(D3DRS_LIGHTING, TRUE);
+        device->SetRenderState(D3DRS_ZENABLE, TRUE);
+    }
+
+    void CGizmo::DrawCube(IDirect3DDevice9* device, D3DXVECTOR3 pos, D3DXVECTOR3 size, D3DXCOLOR color)
+    {
+        // Half-sizes to calculate corners from center
+        float hx = size.x * 0.5f;
+        float hy = size.y * 0.5f;
+        float hz = size.z * 0.5f;
+
+        // Define the 8 corners
+        D3DXVECTOR3 v[8];
+        v[0] = D3DXVECTOR3(pos.x - hx, pos.y - hy, pos.z - hz); // Bottom-Left-Back
+        v[1] = D3DXVECTOR3(pos.x + hx, pos.y - hy, pos.z - hz); // Bottom-Right-Back
+        v[2] = D3DXVECTOR3(pos.x + hx, pos.y + hy, pos.z - hz); // Top-Right-Back
+        v[3] = D3DXVECTOR3(pos.x - hx, pos.y + hy, pos.z - hz); // Top-Left-Back
+
+        v[4] = D3DXVECTOR3(pos.x - hx, pos.y - hy, pos.z + hz); // Bottom-Left-Front
+        v[5] = D3DXVECTOR3(pos.x + hx, pos.y - hy, pos.z + hz); // Bottom-Right-Front
+        v[6] = D3DXVECTOR3(pos.x + hx, pos.y + hy, pos.z + hz); // Top-Right-Front
+        v[7] = D3DXVECTOR3(pos.x - hx, pos.y + hy, pos.z + hz); // Top-Left-Front
+
+        // Create a vertex array for the Line List (12 lines * 2 verts = 24 verts)
+        // Assuming your Vertex Struct is named 'GizmoVertex' or 'VertexPositionColor'
+
+        DWORD c = (DWORD)color;
+        GizmoVertex lines[24];
+
+        // Helper lambda or macro to fill lines
+        int idx = 0;
+        auto AddLine = [&](int i1, int i2) {
+            lines[idx].x = v[i1].x; lines[idx].y = v[i1].y; lines[idx].z = v[i1].z; lines[idx].color = c; idx++;
+            lines[idx].x = v[i2].x; lines[idx].y = v[i2].y; lines[idx].z = v[i2].z; lines[idx].color = c; idx++;
+            };
+
+        // Front Face
+        AddLine(0, 1); AddLine(1, 2); AddLine(2, 3); AddLine(3, 0);
+        // Back Face
+        AddLine(4, 5); AddLine(5, 6); AddLine(6, 7); AddLine(7, 4);
+        // Connecting Edges
+        AddLine(0, 4); AddLine(1, 5); AddLine(2, 6); AddLine(3, 7);
+
+        // Render
+        // 'm_pDevice' is your IDirect3DDevice9* member
+        device->SetFVF(D3DFVF_XYZ | D3DFVF_DIFFUSE);
+        device->SetTexture(0, NULL);
+
+        device->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+        // Disable lighting to draw pure lines
+        device->SetRenderState(D3DRS_LIGHTING, FALSE);
+
+        device->DrawPrimitiveUP(D3DPT_LINELIST, 12, lines, sizeof(GizmoVertex));
+
+        // Restore Lighting (Optional, good practice)
+        device->SetRenderState(D3DRS_LIGHTING, TRUE);
+        device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+
+    }
 private:
     void DrawGizmoArrow(IDirect3DDevice9* dev, D3DCOLOR color) {
         D3DMATERIAL9 mtrl;

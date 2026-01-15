@@ -244,6 +244,7 @@
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TextureManager.h" />
     <ClInclude Include="TextureTools.h" />
+    <ClInclude Include="WADViewer.h" />
     <ClInclude Include="XMesh.h" />
     <ClInclude Include="CRibbonRenderer.h" />
   </ItemGroup>
@@ -296,6 +297,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TextureManager.cpp" />
+    <ClCompile Include="WADViewer.cpp" />
     <ClCompile Include="XMesh.cpp" />
     <ClCompile Include="СRibbonRenderer.cpp" />
   </ItemGroup>

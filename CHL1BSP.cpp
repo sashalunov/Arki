@@ -30,7 +30,7 @@ D3DXVECTOR3 CHL1BSP::GetScaledOrigin(const std::string& originString) const
         return D3DXVECTOR3(
             x * SCALE_FACTOR,
             z * SCALE_FACTOR,  // Z -> Y
-            y * SCALE_FACTOR   // Y -> Z
+            y * -SCALE_FACTOR   // Y -> Z
         );
     }
     return D3DXVECTOR3(0, 0, 0);
@@ -385,7 +385,7 @@ void CHL1BSP::GenerateGeometry()
             Q3BSPVertex vert;
 
             // 1. POSITION (Swizzled & Scaled)
-            vert.pos = D3DXVECTOR3(rawPos.x * -SCALE_FACTOR, rawPos.z * SCALE_FACTOR, rawPos.y * SCALE_FACTOR);
+            vert.pos = D3DXVECTOR3(rawPos.x * SCALE_FACTOR, rawPos.z * SCALE_FACTOR, rawPos.y *-SCALE_FACTOR);
             vert.color = 0xFFFFFFFF; // White base color
             vert.normal = D3DXVECTOR3(0, 1, 0);
 
@@ -818,3 +818,93 @@ void CHL1BSP::LoadEmbeddedTextures(FILE* f, const hl1_dheader_t& h)
         }
     }
 }
+
+void CHL1BSP::RenderEntities(CGizmo* pGizmo)
+{ 
+    if (!pGizmo) return;
+
+    for (const auto& ent : m_entities)
+    {
+        std::string className = ent.Get("classname");
+        std::string originStr = ent.Get("origin");
+
+        // Skip entities without a position (like worldspawn logic)
+        if (originStr.empty()) continue;
+
+        // 1. Get Raw HL1 Coordinates
+        D3DXVECTOR3 rawPos = ent.GetVector("origin");
+
+        // 2. Convert to DirectX World Space (Scale & Swizzle)
+        // HL1 (X, Y, Z) -> D3D (X, Z, Y)
+        D3DXVECTOR3 pos;
+        pos.x = rawPos.x * SCALE_FACTOR;
+        pos.y = rawPos.z * SCALE_FACTOR; // Z becomes Y (Up)
+        pos.z = rawPos.y * -SCALE_FACTOR; // Y becomes Z (Forward)
+
+        // --------------------------------------------------------
+        // VISUALIZE BASED ON TYPE
+        // --------------------------------------------------------
+
+        // A. Player Starts (Green Box)
+        if (className.find("info_player") != std::string::npos)
+        {
+            // Draw a box representing the player size (approx 32x32x72 units)
+            // Scaled down to match world scale
+            float w = 16.0f * SCALE_FACTOR; // Half-width
+            float h = 36.0f * SCALE_FACTOR; // Half-height
+
+            // Assuming CGizmo::DrawCube(center, size, color)
+            // Color: Green (0xFF00FF00)
+            pGizmo->DrawCube(m_pDevice,pos, D3DXVECTOR3(w, h, w), 0xFF00FF00);
+
+            // Optional: Draw Forward Vector based on "angle"
+            float angleYaw = GetEntityAngle(ent);
+            // Convert Yaw to Vector ...
+        }
+
+        // B. Lights (Yellow Sphere/Point)
+        else if (className == "light" || className == "light_spot")
+        {
+            // Color: Yellow (0xFFFFFF00)
+            float radius = 16.0f * SCALE_FACTOR;
+            pGizmo->DrawGizmo(m_pDevice, pos, radius);
+
+            // If it's a spot light, maybe draw a line showing direction
+            // "target" key points to another entity name
+        }
+
+        // C. Weapons/Items (Blue Box)
+        else if (className.find("weapon_") != std::string::npos ||
+            className.find("ammo_") != std::string::npos ||
+            className.find("item_") != std::string::npos)
+        {
+            float s = 16.0f * SCALE_FACTOR;
+            pGizmo->DrawCube(m_pDevice,pos, D3DXVECTOR3(s, s, s), 0xFF0000FF);
+        }
+
+        // D. Generic/Unknown (Small White Point)
+        else
+        {
+            float s = 8.0f * SCALE_FACTOR;
+            pGizmo->DrawCube(m_pDevice,pos, D3DXVECTOR3(s, s, s), 0xFFFFFFFF);
+        }
+    }
+}
+
+float CHL1BSP::GetEntityAngle(const HL1Entity& ent)
+{
+    // HL1 entities usually use "angle" (scalar yaw) or "angles" (pitch yaw roll)
+    std::string val = ent.Get("angle");
+    if (!val.empty()) return (float)atof(val.c_str());
+
+    // If "angle" is missing, sometimes "angles" is used
+    // "0 90 0"
+    val = ent.Get("angles");
+    if (!val.empty()) {
+        float p, y, r;
+        sscanf_s(val.c_str(), "%f %f %f", &p, &y, &r);
+        return y; // Return Yaw
+    }
+    return 0.0f;
+}
+

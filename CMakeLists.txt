@@ -17,6 +17,7 @@ elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../tools")
 else()
     message(FATAL_ERROR "Could not find tools directory!")
 endif()
+set(TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../tools")
 set(D3DX_PACKAGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/packages/Microsoft.DXSDK.D3DX.9.29.952.8/build/native")
 
 # Source files

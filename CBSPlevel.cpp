@@ -207,9 +207,12 @@ void CBSPlevel::SubdivideGeometry(std::vector<BSPTriangle>& tris)
         D3DXVECTOR3 p2(tri.v[2].x, tri.v[2].y, tri.v[2].z);
 
         // Check edge lengths
-        float d1 = D3DXVec3LengthSq(&(p0 - p1));
-        float d2 = D3DXVec3LengthSq(&(p1 - p2));
-        float d3 = D3DXVec3LengthSq(&(p2 - p0));
+        D3DXVECTOR3 diff1 = p0 - p1;
+        D3DXVECTOR3 diff2 = p1 - p2;
+        D3DXVECTOR3 diff3 = p2 - p0;
+        float d1 = D3DXVec3LengthSq(&diff1);
+        float d2 = D3DXVec3LengthSq(&diff2);
+        float d3 = D3DXVec3LengthSq(&diff3);
 
         // If any edge is too long, we subdivide into 4
         if ((d1 > MAX_EDGE_SQ || d2 > MAX_EDGE_SQ || d3 > MAX_EDGE_SQ) && (d1 > MIN_EDGE_LENGTH_SQ && d2 > MIN_EDGE_LENGTH_SQ && d3 > MIN_EDGE_LENGTH_SQ))
@@ -782,7 +785,7 @@ float CBSPlevel::CalculateFormFactor(const RADPATCH& src, const RADPATCH& dest)
     float cosSrc = D3DXVec3Dot(&src.normal, &dir);
     // Angle at Receiver (Lambert's cosine law for incidence)
     // We negate 'dir' because the receiver normal should point TOWARDS the shooter
-    float cosDest = D3DXVec3Dot(&dest.normal, &-dir);
+    float cosDest = -D3DXVec3Dot(&dest.normal, &dir);
     // Backface Culling:
     // If Source is facing away (cosSrc < 0) or Dest is facing away (cosDest < 0),
     // light cannot physically travel between them.

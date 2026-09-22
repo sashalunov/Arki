@@ -66,7 +66,7 @@ BOOL CLogger::Shutdown(void)
 
 // --------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------
-void CLogger::Log(TCHAR *fmt, ...)
+void CLogger::Log(const TCHAR *fmt, ...)
 {
 	eLogLevel level = LOG_INFO;
 	if(!m_pFile)return;
@@ -113,7 +113,7 @@ void CLogger::Log(TCHAR *fmt, ...)
 
 // --------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------
-void CLogger::Print(TCHAR *fmt, ...)
+void CLogger::Print(const TCHAR *fmt, ...)
 {
 	wchar_t szVa[2048];
 

@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\ArkiGame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\BezierTessellator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\BulletManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiBall.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiBlock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiBomb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiCliff.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiLevel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiPlayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CBSPlevel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CBulletDebugDrawer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CEnemyBullet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CFlyingEnemy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CFPSPlayer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CHL1BSP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CHUD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\COrbitCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CParticleSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CQ3BSP.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CQuatCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CRibbonRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CRigidBody.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CSkybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CSpriteBatch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CSpriteFont.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CXAudio.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\D3DCamera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\D3DRender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\EnemySpawner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\Logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\MovementStrategy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\Sounds.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\TextureManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\WADViewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\XMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui_draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui_tables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\backends\imgui_impl_dx9.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\backends\imgui_impl_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\ARKI.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{EF68FEFE-14AF-3533-82B1-81A71F31FAC4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

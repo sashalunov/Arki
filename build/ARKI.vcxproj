@@ -1,0 +1,438 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F7A04127-94A9-3A45-BF83-D88BB1FAE462}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+    <Platform>x64</Platform>
+    <ProjectName>ARKI</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ARKI.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ARKI</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ARKI.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ARKI</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\MinSizeRel\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ARKI.dir\MinSizeRel\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">ARKI</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\RelWithDebInfo\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ARKI.dir\RelWithDebInfo\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">ARKI</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ConformanceMode>true</ConformanceMode>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <OpenMPSupport>true</OpenMPSupport>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;UNICODE;_UNICODE;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;_DEBUG;_DEBUG=1;CMAKE_INTDIR="Debug"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;UNICODE;_UNICODE;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;_DEBUG=1;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>d3d9.lib;d3dx9d.lib;dinput8.lib;dxguid.lib;winmm.lib;xaudio2.lib;BulletDynamics_vs2010_x64_debug.lib;BulletCollision_vs2010_x64_debug.lib;LinearMath_vs2010_x64_debug.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/packages/Microsoft.DXSDK.D3DX.9.29.952.8/build/native/debug/lib/x64;D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/packages/Microsoft.DXSDK.D3DX.9.29.952.8/build/native/debug/lib/x64/$(Configuration);D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/../../tools/bullet3-3.25/bin;D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/../../tools/bullet3-3.25/bin/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <DataExecutionPrevention></DataExecutionPrevention>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
+      <ImportLibrary>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/Debug/ARKI.lib</ImportLibrary>
+      <LinkErrorReporting></LinkErrorReporting>
+      <ProgramDataBaseFile>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/Debug/ARKI.pdb</ProgramDataBaseFile>
+      <RandomizedBaseAddress></RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ConformanceMode>true</ConformanceMode>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <OpenMPSupport>true</OpenMPSupport>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;CMAKE_INTDIR="Release"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;CMAKE_INTDIR=\"Release\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>d3d9.lib;d3dx9.lib;dinput8.lib;dxguid.lib;winmm.lib;xaudio2.lib;BulletDynamics_vs2010_x64_release.lib;BulletCollision_vs2010_x64_release.lib;LinearMath_vs2010_x64_release.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/packages/Microsoft.DXSDK.D3DX.9.29.952.8/build/native/release/lib/x64;D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/packages/Microsoft.DXSDK.D3DX.9.29.952.8/build/native/release/lib/x64/$(Configuration);D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/../../tools/bullet3-3.25/bin;D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/../../tools/bullet3-3.25/bin/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <DataExecutionPrevention></DataExecutionPrevention>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
+      <ImportLibrary>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/Release/ARKI.lib</ImportLibrary>
+      <LinkErrorReporting></LinkErrorReporting>
+      <ProgramDataBaseFile>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/Release/ARKI.pdb</ProgramDataBaseFile>
+      <RandomizedBaseAddress></RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ConformanceMode>true</ConformanceMode>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <OpenMPSupport>true</OpenMPSupport>
+      <Optimization>MinSpace</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;CMAKE_INTDIR="MinSizeRel"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;CMAKE_INTDIR=\"MinSizeRel\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>d3d9.lib;dinput8.lib;dxguid.lib;winmm.lib;xaudio2.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/../../tools/bullet3-3.25/bin;D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/../../tools/bullet3-3.25/bin/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <DataExecutionPrevention></DataExecutionPrevention>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
+      <ImportLibrary>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/MinSizeRel/ARKI.lib</ImportLibrary>
+      <LinkErrorReporting></LinkErrorReporting>
+      <ProgramDataBaseFile>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/MinSizeRel/ARKI.pdb</ProgramDataBaseFile>
+      <RandomizedBaseAddress></RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck></BufferSecurityCheck>
+      <CallingConvention></CallingConvention>
+      <ConformanceMode>true</ConformanceMode>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <ForceConformanceInForLoopScope></ForceConformanceInForLoopScope>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild></MinimalRebuild>
+      <OpenMPSupport>true</OpenMPSupport>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RemoveUnreferencedCodeData></RemoveUnreferencedCodeData>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <SupportJustMyCode></SupportJustMyCode>
+      <TreatWChar_tAsBuiltInType></TreatWChar_tAsBuiltInType>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;CMAKE_INTDIR="RelWithDebInfo"</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG;UNICODE;_UNICODE;BT_THREADSAFE=1;BT_USE_DOUBLE_PRECISION;CMAKE_INTDIR=\"RelWithDebInfo\"</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\packages\Microsoft.DXSDK.D3DX.9.29.952.8\build\native\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\bullet3-3.25\src;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\imgui-1.92.5\backends;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\json\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tweeny-3.2.1\include;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\..\..\tools\tinyobjloader-2.0-rc1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>d3d9.lib;dinput8.lib;dxguid.lib;winmm.lib;xaudio2.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/../../tools/bullet3-3.25/bin;D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/../../tools/bullet3-3.25/bin/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <DataExecutionPrevention></DataExecutionPrevention>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImageHasSafeExceptionHandlers></ImageHasSafeExceptionHandlers>
+      <ImportLibrary>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/RelWithDebInfo/ARKI.lib</ImportLibrary>
+      <LinkErrorReporting></LinkErrorReporting>
+      <ProgramDataBaseFile>D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/RelWithDebInfo/ARKI.pdb</ProgramDataBaseFile>
+      <RandomizedBaseAddress></RandomizedBaseAddress>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\tmp\cmake\bin\cmake.exe -SD:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging -BD:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build --check-stamp-file D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\tmp\cmake\share\cmake-4.4\Modules\CMakeCXXInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeCommonLanguageInclude.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeGenericSystem.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeInitializeConfigs.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeLanguageInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeRCInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeSystemSpecificInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeSystemSpecificInitialize.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Linker\MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Linker\MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Linker\Windows-MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-Initialize.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\WindowsPaths.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeCXXCompiler.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeRCCompiler.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+C:\tmp\cmake\bin\cmake.exe -SD:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging -BD:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build --check-stamp-file D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\tmp\cmake\share\cmake-4.4\Modules\CMakeCXXInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeCommonLanguageInclude.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeGenericSystem.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeInitializeConfigs.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeLanguageInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeRCInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeSystemSpecificInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeSystemSpecificInitialize.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Linker\MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Linker\MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Linker\Windows-MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-Initialize.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\WindowsPaths.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeCXXCompiler.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeRCCompiler.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+C:\tmp\cmake\bin\cmake.exe -SD:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging -BD:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build --check-stamp-file D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">C:\tmp\cmake\share\cmake-4.4\Modules\CMakeCXXInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeCommonLanguageInclude.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeGenericSystem.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeInitializeConfigs.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeLanguageInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeRCInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeSystemSpecificInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeSystemSpecificInitialize.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Linker\MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Linker\MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Linker\Windows-MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-Initialize.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\WindowsPaths.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeCXXCompiler.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeRCCompiler.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+C:\tmp\cmake\bin\cmake.exe -SD:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging -BD:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build --check-stamp-file D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">C:\tmp\cmake\share\cmake-4.4\Modules\CMakeCXXInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeCommonLanguageInclude.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeGenericSystem.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeInitializeConfigs.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeLanguageInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeRCInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeSystemSpecificInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\CMakeSystemSpecificInitialize.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Compiler\MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Internal\CMakeCXXLinkerInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Internal\CMakeCommonLinkerInformation.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Linker\MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Linker\MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Linker\Windows-MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Linker\Windows-MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-Initialize.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-MSVC-CXX.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows-MSVC.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\Windows.cmake;C:\tmp\cmake\share\cmake-4.4\Modules\Platform\WindowsPaths.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeCXXCompiler.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeRCCompiler.cmake;D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\4.4.0-rc2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\ArkiGame.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\BezierTessellator.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\BulletManager.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiBall.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiBlock.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiBomb.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiCliff.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiLevel.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CArkiPlayer.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CBSPlevel.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CBulletDebugDrawer.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CEnemyBullet.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CFlyingEnemy.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CFPSPlayer.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CGrid.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CHL1BSP.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CHUD.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\COrbitCamera.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CParticleSystem.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CQ3BSP.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CQuatCamera.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CRibbonRenderer.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CRigidBody.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CSkybox.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CSpriteBatch.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CSpriteFont.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\CXAudio.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\D3DCamera.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\D3DRender.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\EnemySpawner.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\Logger.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\main.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\MovementStrategy.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\Sounds.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\stdafx.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\TextureManager.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\WADViewer.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\XMesh.cpp" />
+    <ResourceCompile Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\ARKI.rc" />
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui_demo.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui_draw.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui_tables.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\imgui_widgets.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\backends\imgui_impl_dx9.cpp" />
+    <ClCompile Include="D:\GIT\DIRECTX\tools\imgui-1.92.5\backends\imgui_impl_win32.cpp" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\ZERO_CHECK.vcxproj">
+      <Project>{2F905BD6-3ED6-3F7C-A2B0-A8B264961EB3}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

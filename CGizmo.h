@@ -269,7 +269,7 @@ public:
         device->SetRenderState(D3DRS_ZENABLE, TRUE);
     }
 
-    void CGizmo::DrawCube(IDirect3DDevice9* device, D3DXVECTOR3 pos, D3DXVECTOR3 size, D3DXCOLOR color)
+    void DrawCube(IDirect3DDevice9* device, D3DXVECTOR3 pos, D3DXVECTOR3 size, D3DXCOLOR color)
     {
         // Half-sizes to calculate corners from center
         float hx = size.x * 0.5f;

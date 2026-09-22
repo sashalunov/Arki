@@ -61,7 +61,7 @@ public:
     btQuaternion GetRotation() const { return m_rotation; }
 
     // Get the vector pointing strictly to the "Right" of the camera (Local +X)
-    btVector3 CQuatCamera::GetRightVector() const
+    btVector3 GetRightVector() const
     {
         // Method 1: Matrix Column Extraction (Cleanest for all axes)
         btMatrix3x3 rotMat(m_rotation);
@@ -70,14 +70,14 @@ public:
 
     // Get the vector pointing strictly "Up" relative to the camera (Local +Y)
     // Note: In 6DOF mode, this might not point to World Up (0,1,0).
-    btVector3 CQuatCamera::GetUpVector() const
+    btVector3 GetUpVector() const
     {
         btMatrix3x3 rotMat(m_rotation);
         return rotMat.getColumn(1);
     }
 
     // Get the vector the camera is looking at (Local -Z)
-    btVector3 CQuatCamera::GetForwardVector() const
+    btVector3 GetForwardVector() const
     {
         btMatrix3x3 rotMat(m_rotation);
         // In Right-Handed coordinates, the 'Z' column (column 2) points BACKWARDS.

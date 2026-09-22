@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\GIT\DIRECTX\Arki.worktrees\cmake-build-errors-debugging\build\CMakeFiles\2858fef088072016231a4d19f5f7b6a5\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{D8896B8F-733E-3928-BF45-7E9623607409}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

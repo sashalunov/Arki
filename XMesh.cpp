@@ -28,7 +28,7 @@ CXMesh::CXMesh()
 }
 
 // ----------------------------------------------------------------------------
-CXMesh::CXMesh(LPDIRECT3DDEVICE9 dev, TCHAR* pszFileName) 
+CXMesh::CXMesh(LPDIRECT3DDEVICE9 dev, const TCHAR* pszFileName) 
 {
 	m_bVisible = 0;
 	m_bActive = 0;
@@ -68,7 +68,7 @@ CXMesh::~CXMesh(void)
 
 // --------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------
-HRESULT CXMesh::Load(TCHAR *pszFileName)
+HRESULT CXMesh::Load(const TCHAR *pszFileName)
 {
 	// FIX: Ensure we don't leak an existing mesh if Load is called twice
 	SAFE_RELEASE(m_pSysMemMesh);

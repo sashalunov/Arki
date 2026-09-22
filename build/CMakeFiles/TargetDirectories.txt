@@ -1,0 +1,3 @@
+D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/CMakeFiles/ARKI.dir
+D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/CMakeFiles/ALL_BUILD.dir
+D:/GIT/DIRECTX/Arki.worktrees/cmake-build-errors-debugging/build/CMakeFiles/ZERO_CHECK.dir

@@ -18,13 +18,13 @@ public:
 	BOOL Initialize(void);
 	BOOL Shutdown(void);
 
-	void Log(TCHAR *fmt, ...);		// ������� ��������� � ����
-	void Print(TCHAR *fmt, ...);	// ������� ��������� � Output Window
+	void Log(const TCHAR *fmt, ...);		// ������� ��������� � ����
+	void Print(const TCHAR *fmt, ...);	// ������� ��������� � Output Window
 	void AttachConsole();
 
 private:
 	FILE*		m_pFile;
-	TCHAR*		m_szFileName;
+	const TCHAR*		m_szFileName;
 	// THE MAGIC: A mutex to protect the file pointer
 	std::mutex  m_mutex;
 };

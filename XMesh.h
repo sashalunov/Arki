@@ -6,14 +6,14 @@ class CXMesh
 {
 public:
 	CXMesh();
-	CXMesh(LPDIRECT3DDEVICE9 dev, TCHAR* pszFileName);
+	CXMesh(LPDIRECT3DDEVICE9 dev, const TCHAR* pszFileName);
 	~CXMesh();
 
 	void Render();
 	void Render(IDirect3DCubeTexture9* pReflectionTexture, float rotationAngle);
 
 	void Update();
-	HRESULT Load(TCHAR *pszFileName);
+	HRESULT Load(const TCHAR *pszFileName);
 
 	void SetPos(D3DXVECTOR3 v) { m_vPos = v; }
 	void SetPos(float x, float y, float z){m_vPos = D3DXVECTOR3(x, y, z);}
@@ -35,7 +35,7 @@ private:
 	D3DXMATRIX		m_matRotation;
 	D3DXMATRIX		m_matScaling;
 
-    TCHAR*		m_pszFileName;
+    const TCHAR*		m_pszFileName;
     BOOL		m_bUseMaterials;
     DWORD		m_dwNumMaterials;
 

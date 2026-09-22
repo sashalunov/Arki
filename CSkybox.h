@@ -37,7 +37,7 @@ class CSkybox
         return D3DXFillCubeTexture(g_pSkyboxTexture, ProceduralSpaceGen, NULL);
         //return S_OK;
     }
-    HRESULT InitSkyboxTexture(IDirect3DDevice9* pd3dDevice, TCHAR* filepath)
+    HRESULT InitSkyboxTexture(IDirect3DDevice9* pd3dDevice, const TCHAR* filepath)
     {
         // D3DX function to load a cube map from file (Unicode version)
         return D3DXCreateCubeTextureFromFile(pd3dDevice, filepath, &g_pSkyboxTexture);
@@ -91,13 +91,13 @@ public:
        return g_pSkyboxVB->Unlock();
     }
 
-	CSkybox::CSkybox()
+	CSkybox()
         : m_fCurrentRotationX(0.0f)
         , m_fRotationSpeed(-0.01f)
         , g_pSkyboxTexture(NULL)// Example: 0.01 radians per second (approx 0.57 degrees/sec)
     {
     }
-    CSkybox::CSkybox(IDirect3DDevice9* pd3dDevice, TCHAR* skyboxTexturePath)
+    CSkybox(IDirect3DDevice9* pd3dDevice, const TCHAR* skyboxTexturePath)
         : m_fCurrentRotationX(0.0f)
         , m_fRotationSpeed(-0.01f) // Example: 0.01 radians per second (approx 0.57 degrees/sec)
         , g_pSkyboxTexture(NULL)
@@ -113,7 +113,7 @@ public:
         hr = InitSkyboxGeometry(pd3dDevice);
 	}   
 
-    CSkybox::~CSkybox() 
+    ~CSkybox()
     {
         SAFE_RELEASE(g_pSkyboxTexture); // DX9 Cleanup
         SAFE_RELEASE(g_pSkyboxVB);

@@ -18,8 +18,8 @@ public:
 	BOOL Initialize(void);
 	BOOL Shutdown(void);
 
-	void Log(const TCHAR *fmt, ...);		// ������� ��������� � ����
-	void Print(const TCHAR *fmt, ...);	// ������� ��������� � Output Window
+	void Log(const TCHAR *fmt, ...);		
+	void Print(const TCHAR *fmt, ...);	
 	void AttachConsole();
 
 private:

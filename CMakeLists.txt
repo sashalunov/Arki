@@ -17,7 +17,6 @@ elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../tools")
 else()
     message(FATAL_ERROR "Could not find tools directory!")
 endif()
-set(TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../tools")
 set(D3DX_PACKAGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/packages/Microsoft.DXSDK.D3DX.9.29.952.8/build/native")
 
 # Source files
@@ -117,10 +116,17 @@ if(MSVC)
         MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
     )
 
+    # Determine target architecture (x86 or x64)
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(D3D_ARCH "x64")
+    else()
+        set(D3D_ARCH "x86")
+    endif()
+
     # Library search directories
     target_link_directories(ARKI PRIVATE
-        "$<$<CONFIG:Debug>:${D3DX_PACKAGE_DIR}/debug/lib/x64>"
-        "$<$<CONFIG:Release>:${D3DX_PACKAGE_DIR}/release/lib/x64>"
+        "$<$<CONFIG:Debug>:${D3DX_PACKAGE_DIR}/debug/lib/${D3D_ARCH}>"
+        "$<$<CONFIG:Release>:${D3DX_PACKAGE_DIR}/release/lib/${D3D_ARCH}>"
         "${TOOLS_DIR}/bullet3-3.25/bin"
     )
 
